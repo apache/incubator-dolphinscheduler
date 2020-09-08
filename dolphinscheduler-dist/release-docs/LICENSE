@@ -258,21 +258,22 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     guava 20.0: https://mvnrepository.com/artifact/com.google.guava/guava/20.0, Apache 2.0
     guice 3.0: https://mvnrepository.com/artifact/com.google.inject/guice/3.0, Apache 2.0
     guice-servlet 3.0: https://mvnrepository.com/artifact/com.google.inject.extensions/guice-servlet/3.0, Apache 2.0
-    hadoop-annotations 2.7.3:https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-annotations/2.7.3, Apache 2.0
-    hadoop-auth 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-auth/2.7.3, Apache 2.0
-    hadoop-aws 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/2.7.3, Apache 2.0
-    hadoop-client 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-client/2.7.3, Apache 2.0
-    hadoop-common 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common/2.7.3, Apache 2.0
-    hadoop-hdfs 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs/2.7.3, Apache 2.0
-    hadoop-mapreduce-client-app 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-app/2.7.3, Apache 2.0
-    hadoop-mapreduce-client-common 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-common/2.7.3, Apache 2.0
-    hadoop-mapreduce-client-core 2.7.3: https://mvnrepository.com/artifact/io.hops/hadoop-mapreduce-client-core/2.7.3, Apache 2.0
-    hadoop-mapreduce-client-jobclient 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-jobclient/2.7.3, Apache 2.0
-    hadoop-mapreduce-client-shuffle 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-shuffle/2.7.3, Apache 2.0
-    hadoop-yarn-api 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-api/2.7.3, Apache 2.0
-    hadoop-yarn-client 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-client/2.7.3, Apache 2.0
-    hadoop-yarn-common 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-common/2.7.3, Apache 2.0
-    hadoop-yarn-server-common 2.7.3: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-server-common/2.7.3, Apache 2.0
+    hadoop-annotations 2.9.2:https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-annotations/2.9.2, Apache 2.0
+    hadoop-auth 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-auth/2.9.2, Apache 2.0
+    hadoop-aws 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/2.9.2, Apache 2.0
+    hadoop-client 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-client/2.9.2, Apache 2.0
+    hadoop-common 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common/2.9.2, Apache 2.0
+    hadoop-hdfs 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs/2.9.2, Apache 2.0
+    hadoop-mapreduce-client-app 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-app/2.9.2, Apache 2.0
+    hadoop-mapreduce-client-common 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-common/2.9.2, Apache 2.0
+    hadoop-mapreduce-client-core 2.9.2: https://mvnrepository.com/artifact/io.hops/hadoop-mapreduce-client-core/2.9.2, Apache 2.0
+    hadoop-mapreduce-client-jobclient 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-jobclient/2.9.2, Apache 2.0
+    hadoop-mapreduce-client-shuffle 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-shuffle/2.9.2, Apache 2.0
+    hadoop-yarn-api 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-api/2.9.2, Apache 2.0
+    hadoop-yarn-client 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-client/2.9.2, Apache 2.0
+    hadoop-yarn-common 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-common/2.9.2, Apache 2.0
+    hadoop-yarn-server-common 2.9.2: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-yarn-server-common/2.9.2, Apache 2.0
+    hadoop-aliyun 2.9.2 https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aliyun/2.9.2, Apache 2.0
     hibernate-validator 6.0.14.Final: https://github.com/hibernate/hibernate-validator, Apache 2.0
     HikariCP 3.2.0: https://mvnrepository.com/artifact/com.zaxxer/HikariCP/3.2.0, Apache 2.0
     hive-common 2.1.0: https://mvnrepository.com/artifact/org.apache.hive/hive-common/2.1.0, Apache 2.0

@@ -91,6 +91,25 @@ public final class Constants {
      */
     public static final String FS_S3A_SECRET_KEY = "fs.s3a.secret.key";
 
+    /**
+     * fs oss endpoint
+     */
+    public static final String FS_OSS_ENDPOINT = "fs.oss.endpoint";
+
+    /**
+     * fs oss bucket
+     */
+    public static final String FS_OSS_BUCKET = "fs.oss.bucket";
+
+    /**
+     * fs oss access key id
+     */
+    public static final String FS_OSS_ACCESS_KEY_ID = "fs.oss.accessKeyId";
+
+    /**
+     * fs oss secret
+     */
+    public static final String FS_OSS_ACCESS_KEY_SECRET = "fs.oss.accessKeySecret";
 
     /**
      * yarn.resourcemanager.ha.rm.ids

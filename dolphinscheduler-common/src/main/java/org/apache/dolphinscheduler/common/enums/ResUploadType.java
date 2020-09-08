@@ -24,6 +24,7 @@ public enum ResUploadType {
    * 0 hdfs
    * 1 s3
    * 2 none
+   * 3 oss
    */
-  HDFS,S3,NONE
+  HDFS,S3,NONE,OSS
 }

@@ -1440,6 +1440,15 @@ which has the following notices:
 * This product includes software developed by IBM Corporation and others.
 
 The binary distribution of this product bundles binaries of
+AWS Java SDK 1.11.199,
+which has the following notices:
+ * This software includes third party software subject to the following
+ copyrights: - XML parsing and utility functions from JetS3t - Copyright
+ 2006-2009 James Murty. - JSON parsing and utility functions from JSON.org -
+ Copyright 2002 JSON.org. - PKCS#1 PEM encoded private key parsing and utility
+ functions from oauth.googlecode.com - Copyright 1998-2010 AOL Inc.
+
+The binary distribution of this product bundles binaries of
 Gson 2.2.4,
 which has the following notices:
 
@@ -1697,6 +1706,15 @@ which has the following notices:
     Copyright 2002-2012 Ramnivas Laddad, Juergen Hoeller, Chris Beams
 
 The binary distribution of this product bundles binaries of
+Java Concurrency in Practice book annotations 1.0,
+which has the following notices:
+ * Copyright (c) 2005 Brian Goetz and Tim Peierls Released under the Creative
+  Commons Attribution License (http://creativecommons.org/licenses/by/2.5)
+  Official home: http://www.jcip.net Any republication or derived work
+  distributed in source code form must include this copyright and license
+  notice.
+
+The binary distribution of this product bundles binaries of
 Jetty 6.1.26,
 which has the following notices:
  * ==============================================================
@@ -1776,6 +1794,28 @@ which has the following notices:
 
    org.apache.taglibs:taglibs-standard-spec
    org.apache.taglibs:taglibs-standard-impl
+
+
+   ------
+   MortBay
+
+   The following artifacts are ASL2 licensed.  Based on selected classes from
+   following Apache Tomcat jars, all ASL2 licensed.
+
+   org.mortbay.jasper:apache-jsp
+     org.apache.tomcat:tomcat-jasper
+     org.apache.tomcat:tomcat-juli
+     org.apache.tomcat:tomcat-jsp-api
+     org.apache.tomcat:tomcat-el-api
+     org.apache.tomcat:tomcat-jasper-el
+     org.apache.tomcat:tomcat-api
+     org.apache.tomcat:tomcat-util-scan
+     org.apache.tomcat:tomcat-util
+
+   org.mortbay.jasper:apache-el
+     org.apache.tomcat:tomcat-jasper-el
+     org.apache.tomcat:tomcat-el-api
+
 
    ------
    Mortbay
