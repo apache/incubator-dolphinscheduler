@@ -46,34 +46,39 @@ public class SubProcessTaskExecThread extends MasterBaseTaskExecThread {
     public Boolean submitWaitComplete() {
 
         Boolean result = false;
-        try{
+        try {
             // submit task instance
             this.taskInstance = submit();
 
-            if(taskInstance == null){
+            if (taskInstance == null) {
                 logger.error("sub work flow submit task instance to mysql and queue failed , please check and fix it");
                 return result;
             }
             setTaskInstanceState();
             waitTaskQuit();
-            subProcessInstance = processService.findSubProcessInstance(processInstance.getId(), taskInstance.getId());
 
-            // at the end of the subflow , the task state is changed to the subflow state
-            if(subProcessInstance != null){
-                if(subProcessInstance.getState() == ExecutionStatus.STOP){
-                    this.taskInstance.setState(ExecutionStatus.KILL);
-                }else{
-                    this.taskInstance.setState(subProcessInstance.getState());
+            if (fakeRun) {
+                this.taskInstance.setState(ExecutionStatus.SUCCESS);
+            } else {
+                subProcessInstance = processService.findSubProcessInstance(processInstance.getId(), taskInstance.getId());
+
+                // at the end of the subflow , the task state is changed to the subflow state
+                if (subProcessInstance != null) {
+                    if (subProcessInstance.getState() == ExecutionStatus.STOP) {
+                        this.taskInstance.setState(ExecutionStatus.KILL);
+                    } else {
+                        this.taskInstance.setState(subProcessInstance.getState());
+                    }
                 }
             }
             taskInstance.setEndTime(new Date());
             processService.updateTaskInstance(taskInstance);
             logger.info("subflow task :{} id:{}, process id:{}, exec thread completed ",
-                    this.taskInstance.getName(),taskInstance.getId(), processInstance.getId() );
+                    this.taskInstance.getName(), taskInstance.getId(), processInstance.getId());
             result = true;
 
-        }catch (Exception e){
-            logger.error("exception: ",e);
+        } catch (Exception e) {
+            logger.error("exception: ", e);
             if (null != taskInstance) {
                 logger.error("wait task quit failed, instance id:{}, task id:{}",
                         processInstance.getId(), taskInstance.getId());
@@ -88,9 +93,11 @@ public class SubProcessTaskExecThread extends MasterBaseTaskExecThread {
      * @return
      */
     private boolean setTaskInstanceState(){
-        subProcessInstance = processService.findSubProcessInstance(processInstance.getId(), taskInstance.getId());
-        if(subProcessInstance == null || taskInstance.getState().typeIsFinished()){
-            return false;
+        if (!fakeRun) {
+            subProcessInstance = processService.findSubProcessInstance(processInstance.getId(), taskInstance.getId());
+            if (subProcessInstance == null || taskInstance.getState().typeIsFinished()) {
+                return false;
+            }
         }
 
         taskInstance.setState(ExecutionStatus.RUNNING_EXECUTION);
@@ -119,6 +126,13 @@ public class SubProcessTaskExecThread extends MasterBaseTaskExecThread {
     private void waitTaskQuit() throws InterruptedException {
 
         logger.info("wait sub work flow: {} complete", this.taskInstance.getName());
+
+        if (fakeRun) {
+            logger.info("subprocess task :{} id:{}, as fake-run",
+                    taskInstance.getName(),
+                    taskInstance.getId());
+            return;
+        }
 
         if (taskInstance.getState().typeIsFinished()) {
             logger.info("sub work flow task {} already complete. task state:{}, parent work flow instance state:{}",

@@ -39,8 +39,8 @@ public class TaskManager {
 
     /**
      * create new task
-     * @param taskExecutionContext  taskExecutionContext
-     * @param logger    logger
+     * @param taskExecutionContext taskExecutionContext
+     * @param logger logger
      * @return AbstractTask
      * @throws IllegalArgumentException illegal argument exception
      */
@@ -76,5 +76,16 @@ public class TaskManager {
                 logger.error("not support task type: {}", taskExecutionContext.getTaskType());
                 throw new IllegalArgumentException("not support task type");
         }
+    }
+
+    /**
+     * create new fake-run task
+     * @param taskExecutionContext taskExecutionContext
+     * @param logger logger
+     * @return AbstractTask
+     * @throws IllegalArgumentException illegal argument exception
+     */
+    public static AbstractTask newFakeRunTask(TaskExecutionContext taskExecutionContext, Logger logger) {
+        return new FakeRunTask(taskExecutionContext, logger);
     }
 }

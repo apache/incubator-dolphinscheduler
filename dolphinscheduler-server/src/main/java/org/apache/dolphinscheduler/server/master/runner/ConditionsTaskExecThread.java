@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.server.master.runner;
 
 import org.apache.dolphinscheduler.common.Constants;
@@ -23,19 +24,19 @@ import org.apache.dolphinscheduler.common.model.DependentItem;
 import org.apache.dolphinscheduler.common.model.DependentTaskModel;
 import org.apache.dolphinscheduler.common.task.dependent.DependentParameters;
 import org.apache.dolphinscheduler.common.utils.DependentUtils;
-import org.apache.dolphinscheduler.common.utils.*;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.LoggerUtils;
 import org.apache.dolphinscheduler.common.utils.NetUtils;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
 import org.apache.dolphinscheduler.server.utils.LogUtils;
-
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.LoggerFactory;
 
 public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
 
@@ -76,6 +77,9 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
             String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
             Thread.currentThread().setName(threadLoggerInfoName);
             initTaskParameters();
+            if (!fakeRun) {
+                initDependParameters();
+            }
             logger.info("dependent task start");
             waitTaskQuit();
             updateTaskState();
@@ -85,19 +89,32 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
         return true;
     }
 
+    /**
+     * init dependent parameters
+     */
+    private void initDependParameters() {
+        this.dependentParameters = JSONUtils.parseObject(this.taskInstance.getDependency(), DependentParameters.class);
+    }
+
     private void waitTaskQuit() {
+        if (fakeRun) {
+            logger.info("conditions task :{} id:{}, as fake-run",
+                    taskInstance.getName(), taskInstance.getId());
+            return;
+        }
+
         List<TaskInstance> taskInstances = processService.findValidTaskListByProcessId(
                 taskInstance.getProcessInstanceId()
         );
-        for(TaskInstance task : taskInstances){
+        for (TaskInstance task : taskInstances) {
             completeTaskList.putIfAbsent(task.getName(), task.getState());
         }
 
         List<DependResult> modelResultList = new ArrayList<>();
-        for(DependentTaskModel dependentTaskModel : dependentParameters.getDependTaskList()){
+        for (DependentTaskModel dependentTaskModel : dependentParameters.getDependTaskList()) {
 
             List<DependResult> itemDependResult = new ArrayList<>();
-            for(DependentItem item : dependentTaskModel.getDependItemList()){
+            for (DependentItem item : dependentTaskModel.getDependItemList()) {
                 itemDependResult.add(getDependResultForItem(item));
             }
             DependResult modelResult = DependentUtils.getDependResultForRelation(dependentTaskModel.getRelation(), itemDependResult);
@@ -109,14 +126,13 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
         logger.info("the conditions task depend result : {}", conditionResult);
     }
 
-    /**
-     *
-     */
     private void updateTaskState() {
         ExecutionStatus status;
-        if(this.cancel){
+        if (cancel) {
             status = ExecutionStatus.KILL;
-        }else{
+        } else if (fakeRun) {
+            status = ExecutionStatus.SUCCESS;
+        } else {
             status = (conditionResult == DependResult.SUCCESS) ? ExecutionStatus.SUCCESS : ExecutionStatus.FAILURE;
         }
         taskInstance.setState(status);
@@ -130,8 +146,6 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
         taskInstance.setState(ExecutionStatus.RUNNING_EXECUTION);
         taskInstance.setStartTime(new Date());
         this.processService.saveTaskInstance(taskInstance);
-
-        this.dependentParameters = JSONUtils.parseObject(this.taskInstance.getDependency(), DependentParameters.class);
     }
 
 

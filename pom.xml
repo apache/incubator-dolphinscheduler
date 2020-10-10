@@ -816,6 +816,7 @@
                         <include>**/server/log/TaskLogFilterTest.java</include>
                         <include>**/server/log/WorkerLogFilterTest.java</include>
                         <include>**/server/master/consumer/TaskPriorityQueueConsumerTest.java</include>
+                        <include>**/server/master/runner/FakeRunTaskTest.java</include>
                         <include>**/server/master/runner/MasterTaskExecThreadTest.java</include>
                         <!--<include>**/server/master/dispatch/executor/NettyExecutorManagerTest.java</include>-->
                         <include>**/server/master/dispatch/host/assign/LowerWeightRoundRobinTest.java</include>
@@ -843,6 +844,7 @@
                         <include>**/server/worker/registry/WorkerRegistryTest.java</include>
                         <include>**/server/worker/shell/ShellCommandExecutorTest.java</include>
                         <include>**/server/worker/sql/SqlExecutorTest.java</include>
+                        <include>**/server/worker/task/FakeRunTaskTest.java</include>
                         <include>**/server/worker/task/spark/SparkTaskTest.java</include>
                         <include>**/server/worker/task/EnvFileTest.java</include>
                         <include>**/server/worker/task/spark/SparkTaskTest.java</include>

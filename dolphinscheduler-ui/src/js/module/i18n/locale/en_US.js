@@ -37,6 +37,7 @@ export default {
   'Run flag': 'Run flag',
   Normal: 'Normal',
   'Prohibition execution': 'Prohibition execution',
+  'Fake run': 'Fake Run',
   'Please enter description': 'Please enter description',
   'Number of failed retries': 'Number of failed retries',
   Times: 'Times',

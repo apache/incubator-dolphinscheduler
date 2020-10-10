@@ -968,8 +968,13 @@ public class ProcessService {
         if(!task.isSubProcess()){
             return;
         }
-        ProcessInstanceMap instanceMap = setProcessInstanceMap(parentProcessInstance, task);
         TaskNode taskNode = JSONUtils.parseObject(task.getTaskJson(), TaskNode.class);
+        if (Boolean.TRUE.equals(taskNode.isFakeRun())) {
+            return;
+        }
+
+        ProcessInstanceMap instanceMap = setProcessInstanceMap(parentProcessInstance, task);
+
         Map<String, String> subProcessParam = JSONUtils.toMap(taskNode.getParams());
         Integer childDefineId = Integer.parseInt(subProcessParam.get(Constants.CMDPARAM_SUB_PROCESS_DEFINE_ID));
 

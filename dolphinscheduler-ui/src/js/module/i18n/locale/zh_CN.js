@@ -38,6 +38,7 @@ export default {
   'Run flag': '运行标志',
   Normal: '正常',
   'Prohibition execution': '禁止执行',
+  'Fake run': '空跑',
   'Please enter description': '请输入描述',
   'Number of failed retries': '失败重试次数',
   Times: '次',

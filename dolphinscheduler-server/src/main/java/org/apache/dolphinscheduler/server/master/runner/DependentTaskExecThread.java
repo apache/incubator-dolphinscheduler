@@ -88,7 +88,9 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
             String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
             Thread.currentThread().setName(threadLoggerInfoName);
             initTaskParameters();
-            initDependParameters();
+            if (!fakeRun) {
+                initDependParameters();
+            }
             waitTaskQuit();
             updateTaskState();
         }catch (Exception e){
@@ -116,14 +118,13 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
         }
     }
 
-    /**
-     *
-     */
     private void updateTaskState() {
         ExecutionStatus status;
-        if(this.cancel){
+        if (cancel) {
             status = ExecutionStatus.KILL;
-        }else{
+        } else if (fakeRun) {
+            status = ExecutionStatus.SUCCESS;
+        } else {
             DependResult result = getTaskDependResult();
             status = (result == DependResult.SUCCESS) ? ExecutionStatus.SUCCESS : ExecutionStatus.FAILURE;
         }
@@ -137,6 +138,14 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
      */
     private Boolean waitTaskQuit() {
         logger.info("wait depend task : {} complete", this.taskInstance.getName());
+
+        if (fakeRun) {
+            logger.info("dependent task :{} id:{}, as fake-run",
+                    taskInstance.getName(),
+                    taskInstance.getId());
+            return true;
+        }
+
         if (taskInstance.getState().typeIsFinished()) {
             logger.info("task {} already complete. task state:{}",
                     this.taskInstance.getName(),
@@ -144,17 +153,17 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
             return true;
         }
         while (Stopper.isRunning()) {
-            try{
-                if(this.processInstance == null){
+            try {
+                if (this.processInstance == null) {
                     logger.error("process instance not exists , master task exec thread exit");
                     return true;
                 }
-                if(this.cancel || this.processInstance.getState() == ExecutionStatus.READY_STOP){
+                if (this.cancel || this.processInstance.getState() == ExecutionStatus.READY_STOP) {
                     cancelTaskInstance();
                     break;
                 }
 
-                if ( allDependentTaskFinish() || taskInstance.getState().typeIsFinished()){
+                if (allDependentTaskFinish() || taskInstance.getState().typeIsFinished()) {
                     break;
                 }
                 // update process task
@@ -162,7 +171,7 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
                 processInstance = processService.findProcessInstanceById(processInstance.getId());
                 Thread.sleep(Constants.SLEEP_TIME_MILLIS);
             } catch (Exception e) {
-                logger.error("exception",e);
+                logger.error("exception", e);
                 if (processInstance != null) {
                     logger.error("wait task quit failed, instance id:{}, task id:{}",
                             processInstance.getId(), taskInstance.getId());

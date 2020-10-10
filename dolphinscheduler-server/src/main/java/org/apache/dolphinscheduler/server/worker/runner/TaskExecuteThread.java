@@ -123,10 +123,12 @@ public class TaskExecuteThread implements Runnable {
             }
             logger.info("the task begins to execute. task instance id: {}", taskExecutionContext.getTaskInstanceId());
 
-            // copy hdfs/minio file to local
-            downloadResource(taskExecutionContext.getExecutePath(),
-                    taskExecutionContext.getResources(),
-                    logger);
+            if (Boolean.FALSE.equals(taskNode.isFakeRun())) {
+                // copy hdfs/minio file to local
+                downloadResource(taskExecutionContext.getExecutePath(),
+                        taskExecutionContext.getResources(),
+                        logger);
+            }
 
             taskExecutionContext.setTaskParams(taskNode.getParams());
             taskExecutionContext.setEnvFile(CommonUtils.getSystemEnvPath());
@@ -140,7 +142,11 @@ public class TaskExecuteThread implements Runnable {
                     taskExecutionContext.getProcessInstanceId(),
                     taskExecutionContext.getTaskInstanceId()));
 
-            task = TaskManager.newTask(taskExecutionContext, taskLogger);
+            if (Boolean.TRUE.equals(taskNode.isFakeRun())) {
+                task = TaskManager.newFakeRunTask(taskExecutionContext, taskLogger);
+            } else {
+                task = TaskManager.newTask(taskExecutionContext, taskLogger);
+            }
 
             // task init
             task.init();

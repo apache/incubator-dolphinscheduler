@@ -395,9 +395,19 @@ public final class Constants {
     public static final int RPC_PORT = 50051;
 
     /**
+     * normal running task
+     */
+    public static final String FLOWNODE_RUN_FLAG_NORMAL = "NORMAL";
+
+    /**
      * forbid running task
      */
     public static final String FLOWNODE_RUN_FLAG_FORBIDDEN = "FORBIDDEN";
+
+    /**
+     * fake-run the task
+     */
+    public static final String FLOWNODE_RUN_FLAG_FAKERUN = "FAKERUN";
 
     /**
      * datasource configuration path
