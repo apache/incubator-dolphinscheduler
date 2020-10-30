@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.common.task;
 
 import org.apache.dolphinscheduler.common.enums.TaskTimeoutStrategy;
@@ -32,6 +33,11 @@ public class TaskTimeoutParameter {
      * task timeout interval
      */
     private int interval;
+
+    /**
+     * The interval for checking whether an event has occurred.
+     */
+    private int checkInterval;
 
     public boolean getEnable() {
         return enable;
@@ -57,6 +63,14 @@ public class TaskTimeoutParameter {
         this.interval = interval;
     }
 
+    public int getCheckInterval() {
+        return checkInterval;
+    }
+
+    public void setCheckInterval(int checkInterval) {
+        this.checkInterval = checkInterval;
+    }
+
     public TaskTimeoutParameter() {
     }
 
@@ -70,12 +84,20 @@ public class TaskTimeoutParameter {
         this.interval = interval;
     }
 
+    public TaskTimeoutParameter(boolean enable, TaskTimeoutStrategy strategy, int interval, int checkInterval) {
+        this.enable = enable;
+        this.strategy = strategy;
+        this.interval = interval;
+        this.checkInterval = checkInterval;
+    }
+
     @Override
     public String toString() {
-        return "TaskTimeoutParameter{" +
-                "enable=" + enable +
-                ", strategy=" + strategy +
-                ", interval=" + interval +
-                '}';
+        return "TaskTimeoutParameter{"
+                + "enable=" + enable
+                + ", strategy=" + strategy
+                + ", interval=" + interval
+                + ", checkInterval=" + checkInterval
+                + '}';
     }
 }

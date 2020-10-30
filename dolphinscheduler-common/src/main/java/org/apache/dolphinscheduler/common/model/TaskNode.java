@@ -22,15 +22,16 @@ import org.apache.dolphinscheduler.common.enums.TaskTimeoutStrategy;
 import org.apache.dolphinscheduler.common.enums.TaskType;
 import org.apache.dolphinscheduler.common.task.TaskTimeoutParameter;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
-import org.apache.dolphinscheduler.common.utils.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 
 public class TaskNode {
@@ -140,6 +141,13 @@ public class TaskNode {
      * delay execution time.
      */
     private int delayTime;
+
+    /**
+     * The timeout setting for the dependent node to wait for the start of pre-process.
+     */
+    @JsonDeserialize(using = JSONUtils.JsonDataDeserializer.class)
+    @JsonSerialize(using = JSONUtils.JsonDataSerializer.class)
+    private String waitStartTimeout;
 
   public String getId() {
     return id;
@@ -296,18 +304,49 @@ public class TaskNode {
     this.timeout = timeout;
   }
 
-  /**
-   * get task time out parameter
-   * @return task time out parameter
-   */
-  public TaskTimeoutParameter getTaskTimeoutParameter() {
-    if(StringUtils.isNotEmpty(this.getTimeout())){
-      String formatStr = String.format("%s,%s", TaskTimeoutStrategy.WARN.name(), TaskTimeoutStrategy.FAILED.name());
-      String taskTimeout = this.getTimeout().replace(formatStr,TaskTimeoutStrategy.WARNFAILED.name());
-      return JSONUtils.parseObject(taskTimeout,TaskTimeoutParameter.class);
+    public String getWaitStartTimeout() {
+        return waitStartTimeout;
     }
-    return new TaskTimeoutParameter(false);
-  }
+
+    public void setWaitStartTimeout(String waitStartTimeout) {
+        this.waitStartTimeout = waitStartTimeout;
+    }
+
+    /**
+     * get task time out parameter
+     *
+     * @return task time out parameter
+     */
+    public TaskTimeoutParameter getTaskTimeoutParameter() {
+        return parseTimeoutParameter(this.timeout);
+    }
+
+    /**
+     * get task timeout parameter for dependent node
+     *
+     * @return timeout parameter
+     */
+    public TaskTimeoutParameter getTaskTimeoutParameterForDependentNode() {
+        return parseTimeoutParameter(this.waitStartTimeout);
+    }
+
+    /**
+     * parse string to timeout parameter instance
+     * @param timeoutParameterString timeout description string
+     * @return TaskTimeoutParameter
+     */
+    private TaskTimeoutParameter parseTimeoutParameter(String timeoutParameterString) {
+        TaskTimeoutParameter taskTimeoutParameter = null;
+        if (StringUtils.isNotEmpty(timeoutParameterString)) {
+            String formatStr = String.format("%s,%s", TaskTimeoutStrategy.WARN.name(), TaskTimeoutStrategy.FAILED.name());
+            String taskTimeout = timeoutParameterString.replace(formatStr, TaskTimeoutStrategy.WARNFAILED.name());
+            taskTimeoutParameter = JSONUtils.parseObject(taskTimeout, TaskTimeoutParameter.class);
+        }
+        if (taskTimeoutParameter == null) {
+            taskTimeoutParameter = new TaskTimeoutParameter(false);
+        }
+        return taskTimeoutParameter;
+    }
 
   public boolean isConditionsTask(){
     return TaskType.CONDITIONS.toString().equalsIgnoreCase(this.getType());
@@ -331,6 +370,7 @@ public class TaskNode {
             + ", dependence='" + dependence + '\''
             + ", taskInstancePriority=" + taskInstancePriority
             + ", timeout='" + timeout + '\''
+            + ", waitStartTimeout" + waitStartTimeout + '\''
             + ", workerGroup='" + workerGroup + '\''
             + ", delayTime=" + delayTime
             + '}';

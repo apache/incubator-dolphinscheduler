@@ -22,18 +22,22 @@ import org.apache.dolphinscheduler.common.enums.DependentRelation;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.model.DateInterval;
 import org.apache.dolphinscheduler.common.model.DependentItem;
-import org.apache.dolphinscheduler.common.model.TaskNode;
-import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.common.utils.DependentUtils;
 import org.apache.dolphinscheduler.dao.entity.ProcessInstance;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
-import org.apache.dolphinscheduler.dao.utils.DagHelper;
 import org.apache.dolphinscheduler.service.bean.SpringApplicationContext;
 import org.apache.dolphinscheduler.service.process.ProcessService;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 /**
  * dependent item execute
@@ -68,6 +72,8 @@ public class DependentExecute {
      * logger
      */
     private Logger logger =  LoggerFactory.getLogger(DependentExecute.class);
+
+    private final Set<String> itemRelatedProcessSet = new HashSet<>();
 
     /**
      * constructor
@@ -287,4 +293,28 @@ public class DependentExecute {
         return dependResultMap;
     }
 
+    /**
+     * Check whether the process instance where all dependent tasks are located has been started.
+     * @param currentTime base time
+     * @return whether it has been started
+     */
+    public boolean hasStarted(Date currentTime) {
+        boolean start = true;
+        for (DependentItem dependentItem : dependItemList) {
+            List<DateInterval> dateIntervals = DependentUtils.getDateIntervalList(currentTime, dependentItem.getDateValue());
+            for (DateInterval dateInterval : dateIntervals) {
+                String key = dependentItem.getKey() + dateInterval.getStartTime().toString()
+                        + Constants.SUBTRACT_STRING + dateInterval.getEndTime().toString();
+                if (!itemRelatedProcessSet.contains(key)) {
+                    ProcessInstance processInstance = findLastProcessInterval(dependentItem.getDefinitionId(), dateInterval);
+                    if (processInstance == null) {
+                        start = false;
+                    } else {
+                        itemRelatedProcessSet.add(key);
+                    }
+                }
+            }
+        }
+        return start;
+    }
 }

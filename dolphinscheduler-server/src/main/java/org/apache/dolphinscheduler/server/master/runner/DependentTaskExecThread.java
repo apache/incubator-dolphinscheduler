@@ -23,8 +23,11 @@ import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.DependResult;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.model.DependentTaskModel;
+import org.apache.dolphinscheduler.common.model.TaskNode;
+import org.apache.dolphinscheduler.common.task.TaskTimeoutParameter;
 import org.apache.dolphinscheduler.common.task.dependent.DependentParameters;
 import org.apache.dolphinscheduler.common.thread.Stopper;
+import org.apache.dolphinscheduler.common.utils.DateUtils;
 import org.apache.dolphinscheduler.common.utils.DependentUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.LoggerUtils;
@@ -36,8 +39,11 @@ import org.apache.dolphinscheduler.server.utils.DependentExecute;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +64,10 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
      */
     private Map<String, DependResult> dependResultMap = new HashMap<>();
 
+    /**
+     * have started dependent processes set
+     */
+    private final Set<DependentExecute> startedProcessSet = new HashSet<>();
 
     /**
      * dependent date
@@ -66,13 +76,27 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
     private Date dependentDate;
 
     /**
+     * wait pre-process start timeout setting
+     */
+    private TaskTimeoutParameter waitDependentStartTimeout = null;
+
+    /**
+     * whether to check pre-process start
+     */
+    private boolean checkStartTimeout = false;
+
+    /**
+     * polling interval
+     */
+    private int loopInterval = Constants.SLEEP_TIME_MILLIS;
+
+    /**
      * constructor of MasterBaseTaskExecThread
      *
      * @param taskInstance    task instance
      */
     public DependentTaskExecThread(TaskInstance taskInstance) {
         super(taskInstance);
-        taskInstance.setStartTime(new Date());
     }
 
 
@@ -88,6 +112,7 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
             String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
             Thread.currentThread().setName(threadLoggerInfoName);
             initTaskParameters();
+            initTimeoutParameters();
             initDependParameters();
             waitTaskQuit();
             updateTaskState();
@@ -144,23 +169,21 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
             return true;
         }
         while (Stopper.isRunning()) {
-            try{
-                if(this.processInstance == null){
-                    logger.error("process instance not exists , master task exec thread exit");
-                    return true;
-                }
-                if(this.cancel || this.processInstance.getState() == ExecutionStatus.READY_STOP){
-                    cancelTaskInstance();
+            try {
+                if (!shouldContinueWait()) {
                     break;
                 }
-
-                if ( allDependentTaskFinish() || taskInstance.getState().typeIsFinished()){
+                if (checkStartTimeout) {
+                    if (isTimeoutForWaitingDependentProcessStart()) {
+                        break;
+                    }
+                } else if (allDependentTaskFinish()) {
                     break;
                 }
                 // update process task
                 taskInstance = processService.findTaskInstanceById(taskInstance.getId());
                 processInstance = processService.findProcessInstanceById(processInstance.getId());
-                Thread.sleep(Constants.SLEEP_TIME_MILLIS);
+                Thread.sleep(loopInterval);
             } catch (Exception e) {
                 logger.error("exception",e);
                 if (processInstance != null) {
@@ -170,6 +193,18 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
             }
         }
         return true;
+    }
+
+    private boolean shouldContinueWait() {
+        if (this.processInstance == null) {
+            logger.error("process instance not exists , master task exec thread exit");
+            return false;
+        }
+        if (this.cancel || this.processInstance.getState() == ExecutionStatus.READY_STOP) {
+            cancelTaskInstance();
+            return false;
+        }
+        return !taskInstance.getState().typeIsFinished();
     }
 
     /**
@@ -224,5 +259,57 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
         );
         logger.info("dependent task completed, dependent result:{}", result);
         return result;
+    }
+
+    /**
+     * Is the waiting time out?
+     * @return whether timeout
+     */
+    private boolean isTimeoutForWaitingDependentProcessStart() {
+        if (allDependentProcessStart()) {
+            logger.info("all dependent process instances already exist, start checking their status of execution");
+            checkStartTimeout = false;
+            loopInterval = Constants.SLEEP_TIME_MILLIS;
+        } else {
+            long remainTime = DateUtils.getRemainTime(taskInstance.getStartTime(), waitDependentStartTimeout.getInterval() * 60L);
+            if (remainTime < 0) {
+                logger.warn("waiting for the dependent processes to start timing out({} minute(s)), stop current task",
+                        waitDependentStartTimeout.getInterval());
+                return true;
+            }
+            logger.info("there are processes that have not started yet, wait {} minute(s).", waitDependentStartTimeout.getCheckInterval());
+        }
+        return false;
+    }
+
+    /**
+     * judge whether all dependent processes have started.
+     * @return whether all dependent processes have started
+     */
+    private boolean allDependentProcessStart() {
+        boolean start = true;
+        for (DependentExecute dependentExecute : dependentTaskList) {
+            if (!startedProcessSet.contains(dependentExecute)) {
+                if (dependentExecute.hasStarted(dependentDate)) {
+                    startedProcessSet.add(dependentExecute);
+                } else {
+                    start = false;
+                }
+            }
+        }
+        return start;
+    }
+
+    /**
+     * init timeout parameters.
+     */
+    private void initTimeoutParameters() {
+        String taskJson = taskInstance.getTaskJson();
+        TaskNode taskNode = JSONUtils.parseObject(taskJson, TaskNode.class);
+        if (Objects.nonNull(taskNode)) {
+            waitDependentStartTimeout = taskNode.getTaskTimeoutParameterForDependentNode();
+            checkStartTimeout = Objects.nonNull(waitDependentStartTimeout) && waitDependentStartTimeout.getEnable();
+            loopInterval = checkStartTimeout ? waitDependentStartTimeout.getCheckInterval() * 60000 : Constants.SLEEP_TIME_MILLIS;
+        }
     }
 }
