@@ -81,7 +81,7 @@ jobs:
           -Dsonar.organization=apache
           -Dsonar.core.codeCoveragePlugin=jacoco
           -Dsonar.projectKey=apache-dolphinscheduler
-          -Dsonar.login=e4058004bc6be89decf558ac819aa1ecbee57682
+          -Dsonar.login="$SONAR_TOKEN"
           -Dsonar.exclusions=dolphinscheduler-ui/src/**/i18n/locale/*.js,dolphinscheduler-microbench/src/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
