@@ -14,15 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.server.master.runner;
 
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.curator.framework.imps.CuratorFrameworkState;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.thread.Stopper;
 import org.apache.dolphinscheduler.common.thread.ThreadUtils;
@@ -36,13 +30,24 @@ import org.apache.dolphinscheduler.server.master.config.MasterConfig;
 import org.apache.dolphinscheduler.server.utils.AlertManager;
 import org.apache.dolphinscheduler.server.zk.ZKMasterClient;
 import org.apache.dolphinscheduler.service.process.ProcessService;
+
+import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+
 /**
- *  master scheduler thread
+ * master scheduler thread
  */
 @Service
 public class MasterSchedulerService extends Thread {
@@ -76,7 +81,7 @@ public class MasterSchedulerService extends Thread {
     private AlertManager alertManager = new AlertManager();
 
     /**
-     *  netty remoting client
+     * netty remoting client
      */
     private NettyRemotingClient nettyRemotingClient;
 
@@ -85,19 +90,30 @@ public class MasterSchedulerService extends Thread {
      */
     private ThreadPoolExecutor masterExecService;
 
+    /**
+     * Maximum number of retries for database connection failure
+     */
+    @Value("${maxdbconnretrytimes:360}")
+    private int maxDbConnRetrytimes;
+
+    /**
+     * Number of database connection failures
+     */
+    private int connRetrytimes = 0;
+
 
     /**
      * constructor of MasterSchedulerService
      */
     @PostConstruct
-    public void init(){
-        this.masterExecService = (ThreadPoolExecutor)ThreadUtils.newDaemonFixedThreadExecutor("Master-Exec-Thread", masterConfig.getMasterExecThreads());
+    public void init() {
+        this.masterExecService = (ThreadPoolExecutor) ThreadUtils.newDaemonFixedThreadExecutor("Master-Exec-Thread", masterConfig.getMasterExecThreads());
         NettyClientConfig clientConfig = new NettyClientConfig();
         this.nettyRemotingClient = new NettyRemotingClient(clientConfig);
     }
 
     @Override
-    public synchronized void start(){
+    public synchronized void start() {
         super.setName("MasterSchedulerService");
         super.start();
     }
@@ -110,7 +126,7 @@ public class MasterSchedulerService extends Thread {
         } catch (InterruptedException ignore) {
             Thread.currentThread().interrupt();
         }
-        if(!terminated){
+        if (!terminated) {
             logger.warn("masterExecService shutdown without terminated, increase await time");
         }
         nettyRemotingClient.close();
@@ -123,7 +139,7 @@ public class MasterSchedulerService extends Thread {
     @Override
     public void run() {
         logger.info("master scheduler started");
-        while (Stopper.isRunning()){
+        while (Stopper.isRunning()) {
             try {
                 boolean runCheckFlag = OSUtils.checkResource(masterConfig.getMasterMaxCpuloadAvg(), masterConfig.getMasterReservedMemory());
                 if (!runCheckFlag) {
@@ -146,24 +162,34 @@ public class MasterSchedulerService extends Thread {
 
             int activeCount = masterExecService.getActiveCount();
             // make sure to scan and delete command  table in one transaction
-            Command command = processService.findOneCommand();
+            Command command = null;
+            try {
+                command = processService.findOneCommand();
+                connRetrytimes = 0;
+            } catch (Exception e) {
+                connRetrytimes++;
+                logger.info("Database connection retries : connRetrytimes: {}", connRetrytimes);
+                if (connRetrytimes >= maxDbConnRetrytimes) {
+                    logger.error("Database connection failed more than the maximum number of times : maxdbconnretrytimes: {}", maxDbConnRetrytimes);
+                    Stopper.stop();
+                }
+                logger.error("Database connection failed ", e);
+            }
             if (command != null) {
-                logger.info("find one command: id: {}, type: {}", command.getId(),command.getCommandType());
-
+                logger.info("find one command: id: {}, type: {}", command.getId(), command.getCommandType());
                 try {
-
                     ProcessInstance processInstance = processService.handleCommand(logger,
-                            getLocalAddress(),
-                            this.masterConfig.getMasterExecThreads() - activeCount, command);
+                        getLocalAddress(),
+                        this.masterConfig.getMasterExecThreads() - activeCount, command);
                     if (processInstance != null) {
                         logger.info("start master exec thread , split DAG ...");
                         masterExecService.execute(
-                                new MasterExecThread(
-                                        processInstance
-                                        , processService
-                                        , nettyRemotingClient
-                                        , alertManager
-                                        , masterConfig));
+                            new MasterExecThread(
+                                processInstance
+                                , processService
+                                , nettyRemotingClient
+                                , alertManager
+                                , masterConfig));
                     }
                 } catch (Exception e) {
                     logger.error("scan command error ", e);
@@ -178,7 +204,7 @@ public class MasterSchedulerService extends Thread {
         }
     }
 
-    private String getLocalAddress(){
+    private String getLocalAddress() {
         return NetUtils.getHost() + ":" + masterConfig.getListenPort();
     }
 }
