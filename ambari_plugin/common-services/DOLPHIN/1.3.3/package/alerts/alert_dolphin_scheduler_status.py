@@ -35,13 +35,13 @@ def get_tokens():
     """
     Returns a tuple of tokens in the format {{site/property}} that will be used
     to build the dictionary passed into execute
-    
+
     :rtype tuple
     """
 
 def get_info(url, connection_timeout):
     response = None
-    
+
     try:
         response = urllib2.urlopen(url, timeout=connection_timeout)
         json_data = response.read()
@@ -57,24 +57,24 @@ def get_info(url, connection_timeout):
 def execute(configurations={}, parameters={}, host_name=None):
     """
     Returns a tuple containing the result code and a pre-formatted result label
-    
+
     Keyword arguments:
     configurations : a mapping of configuration key to value
     parameters : a mapping of script parameter key to value
     host_name : the name of this host where the alert is running
-    
+
     :type configurations dict
     :type parameters dict
     :type host_name str
     """
-    
+
     alert_name = parameters['alertName']
 
     dolphin_pidfile_dir = "/opt/soft/run/dolphinscheduler"
 
     pid = "0"
-    
-    
+
+
     from resource_management.core import sudo
 
     is_running = True
@@ -89,10 +89,10 @@ def execute(configurations={}, parameters={}, host_name=None):
         pid_file_path = dolphin_pidfile_dir + "/logger-server.pid"
     elif alert_name == 'DOLPHIN_API':
         pid_file_path = dolphin_pidfile_dir + "/api-server.pid"
-        
+
     if not pid_file_path or not os.path.isfile(pid_file_path):
         is_running = False
-        
+
     try:
         pid = int(sudo.read_file(pid_file_path))
     except:

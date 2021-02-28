@@ -7,9 +7,9 @@ Start by forking the dolphinscheduler GitHub repository, make changes in a branc
 
 There are three branches in the remote repository currently:
   - `master` : normal delivery branch. After the stable version is released, the code for the stable version branch is merged into the master branch.
-            
+
   - `dev` : daily development branch. The daily development branch, the newly submitted code can pull requests to this branch.
-  
+
   - `x.x.x-release` : the stable release version.
 
 So, you should fork the `dev` branch.

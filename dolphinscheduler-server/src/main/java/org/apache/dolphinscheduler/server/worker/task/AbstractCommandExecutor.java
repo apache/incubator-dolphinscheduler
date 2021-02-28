@@ -84,7 +84,7 @@ public abstract class AbstractCommandExecutor {
      * log list
      */
     protected final List<String> logBuffer;
-    
+
     protected boolean logOutputIsScuccess = false;
 
     /**

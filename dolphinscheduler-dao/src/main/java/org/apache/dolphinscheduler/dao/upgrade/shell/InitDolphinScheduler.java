@@ -37,6 +37,6 @@ public class InitDolphinScheduler {
 		DolphinSchedulerManager dolphinSchedulerManager = new DolphinSchedulerManager();
 		dolphinSchedulerManager.initDolphinScheduler();
 		logger.info("init DolphinScheduler finished");
-		
+
 	}
 }

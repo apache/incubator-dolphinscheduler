@@ -175,7 +175,7 @@ public class WorkflowDefineLocator {
     public static final By CLICK_DELETE_WORKFLOW_GLOBAL_PARAMETERS = By.xpath("//div[2]/span/a/em");
 
     //click add button
-    public static final By CLICK_ADD_BUTTON = By.xpath("//div[2]/div/button[2]/span");    
+    public static final By CLICK_ADD_BUTTON = By.xpath("//div[2]/div/button[2]/span");
     //scroll to element bottom
     public static final By SCROLL_BOTTOM = By.xpath("//span/a/em");
 

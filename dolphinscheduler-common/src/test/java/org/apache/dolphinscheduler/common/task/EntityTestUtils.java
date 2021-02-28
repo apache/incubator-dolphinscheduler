@@ -27,7 +27,7 @@ import java.util.*;
 public class EntityTestUtils {
 
     private static final Map<String, Object> OBJECT_MAP = new HashMap<>();
- 
+
     private static final String SKIP_METHOD = "getClass,notify,notifyAll,wait,equals,hashCode,clone";
 
     static {
@@ -41,7 +41,7 @@ public class EntityTestUtils {
         OBJECT_MAP.put("java.util.Map", new HashMap());
         OBJECT_MAP.put("boolean", true);
     }
-    
+
     public static void run(List<Class> classList)
             throws IllegalAccessException, InvocationTargetException, InstantiationException {
         for (Class temp : classList) {

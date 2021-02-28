@@ -74,7 +74,7 @@ public class ZookeeperMonitor extends AbstractZKClient {
 
 		if(StringUtils.isNotBlank(zookeeperServers)){
 			String[] zookeeperServersArray = zookeeperServers.split(",");
-			
+
 			for (String zookeeperServer : zookeeperServersArray) {
 				ZooKeeperState state = new ZooKeeperState(zookeeperServer);
 				boolean ok = state.ruok();

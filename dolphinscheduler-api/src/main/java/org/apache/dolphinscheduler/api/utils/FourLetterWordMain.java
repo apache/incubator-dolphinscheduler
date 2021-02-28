@@ -68,7 +68,7 @@ public class FourLetterWordMain {
         LOG.info("connecting to {} {}", host, port);
         InetSocketAddress hostaddress= host != null ? new InetSocketAddress(host, port) :
                 new InetSocketAddress(InetAddress.getByName(null), port);
-        
+
         try (Socket sock = new Socket()) {
             sock.setSoTimeout(timeout);
             sock.connect(hostaddress, timeout);

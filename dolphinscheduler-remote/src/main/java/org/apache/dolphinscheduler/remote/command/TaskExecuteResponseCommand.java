@@ -80,7 +80,7 @@ public class TaskExecuteResponseCommand implements Serializable {
     public String getVarPool() {
         return varPool;
     }
-    
+
     public int getTaskInstanceId() {
         return taskInstanceId;
     }

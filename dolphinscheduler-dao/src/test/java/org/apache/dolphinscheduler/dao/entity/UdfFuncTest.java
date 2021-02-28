@@ -29,7 +29,7 @@ public class UdfFuncTest {
    */
   @Test
   public void testUdfFuncToString() {
-    
+
     UdfFunc udfFunc = new UdfFunc();
     udfFunc.setResourceName("dolphin_resource_update");
     udfFunc.setResourceId(2);

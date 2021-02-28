@@ -121,14 +121,14 @@ public class PythonTask extends AbstractTask {
                         pythonParameters.getLocalParametersMap(),
                         CommandType.of(taskExecutionContext.getCmdTypeIfComplement()),
                         taskExecutionContext.getScheduleTime());
-        
+
         try {
             rawPythonScript = VarPoolUtils.convertPythonScriptPlaceholders(rawPythonScript);
         }
         catch (StringIndexOutOfBoundsException e) {
             logger.error("setShareVar field format error, raw python script : {}", rawPythonScript);
         }
-        
+
         if (paramsMap != null) {
             rawPythonScript = ParameterUtils.convertParameterPlaceholders(rawPythonScript, ParamUtils.convert(paramsMap));
         }
@@ -143,5 +143,5 @@ public class PythonTask extends AbstractTask {
     public AbstractParameters getParameters() {
         return pythonParameters;
     }
-    
+
 }

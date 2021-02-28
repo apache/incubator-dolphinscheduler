@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 @PrepareForTest({FourLetterWordMain.class, Socket.class})
 public class FourLetterWordMainTest {
 
-    private static final Logger logger = 
+    private static final Logger logger =
             LoggerFactory.getLogger(FourLetterWordMainTest.class);
     private static final String NEW_LINE = "\n";
 
@@ -123,7 +123,7 @@ public class FourLetterWordMainTest {
         } catch (Exception e) {
             testResult = e.getMessage();
         }
-        
+
         logger.info("testNullCmd result: " + testResult);
         assertEquals("cmd must not be null", testResult);
     }
@@ -174,7 +174,7 @@ public class FourLetterWordMainTest {
         } catch (Exception e) {
             testResult = e.getMessage();
         }
-        
+
         logger.info("testSocketTimeOut result: " + testResult);
         assertEquals(
                 "Exception while executing four letter word: " + cmd,
@@ -184,7 +184,7 @@ public class FourLetterWordMainTest {
 
     /**
      * Test FourLetterWordMain.send4LetterWord() with input cmd and output
-     * string. 
+     * string.
      * @param cmd
      * @param expectedStr
      */
@@ -193,7 +193,7 @@ public class FourLetterWordMainTest {
             final byte[] strBytes = cmd.getBytes();
             byteArrayOutputStream = new ByteArrayOutputStream(strBytes.length);
             byteArrayOutputStream.write(strBytes, 0, strBytes.length);
-            
+
             inputStream = new ByteArrayInputStream(expectedStr.getBytes());
 
             when(socket.getOutputStream())
@@ -204,8 +204,8 @@ public class FourLetterWordMainTest {
                     .send4LetterWord(localHost, zkPort, cmd);
             logger.info(
                     "testSend4LetterWord: " +
-                    "cmd: " + cmd + 
-                    ", expectedStr: " + expectedStr + 
+                    "cmd: " + cmd +
+                    ", expectedStr: " + expectedStr +
                     ", result: " + result + "."
             );
             Assert.assertEquals(expectedStr, result);

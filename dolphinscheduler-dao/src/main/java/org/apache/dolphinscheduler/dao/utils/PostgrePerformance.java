@@ -49,7 +49,7 @@ public class PostgrePerformance extends BaseDBPerformance {
         Statement pstmt= null;
         try{
             pstmt = conn.createStatement();
-            
+
             try (ResultSet rs1 = pstmt.executeQuery("select count(*) from pg_stat_activity;")) {
                 if(rs1.next()){
                     monitorRecord.setThreadsConnections(rs1.getInt("count"));

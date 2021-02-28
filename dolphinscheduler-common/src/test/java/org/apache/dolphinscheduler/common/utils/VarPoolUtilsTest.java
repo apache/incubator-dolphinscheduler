@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class VarPoolUtilsTest {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(VarPoolUtilsTest.class);
 
     @Test
@@ -41,7 +41,7 @@ public class VarPoolUtilsTest {
         Assert.assertEquals((String)propToValue.get("p2"), "69");
         logger.info(propToValue.toString());
     }
-    
+
     @Test
     public void testConvertPythonScriptPlaceholders() throws Exception {
         String rawScript = "print(${p1});\n${setShareVar(${p1},3)};\n${setShareVar(${p2},4)};";

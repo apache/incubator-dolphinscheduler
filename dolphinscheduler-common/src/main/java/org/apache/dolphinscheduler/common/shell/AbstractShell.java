@@ -31,17 +31,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/** 
+/**
  * A base class for running a Unix command.
- * 
+ *
  * <code>AbstractShell</code> can be used to run unix commands like <code>du</code> or
- * <code>df</code>. It also offers facilities to gate commands by 
+ * <code>df</code>. It also offers facilities to gate commands by
  * time-intervals.
  */
 public abstract class AbstractShell {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(AbstractShell.class);
-  
+
 
 
   /**
@@ -79,13 +79,13 @@ public abstract class AbstractShell {
    * If or not script finished executing
    */
   private AtomicBoolean completed;
-  
+
   public AbstractShell() {
     this(0L);
   }
-  
+
   /**
-   * @param interval the minimum duration to wait before re-executing the 
+   * @param interval the minimum duration to wait before re-executing the
    *        command.
    */
   public AbstractShell(long interval ) {
@@ -94,7 +94,7 @@ public abstract class AbstractShell {
   }
 
 
-  
+
   /**
    * set the environment for the command
    * @param env Mapping of environment variables
@@ -124,7 +124,7 @@ public abstract class AbstractShell {
     runCommand();
   }
 
-  
+
   /**
    * Run a command   actual work
    */
@@ -134,14 +134,14 @@ public abstract class AbstractShell {
     ShellTimeoutTimerTask timeoutTimerTask = null;
     timedOut = new AtomicBoolean(false);
     completed = new AtomicBoolean(false);
-    
+
     if (environment != null) {
       builder.environment().putAll(this.environment);
     }
     if (dir != null) {
       builder.directory(this.dir);
     }
-    
+
     process = builder.start();
     ProcessContainer.putProcess(process);
 
@@ -152,14 +152,14 @@ public abstract class AbstractShell {
       //One time scheduling.
       timeOutTimer.schedule(timeoutTimerTask, timeOutInterval);
     }
-    final BufferedReader errReader = 
+    final BufferedReader errReader =
             new BufferedReader(
                     new InputStreamReader(process.getErrorStream()));
     BufferedReader inReader =
             new BufferedReader(
                     new InputStreamReader(process.getInputStream()));
     final StringBuilder errMsg = new StringBuilder();
-    
+
     // read error and input streams as this would free up the buffers
     // free the error stream buffer
     Thread errThread = new Thread() {
@@ -239,7 +239,7 @@ public abstract class AbstractShell {
    * @return an array containing the command name and its parameters
    */
   protected abstract String[] getExecString();
-  
+
   /**
    * Parse the execution result
    * @param lines lines
@@ -256,7 +256,7 @@ public abstract class AbstractShell {
     return process;
   }
 
-  /** get the exit code 
+  /** get the exit code
    * @return the exit code of the process
    */
   public int getExitCode() {
@@ -265,12 +265,12 @@ public abstract class AbstractShell {
 
   /**
    * Set if the command has timed out.
-   * 
+   *
    */
   private void setTimedOut() {
     this.timedOut.set(true);
   }
-  
+
 
 
   /**
@@ -291,7 +291,7 @@ public abstract class AbstractShell {
         p.exitValue();
       } catch (Exception e) {
         //Process has not terminated.
-        //So check if it has completed 
+        //So check if it has completed
         //if not just destroy it.
         if (p != null && !shell.completed.get()) {
           shell.setTimedOut();
@@ -300,23 +300,23 @@ public abstract class AbstractShell {
       }
     }
   }
-  
+
   /**
    * This is an IOException with exit code added.
    */
   public static class ExitCodeException extends IOException {
     int exitCode;
-    
+
     public ExitCodeException(int exitCode, String message) {
       super(message);
       this.exitCode = exitCode;
     }
-    
+
     public int getExitCode() {
       return exitCode;
     }
   }
-  
+
   /**
    * process manage container
    *
@@ -329,29 +329,29 @@ public abstract class AbstractShell {
 	  public static final ProcessContainer getInstance(){
 		return container;
 	  }
-	  
+
 	  public static void putProcess(Process process){
 		  getInstance().put(process.hashCode(), process);
 	  }
 	  public static int processSize(){
 		  return getInstance().size();
 	  }
-	  
+
 	  public static void removeProcess(Process process){
 		  getInstance().remove(process.hashCode());
 	  }
-	  
+
 	  public static void destroyAllProcess(){
 		  Set<Entry<Integer, Process>> set = getInstance().entrySet();
 		  for (Entry<Integer, Process> entry : set) {
-			try{  
+			try{
 			  entry.getValue().destroy();
 		  	} catch (Exception e) {
 		  		logger.error("Destroy All Processes error", e);
 		  	}
 		  }
-		  
+
 		  logger.info("close " + set.size() + " executing process tasks");
 	  }
-  }	  
+  }
 }

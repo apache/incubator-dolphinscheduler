@@ -160,12 +160,12 @@ public class ScriptRunner {
                                     logger.info("");
                                 }
                             }
-                        }   
+                        }
                     } catch (SQLException e) {
                         logger.error("SQLException", e);
                         throw e;
                     }
-                    
+
 					command = null;
 					Thread.yield();
 				} else {
@@ -213,7 +213,7 @@ public class ScriptRunner {
 					command.append(" ");
 					sql = command.toString().replaceAll("\\{\\{APPDB\\}\\}", dbName);
                     logger.info("sql : {}", sql);
-                    
+
                     try (Statement statement = conn.createStatement()) {
                         statement.execute(sql);
                         try (ResultSet rs = statement.getResultSet()) {
@@ -233,7 +233,7 @@ public class ScriptRunner {
                                     logger.info("");
                                 }
                             }
-                        }   
+                        }
                     } catch (SQLException e) {
                         logger.error("SQLException", e);
                         throw e;
@@ -259,5 +259,5 @@ public class ScriptRunner {
 	private String getDelimiter() {
 		return delimiter;
 	}
-	
+
 }

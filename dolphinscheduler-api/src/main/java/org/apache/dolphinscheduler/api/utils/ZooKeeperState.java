@@ -77,7 +77,7 @@ public class ZooKeeperState {
 						nodeCount = Integer.parseInt(getStringValueFromLine(line));
 					}
 				}
-			} 	
+			}
 		}
 
 		String wchsText = cmd("wchs");
@@ -89,7 +89,7 @@ public class ZooKeeperState {
 						watches = Integer.parseInt(getStringValueFromLine(line));
 					}
 				}
-			}	
+			}
 		}
 
 		String consText = cmd("cons");

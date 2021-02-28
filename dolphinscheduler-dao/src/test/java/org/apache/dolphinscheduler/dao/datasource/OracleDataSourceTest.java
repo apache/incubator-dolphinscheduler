@@ -71,4 +71,4 @@ public class OracleDataSourceTest {
         oracleDataSource2.appendDatabase(jdbcUrl2);
         Assert.assertEquals("jdbc:oracle:thin:@127.0.0.1:1521:orcl", jdbcUrl2.toString());
     }
-} 
+}

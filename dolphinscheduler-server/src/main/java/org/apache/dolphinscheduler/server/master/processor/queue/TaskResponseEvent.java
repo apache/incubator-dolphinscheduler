@@ -96,7 +96,7 @@ public class TaskResponseEvent {
      * task return result
      */
     private String result;
-    
+
     public static TaskResponseEvent newAck(ExecutionStatus state,
                                            Date startTime,
                                            String workerAddress,
@@ -144,7 +144,7 @@ public class TaskResponseEvent {
     public void setVarPool(String varPool) {
         this.varPool = varPool;
     }
-    
+
     public int getTaskInstanceId() {
         return taskInstanceId;
     }

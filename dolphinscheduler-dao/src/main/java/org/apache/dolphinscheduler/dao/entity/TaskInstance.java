@@ -216,7 +216,7 @@ public class TaskInstance implements Serializable {
      * varPool string
      */
     private String varPool;
-    
+
     /**
      * executor name
      */
@@ -245,7 +245,7 @@ public class TaskInstance implements Serializable {
     public void setVarPool(String varPool) {
         this.varPool = varPool;
     }
-    
+
     public ProcessInstance getProcessInstance() {
         return processInstance;
     }
