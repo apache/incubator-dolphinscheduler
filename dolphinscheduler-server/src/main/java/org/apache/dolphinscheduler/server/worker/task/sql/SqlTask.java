@@ -47,9 +47,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +58,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.ohdsi.sql.SqlSplit;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -132,8 +133,13 @@ public class SqlTask extends AbstractTask {
             baseDataSource = DataSourceFactory.getDatasource(DbType.valueOf(sqlParameters.getType()),
                     sqlTaskExecutionContext.getConnectionParams());
 
+            // split the sql statement
+            String[] splitSql = SqlSplit.splitSql(sqlParameters.getSql());
+
             // ready to execute SQL and parameter entity Map
-            SqlBinds mainSqlBinds = getSqlAndSqlParamsMap(sqlParameters.getSql());
+            List<SqlBinds> mainSqlBinds = Arrays.stream(splitSql)
+                    .map(this::getSqlAndSqlParamsMap)
+                    .collect(Collectors.toList());
             List<SqlBinds> preStatementSqlBinds = Optional.ofNullable(sqlParameters.getPreStatements())
                     .orElse(new ArrayList<>())
                     .stream()
@@ -235,17 +241,15 @@ public class SqlTask extends AbstractTask {
      * @param postStatementsBinds post statements binds
      * @param createFuncs create functions
      */
-    public void executeFuncAndSql(SqlBinds mainSqlBinds,
+    public void executeFuncAndSql(List<SqlBinds> mainSqlBinds,
                                   List<SqlBinds> preStatementsBinds,
                                   List<SqlBinds> postStatementsBinds,
                                   List<String> createFuncs,
                                   List<Property> properties) {
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet resultSet = null;
-        try {
-            // create connection
-            connection = baseDataSource.getConnection();
+        try (
+                // create connection
+                Connection connection = baseDataSource.getConnection();
+        ) {
             // create temp function
             if (CollectionUtils.isNotEmpty(createFuncs)) {
                 createTempFunction(connection, createFuncs);
@@ -253,18 +257,17 @@ public class SqlTask extends AbstractTask {
 
             // pre sql
             preSql(connection, preStatementsBinds);
-            stmt = prepareStatementAndBind(connection, mainSqlBinds);
 
             String result = null;
             // decide whether to executeQuery or executeUpdate based on sqlType
             if (sqlParameters.getSqlType() == SqlType.QUERY.ordinal()) {
                 // query statements need to be convert to JsonArray and inserted into Alert to send
-                resultSet = stmt.executeQuery();
-                result = resultProcess(resultSet);
+                result = executeQuerySql(connection, mainSqlBinds);
+                logger.info(result);
 
             } else if (sqlParameters.getSqlType() == SqlType.NON_QUERY.ordinal()) {
                 // non query statement
-                String updateResult = String.valueOf(stmt.executeUpdate());
+                String updateResult = executeNonQuerySql(connection, mainSqlBinds);
                 result = setNonQuerySqlReturn(updateResult, properties);
             }
 
@@ -274,18 +277,47 @@ public class SqlTask extends AbstractTask {
         } catch (Exception e) {
             logger.error("execute sql error", e);
             throw new RuntimeException("execute sql error");
-        } finally {
-            close(resultSet, stmt, connection);
         }
+    }
+
+    private String executeQuerySql(Connection connection, List<SqlBinds> sqlBinds) throws Exception {
+        ResultSet resultSet;
+        StringBuilder result = new StringBuilder();
+        String tempResult;
+        for (SqlBinds sqlBind : sqlBinds) {
+            try (PreparedStatement stmt = prepareStatementAndBind(connection, sqlBind)) {
+                resultSet = stmt.executeQuery();
+                tempResult = resultProcess(resultSet);
+                result.append(tempResult);
+                result.append(" : ");
+                logger.info("main query statement execute result: {}, for sql: {}", tempResult, sqlBind.getSql());
+            }
+        }
+
+        return result.toString();
+    }
+
+    private String executeNonQuerySql(Connection connection, List<SqlBinds> sqlBinds) throws Exception {
+        int result = 0;
+        int tempResult;
+        for (SqlBinds sqlBind : sqlBinds) {
+            try (PreparedStatement stmt = prepareStatementAndBind(connection, sqlBind)) {
+                tempResult = stmt.executeUpdate();
+                result += tempResult;
+                logger.info("main non query statement execute result: {}, for sql: {}", tempResult, sqlBind.getSql());
+            }
+        }
+
+        return String.valueOf(result);
     }
 
     public String setNonQuerySqlReturn(String updateResult, List<Property> properties) {
         String result = null;
-        for (Property info :properties) {
+        for (Property info : properties) {
             if (Direct.OUT == info.getDirect()) {
-                List<Map<String,String>> updateRL = new ArrayList<>();
-                Map<String,String> updateRM = new HashMap<>();
-                updateRM.put(info.getProp(),updateResult);
+                List<Map<String, String>> updateRL = new ArrayList<>();
+                Map<String, String> updateRM = new HashMap<>();
+                updateRM.put(info.getProp(), updateResult);
                 updateRL.add(updateRM);
                 result = JSONUtils.toJsonString(updateRL);
                 break;
@@ -371,41 +403,6 @@ public class SqlTask extends AbstractTask {
             for (String createFunc : createFuncs) {
                 logger.info("hive create function sql: {}", createFunc);
                 funcStmt.execute(createFunc);
-            }
-        }
-    }
-
-    /**
-     * close jdbc resource
-     *
-     * @param resultSet resultSet
-     * @param pstmt pstmt
-     * @param connection connection
-     */
-    private void close(ResultSet resultSet,
-                       PreparedStatement pstmt,
-                       Connection connection) {
-        if (resultSet != null) {
-            try {
-                resultSet.close();
-            } catch (SQLException e) {
-                logger.error("close result set error : {}", e.getMessage(), e);
-            }
-        }
-
-        if (pstmt != null) {
-            try {
-                pstmt.close();
-            } catch (SQLException e) {
-                logger.error("close prepared statement error : {}", e.getMessage(), e);
-            }
-        }
-
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                logger.error("close connection error : {}", e.getMessage(), e);
             }
         }
     }

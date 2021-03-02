@@ -32,6 +32,25 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>ohdsi</id>
+            <name>repo.ohdsi.org</name>
+            <url>http://repo.ohdsi.org:8085/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>ohdsi.snapshots</id>
+            <name>repo.ohdsi.org-snapshots</name>
+            <url>http://repo.ohdsi.org:8085/nexus/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.dolphinscheduler</groupId>
@@ -142,6 +161,12 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ohdsi.sql</groupId>
+            <artifactId>SqlRender</artifactId>
+            <version>1.7.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
