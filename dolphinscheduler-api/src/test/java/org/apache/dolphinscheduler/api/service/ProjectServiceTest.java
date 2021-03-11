@@ -395,8 +395,8 @@ public class ProjectServiceTest {
 
 
     private String getDesc() {
-        return "projectUserMapper.deleteProjectRelation(projectId,userId)projectUserMappe"
-                + ".deleteProjectRelation(projectId,userId)projectUserMappe"
+        return "projectUserMapper.deleteProjectRelation(projectId,userId)projectUserMapper"
+                + ".deleteProjectRelation(projectId,userId)projectUserMapper"
                 + "r.deleteProjectRelation(projectId,userId)projectUserMapper"
                 + ".deleteProjectRelation(projectId,userId)projectUserMapper.deleteProjectRelation(projectId,userId)";
     }

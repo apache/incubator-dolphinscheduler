@@ -43,7 +43,7 @@ public class LoggerServer {
     private final NettyServerConfig serverConfig;
 
     /**
-     *  loggger request processor
+     *  logger request processor
      */
     private final LoggerRequestProcessor requestProcessor;
 

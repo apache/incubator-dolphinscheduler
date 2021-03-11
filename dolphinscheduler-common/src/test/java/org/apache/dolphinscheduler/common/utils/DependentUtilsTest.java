@@ -345,7 +345,7 @@ public class DependentUtilsTest {
     }
 
     @Test
-    public void testGetCurretHour() {
+    public void testGetCurrentHour() {
         String dateValue = "currentHour";
 
         Date curDay = DateUtils.stringToDate("2020-05-15 12:10:00");

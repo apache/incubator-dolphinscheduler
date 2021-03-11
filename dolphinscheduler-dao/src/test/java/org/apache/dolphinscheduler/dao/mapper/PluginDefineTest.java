@@ -48,7 +48,7 @@ public class PluginDefineTest {
     }
 
     @Test
-    public void testQeryByPluginType() {
+    public void testQueryByPluginType() {
         PluginDefine pluginDefine = createPluginDefine();
         List<PluginDefine> pluginDefines = pluginDefineMapper.queryByPluginType(pluginDefine.getPluginType());
         Assert.assertTrue(pluginDefines.size() > 0);

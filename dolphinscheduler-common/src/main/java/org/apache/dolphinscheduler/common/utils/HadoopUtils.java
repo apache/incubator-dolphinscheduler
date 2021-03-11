@@ -588,7 +588,7 @@ public class HadoopUtils implements Closeable {
     public static String getAppAddress(String appAddress, String rmHa) {
 
         //get active ResourceManager
-        String activeRM = YarnHAAdminUtils.getAcitveRMName(rmHa);
+        String activeRM = YarnHAAdminUtils.getActiveRMName(rmHa);
 
         if (StringUtils.isEmpty(activeRM)) {
             return null;
@@ -635,7 +635,7 @@ public class HadoopUtils implements Closeable {
          * @param rmIds
          * @return
          */
-        public static String getAcitveRMName(String rmIds) {
+        public static String getActiveRMName(String rmIds) {
 
             String[] rmIdArr = rmIds.split(Constants.COMMA);
 

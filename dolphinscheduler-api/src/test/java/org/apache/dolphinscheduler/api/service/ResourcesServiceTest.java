@@ -148,7 +148,7 @@ public class ResourcesServiceTest {
     }
 
     @Test
-    public void testCreateDirecotry() {
+    public void testCreateDirectory() {
 
         PowerMockito.when(PropertyUtils.getResUploadStartupState()).thenReturn(false);
         User user = new User();
@@ -398,14 +398,14 @@ public class ResourcesServiceTest {
         Assert.assertEquals(Status.RESOURCE_NOT_EXIST.getMsg(), result.getMsg());
 
         //RESOURCE_SUFFIX_NOT_SUPPORT_VIEW
-        PowerMockito.when(FileUtils.getResourceViewSuffixs()).thenReturn("class");
+        PowerMockito.when(FileUtils.getResourceViewSuffixes()).thenReturn("class");
         PowerMockito.when(PropertyUtils.getResUploadStartupState()).thenReturn(true);
         result = resourcesService.readResource(1, 1, 10);
         logger.info(result.toString());
         Assert.assertEquals(Status.RESOURCE_SUFFIX_NOT_SUPPORT_VIEW.getMsg(), result.getMsg());
 
         //USER_NOT_EXIST
-        PowerMockito.when(FileUtils.getResourceViewSuffixs()).thenReturn("jar");
+        PowerMockito.when(FileUtils.getResourceViewSuffixes()).thenReturn("jar");
         PowerMockito.when(FileUtils.suffix("ResourcesServiceTest.jar")).thenReturn("jar");
         result = resourcesService.readResource(1, 1, 10);
         logger.info(result.toString());
@@ -455,14 +455,14 @@ public class ResourcesServiceTest {
 
         //RESOURCE_SUFFIX_NOT_SUPPORT_VIEW
         PowerMockito.when(PropertyUtils.getResUploadStartupState()).thenReturn(true);
-        PowerMockito.when(FileUtils.getResourceViewSuffixs()).thenReturn("class");
+        PowerMockito.when(FileUtils.getResourceViewSuffixes()).thenReturn("class");
         result = resourcesService.onlineCreateResource(user, ResourceType.FILE, "test", "jar", "desc", "content", -1, "/");
         logger.info(result.toString());
         Assert.assertEquals(Status.RESOURCE_SUFFIX_NOT_SUPPORT_VIEW.getMsg(), result.getMsg());
 
         //RuntimeException
         try {
-            PowerMockito.when(FileUtils.getResourceViewSuffixs()).thenReturn("jar");
+            PowerMockito.when(FileUtils.getResourceViewSuffixes()).thenReturn("jar");
             Mockito.when(tenantMapper.queryById(1)).thenReturn(getTenant());
             result = resourcesService.onlineCreateResource(user, ResourceType.FILE, "test", "jar", "desc", "content", -1, "/");
         } catch (RuntimeException ex) {
@@ -500,13 +500,13 @@ public class ResourcesServiceTest {
 
         //RESOURCE_SUFFIX_NOT_SUPPORT_VIEW
         PowerMockito.when(PropertyUtils.getResUploadStartupState()).thenReturn(true);
-        PowerMockito.when(FileUtils.getResourceViewSuffixs()).thenReturn("class");
+        PowerMockito.when(FileUtils.getResourceViewSuffixes()).thenReturn("class");
         result = resourcesService.updateResourceContent(1, "content");
         logger.info(result.toString());
         Assert.assertEquals(Status.RESOURCE_SUFFIX_NOT_SUPPORT_VIEW.getMsg(), result.getMsg());
 
         //USER_NOT_EXIST
-        PowerMockito.when(FileUtils.getResourceViewSuffixs()).thenReturn("jar");
+        PowerMockito.when(FileUtils.getResourceViewSuffixes()).thenReturn("jar");
         PowerMockito.when(FileUtils.suffix("ResourcesServiceTest.jar")).thenReturn("jar");
         result = resourcesService.updateResourceContent(1, "content");
         logger.info(result.toString());

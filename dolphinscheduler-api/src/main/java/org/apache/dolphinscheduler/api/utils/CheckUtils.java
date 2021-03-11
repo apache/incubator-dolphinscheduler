@@ -82,7 +82,7 @@ public class CheckUtils {
   /**
    * check extra info
    *
-   * @param otherParams other parames
+   * @param otherParams other params
    * @return true if other parameters are valid, otherwise return false
    */
   public static boolean checkOtherParams(String otherParams) {

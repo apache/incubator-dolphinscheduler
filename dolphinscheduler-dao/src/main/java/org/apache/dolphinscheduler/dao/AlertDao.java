@@ -92,13 +92,13 @@ public class AlertDao extends AbstractBaseDao {
     }
 
     /**
-     * MasterServer or WorkerServer stoped
+     * MasterServer or WorkerServer stopped
      *
      * @param alertGroupId alertGroupId
      * @param host host
      * @param serverType serverType
      */
-    public void sendServerStopedAlert(int alertGroupId, String host, String serverType) {
+    public void sendServerStoppedAlert(int alertGroupId, String host, String serverType) {
         Alert alert = new Alert();
         List<ServerAlertContent> serverAlertContents = new ArrayList<>(1);
         ServerAlertContent serverStopAlertContent = ServerAlertContent.newBuilder().

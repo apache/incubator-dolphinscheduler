@@ -26,7 +26,7 @@ public class ExecutionStatusTest extends TestCase {
 
     public void testTypeIsRunning() {
         assertTrue(ExecutionStatus.RUNNING_EXECUTION.typeIsRunning());
-        assertTrue(ExecutionStatus.WAITTING_DEPEND.typeIsRunning());
+        assertTrue(ExecutionStatus.WAITING_DEPEND.typeIsRunning());
         assertTrue(ExecutionStatus.DELAY_EXECUTION.typeIsRunning());
     }
 }

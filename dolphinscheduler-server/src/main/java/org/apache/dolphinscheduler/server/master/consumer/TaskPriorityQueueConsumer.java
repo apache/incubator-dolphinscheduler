@@ -362,7 +362,7 @@ public class TaskPriorityQueueConsumer extends Thread {
     }
 
     /**
-     * whehter tenant is null
+     * whether tenant is null
      *
      * @param tenant       tenant
      * @param taskInstance taskInstance

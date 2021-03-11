@@ -95,7 +95,7 @@ public class MasterExecThread implements Runnable {
      */
     private static final Logger logger = LoggerFactory.getLogger(MasterExecThread.class);
     /**
-     * runing TaskNode
+     * running TaskNode
      */
     private final Map<MasterBaseTaskExecThread, Future<Boolean>> activeTaskNode = new ConcurrentHashMap<>();
     /**
@@ -716,7 +716,7 @@ public class MasterExecThread implements Runnable {
     private ExecutionStatus runningState(ExecutionStatus state) {
         if (state == ExecutionStatus.READY_STOP
                 || state == ExecutionStatus.READY_PAUSE
-                || state == ExecutionStatus.WAITTING_THREAD
+                || state == ExecutionStatus.WAITING_THREAD
                 || state == ExecutionStatus.DELAY_EXECUTION) {
             // if the running task is not completed, the state remains unchanged
             return state;
@@ -764,7 +764,7 @@ public class MasterExecThread implements Runnable {
      * @return Boolean whether has waiting thread task
      */
     private boolean hasWaitingThreadTask() {
-        List<TaskInstance> waitingList = getCompleteTaskByState(ExecutionStatus.WAITTING_THREAD);
+        List<TaskInstance> waitingList = getCompleteTaskByState(ExecutionStatus.WAITING_THREAD);
         return CollectionUtils.isNotEmpty(waitingList);
     }
 
@@ -811,7 +811,7 @@ public class MasterExecThread implements Runnable {
 
         // waiting thread
         if (hasWaitingThreadTask()) {
-            return ExecutionStatus.WAITTING_THREAD;
+            return ExecutionStatus.WAITING_THREAD;
         }
 
         // pause

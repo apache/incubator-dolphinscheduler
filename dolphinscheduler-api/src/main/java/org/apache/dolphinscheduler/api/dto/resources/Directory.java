@@ -22,7 +22,7 @@ package org.apache.dolphinscheduler.api.dto.resources;
 public class Directory extends ResourceComponent{
 
     @Override
-    public boolean isDirctory() {
+    public boolean isDirectory() {
         return true;
     }
 

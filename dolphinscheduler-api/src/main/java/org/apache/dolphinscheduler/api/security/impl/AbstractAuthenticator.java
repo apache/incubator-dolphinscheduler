@@ -50,7 +50,7 @@ public abstract class AbstractAuthenticator implements Authenticator {
      * @param userId user identity field
      * @param password user login password
      * @param extra extra user login field
-     * @return user object in databse
+     * @return user object in database
      */
     public abstract User login(String userId, String password, String extra);
 

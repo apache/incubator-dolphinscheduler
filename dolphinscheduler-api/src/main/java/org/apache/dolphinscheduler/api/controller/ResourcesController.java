@@ -104,7 +104,7 @@ public class ResourcesController extends BaseController {
      * @param currentDir  current directory
      * @return create result code
      */
-    @ApiOperation(value = "createDirctory", notes = "CREATE_RESOURCE_NOTES")
+    @ApiOperation(value = "createDirectory", notes = "CREATE_RESOURCE_NOTES")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "type", value = "RESOURCE_TYPE", required = true, dataType = "ResourceType"),
             @ApiImplicitParam(name = "name", value = "RESOURCE_NAME", required = true, dataType = "String"),
@@ -297,7 +297,7 @@ public class ResourcesController extends BaseController {
                                      @RequestParam(value = "fullName") String fullName,
                                      @RequestParam(value = "type") ResourceType type
     ) {
-        logger.info("login user {}, verfiy resource alias: {},resource type: {}",
+        logger.info("login user {}, verify resource alias: {},resource type: {}",
                 loginUser.getUserName(), fullName, type);
 
         return resourceService.verifyResourceName(fullName, type, loginUser);
@@ -662,7 +662,7 @@ public class ResourcesController extends BaseController {
     public Result verifyUdfFuncName(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                     @RequestParam(value = "name") String name
     ) {
-        logger.info("login user {}, verfiy udf function name: {}",
+        logger.info("login user {}, verify udf function name: {}",
                 loginUser.getUserName(), name);
 
         return udfFuncService.verifyUdfFuncByName(name);

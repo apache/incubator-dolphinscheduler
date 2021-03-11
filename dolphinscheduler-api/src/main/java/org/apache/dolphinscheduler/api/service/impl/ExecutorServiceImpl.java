@@ -105,7 +105,7 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
      * @param processDefinitionId process Definition Id
      * @param cronTime cron time
      * @param commandType command type
-     * @param failureStrategy failuer strategy
+     * @param failureStrategy failure strategy
      * @param startNodeList start nodelist
      * @param taskDependType node dependency type
      * @param warningType warning type

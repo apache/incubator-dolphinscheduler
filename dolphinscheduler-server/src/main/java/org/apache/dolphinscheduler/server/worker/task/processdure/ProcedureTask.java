@@ -237,7 +237,7 @@ public class ProcedureTask extends AbstractTask {
     }
 
     /**
-     * set timtou
+     * set timeout
      * @param stmt CallableStatement
      * @throws SQLException
      */
@@ -284,31 +284,31 @@ public class ProcedureTask extends AbstractTask {
     private void getOutputParameter(CallableStatement stmt, int index, String prop, DataType dataType) throws SQLException {
         switch (dataType){
             case VARCHAR:
-                logger.info("out prameter varchar key : {} , value : {}",prop,stmt.getString(index));
+                logger.info("out parameter varchar key : {} , value : {}",prop,stmt.getString(index));
                 break;
             case INTEGER:
-                logger.info("out prameter integer key : {} , value : {}", prop, stmt.getInt(index));
+                logger.info("out parameter integer key : {} , value : {}", prop, stmt.getInt(index));
                 break;
             case LONG:
-                logger.info("out prameter long key : {} , value : {}",prop,stmt.getLong(index));
+                logger.info("out parameter long key : {} , value : {}",prop,stmt.getLong(index));
                 break;
             case FLOAT:
-                logger.info("out prameter float key : {} , value : {}",prop,stmt.getFloat(index));
+                logger.info("out parameter float key : {} , value : {}",prop,stmt.getFloat(index));
                 break;
             case DOUBLE:
-                logger.info("out prameter double key : {} , value : {}",prop,stmt.getDouble(index));
+                logger.info("out parameter double key : {} , value : {}",prop,stmt.getDouble(index));
                 break;
             case DATE:
-                logger.info("out prameter date key : {} , value : {}",prop,stmt.getDate(index));
+                logger.info("out parameter date key : {} , value : {}",prop,stmt.getDate(index));
                 break;
             case TIME:
-                logger.info("out prameter time key : {} , value : {}",prop,stmt.getTime(index));
+                logger.info("out parameter time key : {} , value : {}",prop,stmt.getTime(index));
                 break;
             case TIMESTAMP:
-                logger.info("out prameter timestamp key : {} , value : {}",prop,stmt.getTimestamp(index));
+                logger.info("out parameter timestamp key : {} , value : {}",prop,stmt.getTimestamp(index));
                 break;
             case BOOLEAN:
-                logger.info("out prameter boolean key : {} , value : {}",prop, stmt.getBoolean(index));
+                logger.info("out parameter boolean key : {} , value : {}",prop, stmt.getBoolean(index));
                 break;
             default:
                 break;

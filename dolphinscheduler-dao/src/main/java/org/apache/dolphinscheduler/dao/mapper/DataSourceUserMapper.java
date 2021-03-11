@@ -21,7 +21,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * datasource user realtion mapper interface
+ * datasource user relation mapper interface
  */
 public interface DataSourceUserMapper extends BaseMapper<DatasourceUser> {
 

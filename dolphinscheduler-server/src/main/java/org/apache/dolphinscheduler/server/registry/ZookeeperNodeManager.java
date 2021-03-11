@@ -139,7 +139,7 @@ public class ZookeeperNodeManager implements InitializingBean {
                         String group = parseGroup(path);
                         Set<String> currentNodes = registryCenter.getWorkerGroupNodesDirectly(group);
                         syncWorkerGroupNodes(group, currentNodes);
-                        alertDao.sendServerStopedAlert(1, path, "WORKER");
+                        alertDao.sendServerStoppedAlert(1, path, "WORKER");
                     }
                 } catch (IllegalArgumentException ignore) {
                     logger.warn(ignore.getMessage());
@@ -177,7 +177,7 @@ public class ZookeeperNodeManager implements InitializingBean {
                         logger.info("master node : {} down.", path);
                         Set<String> currentNodes = registryCenter.getMasterNodesDirectly();
                         syncMasterNodes(currentNodes);
-                        alertDao.sendServerStopedAlert(1, path, "MASTER");
+                        alertDao.sendServerStoppedAlert(1, path, "MASTER");
                     }
                 } catch (Exception ex) {
                     logger.error("MasterNodeListener capture data change and get data failed.", ex);

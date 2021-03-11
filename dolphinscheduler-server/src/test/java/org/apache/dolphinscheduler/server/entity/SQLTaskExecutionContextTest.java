@@ -31,7 +31,7 @@ import org.junit.Test;
 public class SQLTaskExecutionContextTest {
 
   /**
-   * test parse  josn String to TaskExecutionContext
+   * test parse  json String to TaskExecutionContext
    */
   @Test
   public void testTaskExecutionContext() {

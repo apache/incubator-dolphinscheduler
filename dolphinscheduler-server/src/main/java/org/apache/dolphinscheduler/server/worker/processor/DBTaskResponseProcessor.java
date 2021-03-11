@@ -25,7 +25,7 @@ import org.apache.dolphinscheduler.remote.command.Command;
 import org.apache.dolphinscheduler.remote.command.CommandType;
 import org.apache.dolphinscheduler.remote.command.DBTaskResponseCommand;
 import org.apache.dolphinscheduler.remote.processor.NettyRequestProcessor;
-import org.apache.dolphinscheduler.server.worker.cache.ResponceCache;
+import org.apache.dolphinscheduler.server.worker.cache.ResponseCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class DBTaskResponseProcessor implements NettyRequestProcessor {
         }
 
         if (taskResponseCommand.getStatus() == ExecutionStatus.SUCCESS.getCode()){
-            ResponceCache.get().removeResponseCache(taskResponseCommand.getTaskInstanceId());
+            ResponseCache.get().removeResponseCache(taskResponseCommand.getTaskInstanceId());
         }
     }
 

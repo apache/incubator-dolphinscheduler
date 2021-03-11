@@ -201,7 +201,7 @@ public class ProcessServiceTest {
         processService.createRecoveryWaitingThreadCommand(null, subProcessInstance);
 
         Command recoverCommand = new Command();
-        recoverCommand.setCommandType(CommandType.RECOVER_WAITTING_THREAD);
+        recoverCommand.setCommandType(CommandType.RECOVER_WAITING_THREAD);
         processService.createRecoveryWaitingThreadCommand(recoverCommand, subProcessInstance);
 
         Command repeatRunningCommand = new Command();
@@ -349,7 +349,7 @@ public class ProcessServiceTest {
         TaskNode taskNode11 = new TaskNode();
         TaskNode taskNode111 = new TaskNode();
         ArrayList<String> successNode = new ArrayList<>();
-        ArrayList<String> faildNode = new ArrayList<>();
+        ArrayList<String> failedNode = new ArrayList<>();
 
         taskNode.setName("bbb");
         taskNode.setType("SHELL");
@@ -359,14 +359,14 @@ public class ProcessServiceTest {
         taskNode11.setType("CONDITIONS");
         taskNode11.setId("444");
         successNode.add("bbb");
-        faildNode.add("ccc");
+        failedNode.add("ccc");
 
         taskNode111.setName("ccc");
         taskNode111.setType("SHELL");
         taskNode111.setId("333");
 
         conditionsParameters.setSuccessNode(successNode);
-        conditionsParameters.setFailedNode(faildNode);
+        conditionsParameters.setFailedNode(failedNode);
         taskNode11.setConditionResult(conditionsParameters.getConditionResult());
         tasks.add(taskNode);
         tasks.add(taskNode11);
@@ -380,7 +380,7 @@ public class ProcessServiceTest {
         TaskNode taskNode222 = new TaskNode();
         ArrayList<TaskNode> tasks2 = new ArrayList<>();
         ArrayList<String> successNode2 = new ArrayList<>();
-        ArrayList<String> faildNode2 = new ArrayList<>();
+        ArrayList<String> failedNode2 = new ArrayList<>();
 
         taskNode2.setName("bbbchange");
         taskNode2.setType("SHELL");
@@ -390,14 +390,14 @@ public class ProcessServiceTest {
         taskNode22.setType("CONDITIONS");
         taskNode22.setId("444");
         successNode2.add("bbb");
-        faildNode2.add("ccc");
+        failedNode2.add("ccc");
 
         taskNode222.setName("ccc");
         taskNode222.setType("SHELL");
         taskNode222.setId("333");
 
         conditionsParameters2.setSuccessNode(successNode2);
-        conditionsParameters2.setFailedNode(faildNode2);
+        conditionsParameters2.setFailedNode(failedNode2);
         taskNode22.setConditionResult(conditionsParameters2.getConditionResult());
         tasks2.add(taskNode2);
         tasks2.add(taskNode22);
@@ -412,7 +412,7 @@ public class ProcessServiceTest {
         TaskNode taskNode333 = new TaskNode();
         ArrayList<TaskNode> tasks3 = new ArrayList<>();
         ArrayList<String> successNode3 = new ArrayList<>();
-        ArrayList<String> faildNode3 = new ArrayList<>();
+        ArrayList<String> failedNode3 = new ArrayList<>();
 
         taskNode3.setName("bbbchange");
         taskNode3.setType("SHELL");
@@ -422,14 +422,14 @@ public class ProcessServiceTest {
         taskNode33.setType("CONDITIONS");
         taskNode33.setId("444");
         successNode3.add("bbbchange");
-        faildNode3.add("ccc");
+        failedNode3.add("ccc");
 
         taskNode333.setName("ccc");
         taskNode333.setType("SHELL");
         taskNode333.setId("333");
 
         conditionsParameters3.setSuccessNode(successNode3);
-        conditionsParameters3.setFailedNode(faildNode3);
+        conditionsParameters3.setFailedNode(failedNode3);
         taskNode33.setConditionResult(conditionsParameters3.getConditionResult());
         tasks3.add(taskNode3);
         tasks3.add(taskNode33);

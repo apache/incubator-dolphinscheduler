@@ -203,7 +203,7 @@ public class SqlTask extends AbstractTask {
         String formatSql = sql.replaceAll(rgex, "?");
         sqlBuilder.append(formatSql);
 
-        // print repalce sql
+        // print replace sql
         printReplacedSql(sql, formatSql, rgex, sqlParamsMap);
         return new SqlBinds(sqlBuilder.toString(), sqlParamsMap);
     }

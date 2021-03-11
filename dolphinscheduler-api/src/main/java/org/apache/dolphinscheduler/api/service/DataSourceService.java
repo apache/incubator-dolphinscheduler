@@ -108,7 +108,7 @@ public interface DataSourceService {
     Result<Object> connectionTest(int id);
 
     /**
-     * build paramters
+     * build parameters
      *
      * @param type      data source  type
      * @param host      data source  host

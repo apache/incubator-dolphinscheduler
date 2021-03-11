@@ -18,7 +18,7 @@
 package org.apache.dolphinscheduler.spi.params.base;
 
 /**
- * param datetype
+ * param datatype
  */
 public enum DataType {
 

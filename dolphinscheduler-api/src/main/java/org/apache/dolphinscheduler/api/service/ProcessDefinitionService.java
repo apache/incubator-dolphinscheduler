@@ -84,7 +84,7 @@ public interface ProcessDefinitionService {
                                                          Integer userId);
 
     /**
-     * query datail of process definition
+     * query detail of process definition
      *
      * @param loginUser login user
      * @param projectName project name
@@ -97,7 +97,7 @@ public interface ProcessDefinitionService {
                                                    Integer processId);
 
     /**
-     * query datail of process definition
+     * query detail of process definition
      *
      * @param loginUser login user
      * @param projectName project name
@@ -264,7 +264,7 @@ public interface ProcessDefinitionService {
                                  Integer limit) throws Exception;
 
     /**
-     * switch the defined process definition verison
+     * switch the defined process definition version
      *
      * @param loginUser login user
      * @param projectName project name

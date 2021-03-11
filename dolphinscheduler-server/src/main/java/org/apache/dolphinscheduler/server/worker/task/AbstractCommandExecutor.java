@@ -85,7 +85,7 @@ public abstract class AbstractCommandExecutor {
      */
     protected final List<String> logBuffer;
     
-    protected boolean logOutputIsScuccess = false;
+    protected boolean logOutputIsSuccess = false;
 
     /**
      * SHELL result string
@@ -199,7 +199,7 @@ public abstract class AbstractCommandExecutor {
         logger.info("process start, process id is: {}", processId);
 
         // if timeout occurs, exit directly
-        long remainTime = getRemaintime();
+        long remainTime = getRemainingtime();
 
         // waiting for the run to finish
         boolean status = process.waitFor(remainTime, TimeUnit.SECONDS);
@@ -260,7 +260,7 @@ public abstract class AbstractCommandExecutor {
             // hard kill
             hardKill(processId);
 
-            // destory
+            // destroy
             process.destroy();
 
             process = null;
@@ -369,7 +369,7 @@ public abstract class AbstractCommandExecutor {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             } finally {
-                logOutputIsScuccess = true;
+                logOutputIsSuccess = true;
                 close(inReader);
             }
         });
@@ -379,7 +379,7 @@ public abstract class AbstractCommandExecutor {
         parseProcessOutputExecutorService.submit(() -> {
             try {
                 long lastFlushTime = System.currentTimeMillis();
-                while (logBuffer.size() > 0 || !logOutputIsScuccess) {
+                while (logBuffer.size() > 0 || !logOutputIsSuccess) {
                     if (logBuffer.size() > 0) {
                         lastFlushTime = flush(lastFlushTime);
                     } else {
@@ -442,7 +442,7 @@ public abstract class AbstractCommandExecutor {
 
         List<String> appIds = new ArrayList<>();
         /**
-         * analysis log?get submited yarn application id
+         * analysis log?get submitted yarn application id
          */
         for (String log : logs) {
             String appId = findAppId(log);
@@ -509,7 +509,7 @@ public abstract class AbstractCommandExecutor {
      *
      * @return remain time
      */
-    private long getRemaintime() {
+    private long getRemainingtime() {
         long usedTime = (System.currentTimeMillis() - taskExecutionContext.getStartTime().getTime()) / 1000;
         long remainTime = taskExecutionContext.getTaskTimeout() - usedTime;
 

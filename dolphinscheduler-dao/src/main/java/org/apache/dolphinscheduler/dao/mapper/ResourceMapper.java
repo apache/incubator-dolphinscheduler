@@ -118,10 +118,10 @@ public interface ResourceMapper extends BaseMapper<Resource> {
 
     /**
      * list children
-     * @param direcotyId directory id
+     * @param directoryId directory id
      * @return resource id array
      */
-    List<Integer> listChildren(@Param("direcotyId") int direcotyId);
+    List<Integer> listChildren(@Param("directoryId") int directoryId);
 
     /**
      * query resource by full name or pid

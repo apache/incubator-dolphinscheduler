@@ -184,12 +184,12 @@ public class TaskInstance implements Serializable {
     private int retryInterval;
 
     /**
-     * task intance priority
+     * task instance priority
      */
     private Priority taskInstancePriority;
 
     /**
-     * process intance priority
+     * process instance priority
      */
     @TableField(exist = false)
     private Priority processInstancePriority;

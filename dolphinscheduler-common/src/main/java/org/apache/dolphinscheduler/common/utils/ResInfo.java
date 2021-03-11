@@ -19,7 +19,7 @@ import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.model.Server;
 
 /**
- *  heartbeat for ZK reigster res info
+ *  heartbeat for ZK register res info
  */
 public class ResInfo {
 

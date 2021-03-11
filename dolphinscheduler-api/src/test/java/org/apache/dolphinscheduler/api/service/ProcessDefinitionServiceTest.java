@@ -598,14 +598,14 @@ public class ProcessDefinitionServiceTest {
                 6, ReleaseState.OFFLINE);
         Assert.assertEquals(Status.PROJECT_NOT_FOUNT, map.get(Constants.STATUS));
 
-        // project check auth success, processs definition online
+        // project check auth success, process definition online
         putMsg(result, Status.SUCCESS, projectName);
         Mockito.when(processDefineMapper.selectById(46)).thenReturn(getProcessDefinition());
         Map<String, Object> onlineRes = processDefinitionService.releaseProcessDefinition(
                 loginUser, "project_test1", 46, ReleaseState.ONLINE);
         Assert.assertEquals(Status.SUCCESS, onlineRes.get(Constants.STATUS));
 
-        // project check auth success, processs definition online
+        // project check auth success, process definition online
         ProcessDefinition processDefinition1 = getProcessDefinition();
         processDefinition1.setResourceIds("1,2");
         Mockito.when(processDefineMapper.selectById(46)).thenReturn(processDefinition1);

@@ -21,7 +21,7 @@ import org.apache.dolphinscheduler.common.thread.Stopper;
 
 import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.remote.command.Command;
-import org.apache.dolphinscheduler.server.worker.cache.ResponceCache;
+import org.apache.dolphinscheduler.server.worker.cache.ResponseCache;
 import org.apache.dolphinscheduler.server.worker.processor.TaskCallbackService;
 import org.apache.dolphinscheduler.service.bean.SpringApplicationContext;
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ public class RetryReportTaskStatusThread implements Runnable {
      */
     @Override
     public void run() {
-        ResponceCache responceCache = ResponceCache.get();
+        ResponseCache responseCache = ResponseCache.get();
 
         while (Stopper.isRunning()){
 
@@ -69,8 +69,8 @@ public class RetryReportTaskStatusThread implements Runnable {
             ThreadUtils.sleep(RETRY_REPORT_TASK_STATUS_INTERVAL);
 
             try {
-                if (!responceCache.getAckCache().isEmpty()){
-                    Map<Integer,Command> ackCache =  responceCache.getAckCache();
+                if (!responseCache.getAckCache().isEmpty()){
+                    Map<Integer,Command> ackCache =  responseCache.getAckCache();
                     for (Map.Entry<Integer, Command> entry : ackCache.entrySet()){
                         Integer taskInstanceId = entry.getKey();
                         Command ackCommand = entry.getValue();
@@ -78,8 +78,8 @@ public class RetryReportTaskStatusThread implements Runnable {
                     }
                 }
 
-                if (!responceCache.getResponseCache().isEmpty()){
-                    Map<Integer,Command> responseCache =  responceCache.getResponseCache();
+                if (!responseCache.getResponseCache().isEmpty()){
+                    Map<Integer,Command> responseCache =  responseCache.getResponseCache();
                     for (Map.Entry<Integer, Command> entry : responseCache.entrySet()){
                         Integer taskInstanceId = entry.getKey();
                         Command responseCommand = entry.getValue();

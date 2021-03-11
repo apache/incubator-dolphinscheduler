@@ -66,7 +66,7 @@ public class Result<T> {
      *
      * @param data data
      * @param <T> type
-     * @return resule
+     * @return result
      */
     public static <T> Result<T> success(T data) {
         return new Result<>(data);

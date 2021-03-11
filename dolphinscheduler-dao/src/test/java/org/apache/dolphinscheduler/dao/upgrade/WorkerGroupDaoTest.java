@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 
-public class WokrerGrouopDaoTest {
+public class WorkerGroupDaoTest {
     protected  final DataSource dataSource = getDataSource();
 
     @Test

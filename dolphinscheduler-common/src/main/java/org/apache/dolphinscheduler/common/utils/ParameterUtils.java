@@ -96,7 +96,7 @@ public class ParameterUtils {
             return parameterString;
         }
         //Get current time, schedule execute time
-        String cronTimeStr = parameterMap.get(Constants.PARAMETER_SHECDULE_TIME);
+        String cronTimeStr = parameterMap.get(Constants.PARAMETER_SCHEDULE_TIME);
         Date cronTime = null;
 
         if (StringUtils.isNotEmpty(cronTimeStr)) {
@@ -228,8 +228,8 @@ public class ParameterUtils {
         String dateTime = org.apache.dolphinscheduler.common.utils.DateUtils.format(scheduleTime, Constants.PARAMETER_FORMAT_TIME);
         Property p = new Property();
         p.setValue(dateTime);
-        p.setProp(Constants.PARAMETER_SHECDULE_TIME);
-        paramsMap.put(Constants.PARAMETER_SHECDULE_TIME, p);
+        p.setProp(Constants.PARAMETER_SCHEDULE_TIME);
+        paramsMap.put(Constants.PARAMETER_SCHEDULE_TIME, p);
         text = ParameterUtils.convertParameterPlaceholders2(text, convert(paramsMap));
 
         return text;

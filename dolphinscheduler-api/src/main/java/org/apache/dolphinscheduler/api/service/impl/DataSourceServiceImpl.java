@@ -214,11 +214,11 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
 
         BaseDataSource datasourceForm = DataSourceFactory.getDatasource(dataSource.getType(), parameter);
         DbConnectType connectType = null;
-        String hostSeperator = Constants.DOUBLE_SLASH;
+        String hostSeparator = Constants.DOUBLE_SLASH;
         if (DbType.ORACLE.equals(dataSource.getType())) {
             connectType = ((OracleDataSource) datasourceForm).getConnectType();
             if (DbConnectType.ORACLE_SID.equals(connectType)) {
-                hostSeperator = Constants.AT_SIGN;
+                hostSeparator = Constants.AT_SIGN;
             }
         }
         String database = datasourceForm.getDatabase();
@@ -226,10 +226,10 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
         String other = datasourceForm.getOther();
         String address = datasourceForm.getAddress();
 
-        String[] hostsPorts = getHostsAndPort(address, hostSeperator);
+        String[] hostsPorts = getHostsAndPort(address, hostSeparator);
         // ip host
         String host = hostsPorts[0];
-        // prot
+        // port
         String port = hostsPorts[1];
         String separator = "";
 
@@ -426,7 +426,7 @@ public class DataSourceServiceImpl extends BaseServiceImpl implements DataSource
     }
 
     /**
-     * build paramters
+     * build parameters
      *
      * @param type      data source  type
      * @param host      data source  host

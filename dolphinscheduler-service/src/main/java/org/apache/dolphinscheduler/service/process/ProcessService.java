@@ -214,8 +214,8 @@ public class ProcessService {
      * @return process instance
      */
     private ProcessInstance setWaitingThreadProcess(Command command, ProcessInstance processInstance) {
-        processInstance.setState(ExecutionStatus.WAITTING_THREAD);
-        if (command.getCommandType() != CommandType.RECOVER_WAITTING_THREAD) {
+        processInstance.setState(ExecutionStatus.WAITING_THREAD);
+        if (command.getCommandType() != CommandType.RECOVER_WAITING_THREAD) {
             processInstance.addHistoryCmd(command.getCommandType());
         }
         saveProcessInstance(processInstance);
@@ -466,7 +466,7 @@ public class ProcessService {
      */
     public void createRecoveryWaitingThreadCommand(Command originCommand, ProcessInstance processInstance) {
 
-        // sub process doesnot need to create wait command
+        // sub process does not need to create wait command
         if (processInstance.getIsSubProcess() == Flag.YES) {
             if (originCommand != null) {
                 commandMapper.deleteById(originCommand.getId());
@@ -478,7 +478,7 @@ public class ProcessService {
         // process instance quit by "waiting thread" state
         if (originCommand == null) {
             Command command = new Command(
-                    CommandType.RECOVER_WAITTING_THREAD,
+                    CommandType.RECOVER_WAITING_THREAD,
                     processInstance.getTaskDependType(),
                     processInstance.getFailureStrategy(),
                     processInstance.getExecutorId(),
@@ -495,14 +495,14 @@ public class ProcessService {
         }
 
         // update the command time if current command if recover from waiting
-        if (originCommand.getCommandType() == CommandType.RECOVER_WAITTING_THREAD) {
+        if (originCommand.getCommandType() == CommandType.RECOVER_WAITING_THREAD) {
             originCommand.setUpdateTime(new Date());
             saveCommand(originCommand);
         } else {
             // delete old command and create new waiting thread command
             commandMapper.deleteById(originCommand.getId());
             originCommand.setId(0);
-            originCommand.setCommandType(CommandType.RECOVER_WAITTING_THREAD);
+            originCommand.setCommandType(CommandType.RECOVER_WAITING_THREAD);
             originCommand.setUpdateTime(new Date());
             originCommand.setCommandParam(JSONUtils.toJsonString(cmdParam));
             originCommand.setProcessInstancePriority(processInstance.getProcessInstancePriority());
@@ -607,7 +607,7 @@ public class ProcessService {
     /**
      * get process tenant
      * there is tenant id in definition, use the tenant of the definition.
-     * if there is not tenant id in the definiton or the tenant not exist
+     * if there is not tenant id in the definition or the tenant not exist
      * use definition creator's tenant.
      *
      * @param tenantId tenantId
@@ -764,7 +764,7 @@ public class ProcessService {
                 break;
             case START_CURRENT_TASK_PROCESS:
                 break;
-            case RECOVER_WAITTING_THREAD:
+            case RECOVER_WAITING_THREAD:
                 break;
             case RECOVER_SUSPENDED_PROCESS:
                 // find pause tasks and init task's state
@@ -1221,7 +1221,7 @@ public class ProcessService {
         ) {
             return state;
         }
-        //return pasue /stop if process instance state is ready pause / stop
+        //return pause /stop if process instance state is ready pause / stop
         // or return submit success
         if (processInstanceState == ExecutionStatus.READY_PAUSE) {
             state = ExecutionStatus.PAUSE;
@@ -1349,7 +1349,7 @@ public class ProcessService {
      * find task instance by id
      *
      * @param taskId task id
-     * @return task intance
+     * @return task instance
      */
     public TaskInstance findTaskInstanceById(Integer taskId) {
         return taskInstanceMapper.selectById(taskId);
@@ -2042,13 +2042,13 @@ public class ProcessService {
     }
 
     /**
-     * get resource by resoruce id
+     * get resource by resource id
      *
-     * @param resoruceId resource id
+     * @param resourceId resource id
      * @return Resource
      */
-    public Resource getResourceById(int resoruceId) {
-        return resourceMapper.selectById(resoruceId);
+    public Resource getResourceById(int resourceId) {
+        return resourceMapper.selectById(resourceId);
     }
 
     /**

@@ -62,7 +62,7 @@ public class AlertManagerTest {
      * send worker alert fault tolerance
      */
     @Test
-    public void sendWarnningWorkerleranceFaultTest(){
+    public void sendWarningWorkerToleranceFaultTest(){
         // process instance
         ProcessInstance processInstance = processInstanceMapper.queryDetailById(13028);
 
@@ -87,7 +87,7 @@ public class AlertManagerTest {
      * send worker alert fault tolerance
      */
     @Test
-    public void sendWarnningOfProcessInstanceTest(){
+    public void sendWarningOfProcessInstanceTest(){
         // process instance
         ProcessInstance processInstance = processInstanceMapper.queryDetailById(13028);
 

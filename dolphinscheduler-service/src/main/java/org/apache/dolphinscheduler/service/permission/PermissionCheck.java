@@ -50,7 +50,7 @@ public class PermissionCheck<T> {
     private T[] needChecks;
 
     /**
-     * resoruce info
+     * resource info
      */
     private List<ResourceInfo> resourceList;
 

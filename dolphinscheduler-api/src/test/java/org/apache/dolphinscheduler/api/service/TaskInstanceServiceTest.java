@@ -90,9 +90,9 @@ public class TaskInstanceServiceTest {
         //project auth fail
         when(projectMapper.queryByName(projectName)).thenReturn(null);
         when(projectService.checkProjectAndAuth(loginUser, null, projectName)).thenReturn(result);
-        Map<String, Object> proejctAuthFailRes = taskInstanceService.queryTaskListPaging(loginUser, "project_test1", 0, "", "",
+        Map<String, Object> projectAuthFailRes = taskInstanceService.queryTaskListPaging(loginUser, "project_test1", 0, "", "",
                 "test_user", "2019-02-26 19:48:00", "2019-02-26 19:48:22", "", null, "", 1, 20);
-        Assert.assertEquals(Status.PROJECT_NOT_FOUNT, proejctAuthFailRes.get(Constants.STATUS));
+        Assert.assertEquals(Status.PROJECT_NOT_FOUNT, projectAuthFailRes.get(Constants.STATUS));
 
         // data parameter check
         putMsg(result, Status.SUCCESS, projectName);

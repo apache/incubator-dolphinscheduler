@@ -144,7 +144,7 @@ public class ProcessInstanceServiceImpl extends BaseServiceImpl implements Proce
         }
 
         if (0 > size) {
-            putMsg(result, Status.NEGTIVE_SIZE_NUMBER_ERROR, size);
+            putMsg(result, Status.NEGATIVE_SIZE_NUMBER_ERROR, size);
             return result;
         }
         if (Objects.isNull(startTime)) {

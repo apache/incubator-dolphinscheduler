@@ -124,9 +124,9 @@ public class SchedulerServiceTest {
         result = schedulerService.setScheduleState(loginUser, projectName, 2, ReleaseState.ONLINE);
         Assert.assertEquals(Status.SCHEDULE_CRON_NOT_EXISTS, result.get(Constants.STATUS));
 
-        //SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE
+        //SCHEDULE_CRON_RELEASE_NEED_NOT_CHANGE
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.OFFLINE);
-        Assert.assertEquals(Status.SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SCHEDULE_CRON_RELEASE_NEED_NOT_CHANGE, result.get(Constants.STATUS));
 
         //PROCESS_DEFINE_NOT_EXIST
         schedule.setProcessDefinitionId(2);

@@ -46,7 +46,7 @@ public class PluginDao extends AbstractBaseDao {
     /**
      * add pluginDefine
      *
-     * @param pluginDefine plugin define entiy
+     * @param pluginDefine plugin define entity
      * @return plugin define id
      */
     public int addPluginDefine(PluginDefine pluginDefine) {

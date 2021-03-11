@@ -41,8 +41,8 @@ import static org.apache.dolphinscheduler.common.Constants.QUARTZ_CLUSTERCHECKIN
 import static org.apache.dolphinscheduler.common.Constants.QUARTZ_DATASOURCE;
 import static org.apache.dolphinscheduler.common.Constants.QUARTZ_INSTANCEID;
 import static org.apache.dolphinscheduler.common.Constants.QUARTZ_INSTANCENAME;
-import static org.apache.dolphinscheduler.common.Constants.QUARTZ_JOB_GROUP_PRIFIX;
-import static org.apache.dolphinscheduler.common.Constants.QUARTZ_JOB_PRIFIX;
+import static org.apache.dolphinscheduler.common.Constants.QUARTZ_JOB_GROUP_PREFIX;
+import static org.apache.dolphinscheduler.common.Constants.QUARTZ_JOB_PREFIX;
 import static org.apache.dolphinscheduler.common.Constants.QUARTZ_MISFIRETHRESHOLD;
 import static org.apache.dolphinscheduler.common.Constants.QUARTZ_PROPERTIES_PATH;
 import static org.apache.dolphinscheduler.common.Constants.QUARTZ_TABLE_PREFIX;
@@ -345,7 +345,7 @@ public class QuartzExecutors {
      */
     public static String buildJobName(int processId) {
         StringBuilder sb = new StringBuilder(30);
-        sb.append(QUARTZ_JOB_PRIFIX).append(UNDERLINE).append(processId);
+        sb.append(QUARTZ_JOB_PREFIX).append(UNDERLINE).append(processId);
         return sb.toString();
     }
 
@@ -357,7 +357,7 @@ public class QuartzExecutors {
      */
     public static String buildJobGroupName(int projectId) {
         StringBuilder sb = new StringBuilder(30);
-        sb.append(QUARTZ_JOB_GROUP_PRIFIX).append(UNDERLINE).append(projectId);
+        sb.append(QUARTZ_JOB_GROUP_PREFIX).append(UNDERLINE).append(projectId);
         return sb.toString();
     }
 

@@ -55,7 +55,7 @@ public class HdfsSourceGenerator implements ISourceGenerator {
 
             }
         } catch (Exception e) {
-            logger.error(String.format("Sqoop hdfs source parmas build failed: [%s]", e.getMessage()));
+            logger.error(String.format("Sqoop hdfs source params build failed: [%s]", e.getMessage()));
         }
 
         return hdfsSourceSb.toString();

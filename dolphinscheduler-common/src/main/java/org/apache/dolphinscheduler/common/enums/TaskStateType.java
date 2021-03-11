@@ -27,7 +27,7 @@ public enum TaskStateType {
      * 3 failed
      * 4 success
      */
-    WAITTING, RUNNING, FINISH, FAILED, SUCCESS;
+    WAITING, RUNNING, FINISH, FAILED, SUCCESS;
 
     /**
      * convert task state to execute status integer array ;
@@ -35,7 +35,7 @@ public enum TaskStateType {
      * @param taskStateType task state type
      * @return result of execution status
      */
-    public static int[] convert2ExecutStatusIntArray(TaskStateType taskStateType) {
+    public static int[] convert2ExecuteStatusIntArray(TaskStateType taskStateType) {
 
         switch (taskStateType) {
             case SUCCESS:
@@ -55,7 +55,7 @@ public enum TaskStateType {
                         ExecutionStatus.DELAY_EXECUTION.ordinal(),
                         ExecutionStatus.READY_PAUSE.ordinal(),
                         ExecutionStatus.READY_STOP.ordinal()};
-            case WAITTING:
+            case WAITING:
                 return new int[]{
                         ExecutionStatus.SUBMITTED_SUCCESS.ordinal()
                 };

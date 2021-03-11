@@ -36,8 +36,8 @@ login.user.keytab.username=hdfs-mycluster@ESZ.COM
 # login user from keytab path
 login.user.keytab.path=/opt/hdfs.headless.keytab
 
-#resource.view.suffixs
-#resource.view.suffixs=txt,log,sh,bat,conf,cfg,py,java,sql,xml,hql,properties,json,yml,yaml,ini,js
+#resource.view.suffixes
+#resource.view.suffixes=txt,log,sh,bat,conf,cfg,py,java,sql,xml,hql,properties,json,yml,yaml,ini,js
 
 # if resource.storage.type=HDFS, the user need to have permission to create directories under the HDFS root path
 hdfs.root.user=hdfs

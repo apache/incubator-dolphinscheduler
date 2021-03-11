@@ -112,9 +112,9 @@ public class CronUtilsTest {
                 .withSecond(on(0))
                 .instance();
         // minute cycle
-        String[] cronArayy = new String[]{"* * * * * ? *","* 0 * * * ? *",
+        String[] cronArray = new String[]{"* * * * * ? *","* 0 * * * ? *",
                 "* 5 * * 3/5 ? *","0 0 * * * ? *"};
-        for(String minCrontab:cronArayy){
+        for(String minCrontab:cronArray){
             if (!org.quartz.CronExpression.isValidExpression(minCrontab)) {
                 throw new RuntimeException(minCrontab+" verify failure, cron expression not valid");
             }

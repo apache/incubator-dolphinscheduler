@@ -81,7 +81,7 @@ public class ProcedureParameters extends AbstractParameters {
 
   @Override
   public String toString() {
-    return "ProcessdureParam{" +
+    return "ProcedureParam{" +
             "type='" + type + '\'' +
             ", datasource=" + datasource +
             ", method='" + method + '\'' +

@@ -166,7 +166,7 @@ public class ProcessDefinitionVersionServiceImpl extends BaseServiceImpl impleme
      * @param projectName process definition project name
      * @param processDefinitionId process definition id
      * @param version version number
-     * @return delele result code
+     * @return delete result code
      */
     @Override
     public Map<String, Object> deleteByProcessDefinitionIdAndVersion(User loginUser, String projectName, int processDefinitionId, long version) {

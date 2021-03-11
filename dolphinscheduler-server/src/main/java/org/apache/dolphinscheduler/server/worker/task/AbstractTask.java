@@ -193,7 +193,7 @@ public abstract class AbstractTask {
      */
     public void after() {
         if (getExitStatusCode() == Constants.EXIT_CODE_SUCCESS) {
-            // task recor flat : if true , start up qianfan
+            // task record flat : if true , start up qianfan
             if (TaskRecordDao.getTaskRecordFlag()
                     && TaskType.typeIsNormalTask(taskExecutionContext.getTaskType())) {
                 AbstractParameters params = TaskParametersUtils.getParameters(taskExecutionContext.getTaskType(), taskExecutionContext.getTaskParams());

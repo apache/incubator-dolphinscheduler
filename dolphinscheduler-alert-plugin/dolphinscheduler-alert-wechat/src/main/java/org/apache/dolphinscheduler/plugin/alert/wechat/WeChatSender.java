@@ -221,7 +221,7 @@ public class WeChatSender {
     }
 
     /**
-     * Determine the mardown style based on the show type of the alert
+     * Determine the markdown style based on the show type of the alert
      *
      * @return the markdown alert table/text
      */

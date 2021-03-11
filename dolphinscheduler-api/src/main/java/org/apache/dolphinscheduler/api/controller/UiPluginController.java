@@ -48,7 +48,7 @@ import springfox.documentation.annotations.ApiIgnore;
 /**
  * ui plugin controller
  * Some plugins (such as alert plugin) need to provide UI interfaces to users.
- * We use from-creat to dynamically generate UI interfaces. Related parameters are mainly provided by pluginParams.
+ * We use from-create to dynamically generate UI interfaces. Related parameters are mainly provided by pluginParams.
  * From-create can generate dynamic ui based on this parameter.
  */
 @Api(tags = "UI_PLUGINS_TAG")

@@ -37,7 +37,7 @@ public class LoginPage extends PageCommon {
     /**
      * jump page
      */
-    public void jumpPageEnlish() {
+    public void jumpPageEnglish() {
         System.out.println("jump to English login page");
         super.jumpPage(LoginData.URL);
         Cookie cookie = new Cookie("language", "en_US", "/", null);

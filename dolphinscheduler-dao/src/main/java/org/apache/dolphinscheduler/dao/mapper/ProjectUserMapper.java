@@ -26,7 +26,7 @@ import org.apache.ibatis.annotations.Param;
 public interface ProjectUserMapper extends BaseMapper<ProjectUser> {
 
     /**
-     * delte prject user relation
+     * delete project user relation
      * @param projectId projectId
      * @param userId userId
      * @return delete result

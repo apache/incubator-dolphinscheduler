@@ -167,7 +167,7 @@ public class WorkerServer implements IStoppable {
             Stopper.stop();
 
             try {
-                //thread sleep 3 seconds for thread quitely stop
+                //thread sleep 3 seconds for thread quietly stop
                 Thread.sleep(3000L);
             } catch (Exception e) {
                 logger.warn("thread sleep exception", e);

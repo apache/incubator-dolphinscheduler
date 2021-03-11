@@ -82,10 +82,10 @@ public class DataxTaskTest {
     @Before
     public void before()
             throws Exception {
-        setTaskParems(0);
+        setTaskParams(0);
     }
 
-    private void setTaskParems(Integer customConfig) {
+    private void setTaskParams(Integer customConfig) {
 
         processService = Mockito.mock(ProcessService.class);
         shellCommandExecutor = Mockito.mock(ShellCommandExecutor.class);
@@ -308,7 +308,7 @@ public class DataxTaskTest {
             throws Exception {
 
         try {
-            setTaskParems(1);
+            setTaskParams(1);
             Method method = DataxTask.class.getDeclaredMethod("buildDataxJsonFile");
             method.setAccessible(true);
             String filePath = (String) method.invoke(dataxTask, null);
@@ -325,7 +325,7 @@ public class DataxTaskTest {
     public void testBuildDataxJsonFile0()
             throws Exception {
         try {
-            setTaskParems(0);
+            setTaskParams(0);
             Method method = DataxTask.class.getDeclaredMethod("buildDataxJsonFile");
             method.setAccessible(true);
             String filePath = (String) method.invoke(dataxTask, null);

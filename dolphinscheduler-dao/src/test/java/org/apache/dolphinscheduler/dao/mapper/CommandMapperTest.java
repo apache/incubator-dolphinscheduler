@@ -171,7 +171,7 @@ public class CommandMapperTest {
     /**
      * create command map
      * @param count map count
-     * @param commandType comman type
+     * @param commandType command type
      * @param processDefinitionId process definition id
      * @return command map
      */

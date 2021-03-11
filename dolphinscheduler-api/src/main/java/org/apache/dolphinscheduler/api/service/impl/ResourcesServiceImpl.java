@@ -841,9 +841,9 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
         }
         //check preview or not by file suffix
         String nameSuffix = FileUtils.suffix(resource.getAlias());
-        String resourceViewSuffixs = FileUtils.getResourceViewSuffixs();
-        if (StringUtils.isNotEmpty(resourceViewSuffixs)) {
-            List<String> strList = Arrays.asList(resourceViewSuffixs.split(","));
+        String resourceViewSuffixes = FileUtils.getResourceViewSuffixes();
+        if (StringUtils.isNotEmpty(resourceViewSuffixes)) {
+            List<String> strList = Arrays.asList(resourceViewSuffixes.split(","));
             if (!strList.contains(nameSuffix)) {
                 logger.error("resource suffix {} not support view,  resource id {}", nameSuffix, resourceId);
                 putMsg(result, Status.RESOURCE_SUFFIX_NOT_SUPPORT_VIEW);
@@ -904,9 +904,9 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
 
         //check file suffix
         String nameSuffix = fileSuffix.trim();
-        String resourceViewSuffixs = FileUtils.getResourceViewSuffixs();
-        if (StringUtils.isNotEmpty(resourceViewSuffixs)) {
-            List<String> strList = Arrays.asList(resourceViewSuffixs.split(","));
+        String resourceViewSuffixes = FileUtils.getResourceViewSuffixes();
+        if (StringUtils.isNotEmpty(resourceViewSuffixes)) {
+            List<String> strList = Arrays.asList(resourceViewSuffixes.split(","));
             if (!strList.contains(nameSuffix)) {
                 logger.error("resource suffix {} not support create", nameSuffix);
                 putMsg(result, Status.RESOURCE_SUFFIX_NOT_SUPPORT_VIEW);
@@ -1006,9 +1006,9 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
         }
         //check can edit by file suffix
         String nameSuffix = FileUtils.suffix(resource.getAlias());
-        String resourceViewSuffixs = FileUtils.getResourceViewSuffixs();
-        if (StringUtils.isNotEmpty(resourceViewSuffixs)) {
-            List<String> strList = Arrays.asList(resourceViewSuffixs.split(","));
+        String resourceViewSuffixes = FileUtils.getResourceViewSuffixes();
+        if (StringUtils.isNotEmpty(resourceViewSuffixes)) {
+            List<String> strList = Arrays.asList(resourceViewSuffixes.split(","));
             if (!strList.contains(nameSuffix)) {
                 logger.error("resource suffix {} not support updateProcessInstance,  resource id {}", nameSuffix, resourceId);
                 putMsg(result, Status.RESOURCE_SUFFIX_NOT_SUPPORT_VIEW);

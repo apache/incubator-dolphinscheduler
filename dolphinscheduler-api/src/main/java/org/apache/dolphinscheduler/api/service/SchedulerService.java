@@ -130,7 +130,7 @@ public interface SchedulerService {
      *
      * @param loginUser login user
      * @param projectName project name
-     * @param scheduleId scheule id
+     * @param scheduleId schedule id
      * @return delete result code
      */
     Map<String, Object> deleteScheduleById(User loginUser, String projectName, Integer scheduleId);

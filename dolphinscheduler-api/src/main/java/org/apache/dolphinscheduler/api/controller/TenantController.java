@@ -148,11 +148,11 @@ public class TenantController extends BaseController {
 
 
     /**
-     * udpate tenant
+     * update tenant
      *
      * @param loginUser login user
-     * @param id tennat id
-     * @param tenantCode tennat code
+     * @param id tenant id
+     * @param tenantCode tenant code
      * @param queueId queue id
      * @param description description
      * @return update result code
@@ -219,7 +219,7 @@ public class TenantController extends BaseController {
     @ApiException(VERIFY_OS_TENANT_CODE_ERROR)
     public Result verifyTenantCode(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                    @RequestParam(value = "tenantCode") String tenantCode) {
-        logger.info("login user {}, verfiy tenant code: {}",
+        logger.info("login user {}, verify tenant code: {}",
                 loginUser.getUserName(), tenantCode);
         return tenantService.verifyTenantCode(tenantCode);
     }

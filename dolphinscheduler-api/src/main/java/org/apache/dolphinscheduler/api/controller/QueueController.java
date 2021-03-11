@@ -188,7 +188,7 @@ public class QueueController extends BaseController {
                               @RequestParam(value = "queueName") String queueName
     ) {
 
-        logger.info("login user {}, verfiy queue: {} queue name: {}",
+        logger.info("login user {}, verify queue: {} queue name: {}",
                 loginUser.getUserName(), queue, queueName);
         return queueService.verifyQueue(queue, queueName);
     }

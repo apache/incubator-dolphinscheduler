@@ -35,7 +35,7 @@ import org.apache.dolphinscheduler.service.alert.AlertClientService;
 import org.slf4j.Logger;
 
 /**
- * task manaster
+ * task manager
  */
 public class TaskManager {
 

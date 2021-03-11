@@ -119,7 +119,7 @@ public class UsersController extends BaseController {
      *
      * @param loginUser login user
      * @param pageNo    page number
-     * @param searchVal search avlue
+     * @param searchVal search value
      * @param pageSize  page size
      * @return user list page
      */
@@ -156,7 +156,7 @@ public class UsersController extends BaseController {
      * @param userName     user name
      * @param userPassword user password
      * @param email        email
-     * @param tenantId     tennat id
+     * @param tenantId     tenant id
      * @param phone        phone
      * @param queue        queue
      * @return update result code
@@ -376,7 +376,7 @@ public class UsersController extends BaseController {
     public Result verifyUserName(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                  @RequestParam(value = "userName") String userName
     ) {
-        logger.info("login user {}, verfiy user name: {}",
+        logger.info("login user {}, verify user name: {}",
                 loginUser.getUserName(), userName);
         return usersService.verifyUserName(userName);
     }
@@ -458,7 +458,7 @@ public class UsersController extends BaseController {
         userPassword = ParameterUtils.handleEscapes(userPassword);
         repeatPassword = ParameterUtils.handleEscapes(repeatPassword);
         email = ParameterUtils.handleEscapes(email);
-        logger.info("user self-register, userName: {}, userPassword {}, repeatPassword {}, eamil {}",
+        logger.info("user self-register, userName: {}, userPassword {}, repeatPassword {}, email {}",
                 userName, Constants.PASSWORD_DEFAULT, Constants.PASSWORD_DEFAULT, email);
         Map<String, Object> result = usersService.registerUser(userName, userPassword, repeatPassword, email);
         return returnDataList(result);

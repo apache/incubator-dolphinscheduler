@@ -143,11 +143,11 @@ public final class Constants {
     public static final String PYTHON_HOME = "PYTHON_HOME";
 
     /**
-     * resource.view.suffixs
+     * resource.view.suffixes
      */
-    public static final String RESOURCE_VIEW_SUFFIXS = "resource.view.suffixs";
+    public static final String RESOURCE_VIEW_SUFFIXES = "resource.view.suffixes";
 
-    public static final String RESOURCE_VIEW_SUFFIXS_DEFAULT_VALUE = "txt,log,sh,bat,conf,cfg,py,java,sql,xml,hql,properties,json,yml,yaml,ini,js";
+    public static final String RESOURCE_VIEW_SUFFIXES_DEFAULT_VALUE = "txt,log,sh,bat,conf,cfg,py,java,sql,xml,hql,properties,json,yml,yaml,ini,js";
 
     /**
      * development.state
@@ -202,7 +202,7 @@ public final class Constants {
     public static final String ZOOKEEPER_DOLPHINSCHEDULER_LOCK_FAILOVER_WORKERS = "/lock/failover/workers";
 
     /**
-     * MasterServer startup  failover runing and fault tolerance process
+     * MasterServer startup  failover running and fault tolerance process
      */
     public static final String ZOOKEEPER_DOLPHINSCHEDULER_LOCK_FAILOVER_STARTUP_MASTERS = "/lock/failover/startup-masters";
 
@@ -297,7 +297,7 @@ public final class Constants {
     public static final int HTTP_CONNECTION_REQUEST_TIMEOUT = 60 * 1000;
 
     /**
-     * httpclient soceket time out
+     * httpclient socket time out
      */
     public static final int SOCKET_TIMEOUT = 60 * 1000;
 
@@ -398,7 +398,7 @@ public final class Constants {
 
 
     /**
-     * time unit secong to minutes
+     * time unit second to minutes
      */
     public static final int SEC_2_MINUTES_TIME_UNIT = 60;
 
@@ -696,13 +696,13 @@ public final class Constants {
      */
     public static final String UNDERLINE = "_";
     /**
-     * quartz job prifix
+     * quartz job prefix
      */
-    public static final String QUARTZ_JOB_PRIFIX = "job";
+    public static final String QUARTZ_JOB_PREFIX = "job";
     /**
-     * quartz job group prifix
+     * quartz job group prefix
      */
-    public static final String QUARTZ_JOB_GROUP_PRIFIX = "jobgroup";
+    public static final String QUARTZ_JOB_GROUP_PREFIX = "jobgroup";
     /**
      * projectId
      */
@@ -873,8 +873,8 @@ public final class Constants {
         ExecutionStatus.READY_PAUSE.ordinal(),
         ExecutionStatus.READY_STOP.ordinal(),
         ExecutionStatus.NEED_FAULT_TOLERANCE.ordinal(),
-        ExecutionStatus.WAITTING_THREAD.ordinal(),
-        ExecutionStatus.WAITTING_DEPEND.ordinal()
+        ExecutionStatus.WAITING_THREAD.ordinal(),
+        ExecutionStatus.WAITING_DEPEND.ordinal()
     };
 
     /**
@@ -1012,7 +1012,7 @@ public final class Constants {
      * new
      * schedule time
      */
-    public static final String PARAMETER_SHECDULE_TIME = "schedule.time";
+    public static final String PARAMETER_SCHEDULE_TIME = "schedule.time";
     /**
      * authorize writable perm
      */

@@ -21,19 +21,19 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * udf user realtion mapper interface
+ * udf user relation mapper interface
  */
 public interface UDFUserMapper extends BaseMapper<UDFUser> {
 
     /**
-     * delete udf user realtion by userId
+     * delete udf user relation by userId
      * @param userId userId
      * @return delete result
      */
     int deleteByUserId(@Param("userId") int userId);
 
     /**
-     * delete udf user realtion by function id
+     * delete udf user relation by function id
      * @param udfFuncId udfFuncId
      * @return delete result
      */

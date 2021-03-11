@@ -69,22 +69,22 @@ public class MasterTaskExecThreadTest {
     }
     @Test
     public void testExistsValidWorkerGroup2(){
-        Set<String> workerGorups = new HashSet<>();
-        workerGorups.add("test1");
-        workerGorups.add("test2");
+        Set<String> workerGroups = new HashSet<>();
+        workerGroups.add("test1");
+        workerGroups.add("test2");
 
-        Mockito.when(zookeeperRegistryCenter.getWorkerGroupDirectly()).thenReturn(workerGorups);
+        Mockito.when(zookeeperRegistryCenter.getWorkerGroupDirectly()).thenReturn(workerGroups);
         boolean b = masterTaskExecThread.existsValidWorkerGroup("default");
         Assert.assertFalse(b);
     }
 
     @Test
     public void testExistsValidWorkerGroup3(){
-        Set<String> workerGorups = new HashSet<>();
-        workerGorups.add("test1");
+        Set<String> workerGroups = new HashSet<>();
+        workerGroups.add("test1");
 
-        Mockito.when(zookeeperRegistryCenter.getWorkerGroupDirectly()).thenReturn(workerGorups);
-        Mockito.when(zookeeperRegistryCenter.getWorkerGroupNodesDirectly("test1")).thenReturn(workerGorups);
+        Mockito.when(zookeeperRegistryCenter.getWorkerGroupDirectly()).thenReturn(workerGroups);
+        Mockito.when(zookeeperRegistryCenter.getWorkerGroupNodesDirectly("test1")).thenReturn(workerGroups);
         boolean b = masterTaskExecThread.existsValidWorkerGroup("test1");
         Assert.assertTrue(b);
     }

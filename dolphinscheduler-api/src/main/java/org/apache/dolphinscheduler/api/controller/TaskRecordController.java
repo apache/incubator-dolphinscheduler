@@ -121,7 +121,7 @@ public class TaskRecordController extends BaseController {
                                                    @RequestParam("pageSize") Integer pageSize
     ) {
 
-        logger.info("query hisotry task record list, task name:{}, state :{}, taskDate: {}, start:{}, end:{}",
+        logger.info("query history task record list, task name:{}, state :{}, taskDate: {}, start:{}, end:{}",
                 taskName, state, taskDate, startTime, endTime);
         Map<String, Object> result = taskRecordService.queryTaskRecordListPaging(true, taskName, startTime, taskDate, sourceTable, destTable, endTime, state, pageNo, pageSize);
         return returnDataListPaging(result);

@@ -180,7 +180,7 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
-        <name>resource.view.suffixs</name>
+        <name>resource.view.suffixes</name>
         <value>txt,log,sh,conf,cfg,py,java,sql,hql,xml,properties</value>
         <description></description>
         <on-ambari-upgrade add="true"/>

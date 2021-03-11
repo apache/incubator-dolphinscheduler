@@ -50,7 +50,7 @@ public enum CommandType {
     REPEAT_RUNNING(7, "repeat running a process"),
     PAUSE(8, "pause a process"),
     STOP(9, "stop a process"),
-    RECOVER_WAITTING_THREAD(10, "recover waiting thread");
+    RECOVER_WAITING_THREAD(10, "recover waiting thread");
 
     CommandType(int code, String descp){
         this.code = code;

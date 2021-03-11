@@ -112,7 +112,7 @@ public abstract class UpgradeDao extends AbstractBaseDao {
 
 
     /**
-     * init scheam
+     * init schema
      *
      * @param initSqlPath initSqlPath
      */

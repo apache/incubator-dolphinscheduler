@@ -354,9 +354,9 @@ public class TimePlaceholderUtils {
     }
 
     /**
-     * calculate time expresstion
+     * calculate time expression
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return map with date, date format
      */
@@ -383,7 +383,7 @@ public class TimePlaceholderUtils {
     /**
      * get first day of month
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return first day of month
      */
@@ -407,7 +407,7 @@ public class TimePlaceholderUtils {
     /**
      * get last day of month
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return last day of month
      */
@@ -431,7 +431,7 @@ public class TimePlaceholderUtils {
     /**
      * get first day of week
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return monday
      */
@@ -454,7 +454,7 @@ public class TimePlaceholderUtils {
     /**
      * get last day of week
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return last day of week
      */
@@ -478,7 +478,7 @@ public class TimePlaceholderUtils {
     /**
      * calc months expression
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return calc months
      */
@@ -501,7 +501,7 @@ public class TimePlaceholderUtils {
     /**
      * calculate time expression
      *
-     * @param expression expresstion
+     * @param expression expression
      * @param date       date
      * @return calculate time expression with date,format
      */

@@ -191,7 +191,7 @@ public class HttpTask extends AbstractTask {
         switch (httpParameters.getHttpCheckCondition()) {
             case BODY_CONTAINS:
                 if (StringUtils.isEmpty(body) || !body.contains(httpParameters.getCondition())) {
-                    appendMessage(httpParameters.getUrl() + " doesn contain "
+                    appendMessage(httpParameters.getUrl() + " doesn't contain "
                             + httpParameters.getCondition());
                     exitStatusCode = -1;
                 }
@@ -238,7 +238,7 @@ public class HttpTask extends AbstractTask {
 
     /**
      * add request params
-     * @param builder           buidler
+     * @param builder           builder
      * @param httpPropertyList  http property list
      */
     protected void addRequestParams(RequestBuilder builder,List<HttpProperty> httpPropertyList) {

@@ -71,7 +71,7 @@ public class LoggerRequestProcessor implements NettyRequestProcessor {
         logger.info("received command : {}", command);
 
         /**
-         * reuqest task log command type
+         * request task log command type
          */
         final CommandType commandType = command.getType();
         switch (commandType) {

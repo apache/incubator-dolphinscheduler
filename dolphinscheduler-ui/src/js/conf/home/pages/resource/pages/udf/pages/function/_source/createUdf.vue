@@ -200,7 +200,7 @@
 
             this.diGuiTree(this.filterJarFile(item1))
             item1 = item1.filter(item => {
-              if (item.dirctory) {
+              if (item.directory) {
                 return item
               }
             })

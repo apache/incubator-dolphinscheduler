@@ -24,15 +24,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Responce Cache : cache worker send master result
+ * Response Cache : cache worker send master result
  */
-public class ResponceCache {
+public class ResponseCache {
 
-    private static final ResponceCache instance = new ResponceCache();
+    private static final ResponseCache instance = new ResponseCache();
 
-    private ResponceCache(){}
+    private ResponseCache(){}
 
-    public static ResponceCache get(){
+    public static ResponseCache get(){
         return instance;
     }
 
@@ -69,7 +69,7 @@ public class ResponceCache {
     }
 
     /**
-     * remove reponse cache
+     * remove response cache
      * @param taskInstanceId taskInstanceId
      */
     public void removeResponseCache(Integer taskInstanceId){

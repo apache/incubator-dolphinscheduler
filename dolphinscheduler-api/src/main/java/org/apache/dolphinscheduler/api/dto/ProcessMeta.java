@@ -32,7 +32,7 @@ public class ProcessMeta {
     private String processDefinitionName;
 
     /**
-     * processs definition json
+     * process definition json
      */
     private String processDefinitionJson;
 

@@ -25,19 +25,19 @@ import java.util.List;
 /**
  * resource component
  */
-@JsonPropertyOrder({"id","pid","name","fullName","description","isDirctory","children","type"})
+@JsonPropertyOrder({"id","pid","name","fullName","description","isDirectory","children","type"})
 public abstract class ResourceComponent {
     public ResourceComponent() {
     }
 
-    public ResourceComponent(int id, int pid, String name, String fullName, String description, boolean isDirctory) {
+    public ResourceComponent(int id, int pid, String name, String fullName, String description, boolean isDirectory) {
         this.id = id;
         this.pid = pid;
         this.name = name;
         this.fullName = fullName;
         this.description = description;
-        this.isDirctory = isDirctory;
-        int directoryFlag = isDirctory ? 1:0;
+        this.isDirectory = isDirectory;
+        int directoryFlag = isDirectory ? 1:0;
         this.idValue = String.format("%s_%s",id,directoryFlag);
     }
 
@@ -69,13 +69,13 @@ public abstract class ResourceComponent {
     /**
      * is directory
      */
-    protected boolean isDirctory;
+    protected boolean isDirectory;
     /**
      * id value
      */
     protected String idValue;
     /**
-     * resoruce type
+     * resource type
      */
     protected ResourceType type;
     /**
@@ -131,20 +131,20 @@ public abstract class ResourceComponent {
         this.description = description;
     }
 
-    public boolean isDirctory() {
-        return isDirctory;
+    public boolean isDirectory() {
+        return isDirectory;
     }
 
-    public void setDirctory(boolean dirctory) {
-        isDirctory = dirctory;
+    public void setDirectory(boolean directory) {
+        isDirectory = directory;
     }
 
     public String getIdValue() {
         return idValue;
     }
 
-    public void setIdValue(int id,boolean isDirctory) {
-        int directoryFlag = isDirctory ? 1:0;
+    public void setIdValue(int id,boolean isDirectory) {
+        int directoryFlag = isDirectory ? 1:0;
         this.idValue = String.format("%s_%s",id,directoryFlag);
     }
 
@@ -173,7 +173,7 @@ public abstract class ResourceComponent {
                 ", currentDir='" + currentDir + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", description='" + description + '\'' +
-                ", isDirctory=" + isDirctory +
+                ", isDirectory=" + isDirectory +
                 ", idValue='" + idValue + '\'' +
                 ", type=" + type +
                 ", children=" + children +

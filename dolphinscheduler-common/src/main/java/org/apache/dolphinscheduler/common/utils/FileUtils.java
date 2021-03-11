@@ -18,8 +18,8 @@
 package org.apache.dolphinscheduler.common.utils;
 
 import static org.apache.dolphinscheduler.common.Constants.DATA_BASEDIR_PATH;
-import static org.apache.dolphinscheduler.common.Constants.RESOURCE_VIEW_SUFFIXS;
-import static org.apache.dolphinscheduler.common.Constants.RESOURCE_VIEW_SUFFIXS_DEFAULT_VALUE;
+import static org.apache.dolphinscheduler.common.Constants.RESOURCE_VIEW_SUFFIXES;
+import static org.apache.dolphinscheduler.common.Constants.RESOURCE_VIEW_SUFFIXES_DEFAULT_VALUE;
 import static org.apache.dolphinscheduler.common.Constants.YYYYMMDDHHMMSS;
 
 import org.apache.commons.io.Charsets;
@@ -153,8 +153,8 @@ public class FileUtils {
     /**
      * @return get suffixes for resource files that support online viewing
      */
-    public static String getResourceViewSuffixs() {
-        return PropertyUtils.getString(RESOURCE_VIEW_SUFFIXS, RESOURCE_VIEW_SUFFIXS_DEFAULT_VALUE);
+    public static String getResourceViewSuffixes() {
+        return PropertyUtils.getString(RESOURCE_VIEW_SUFFIXES, RESOURCE_VIEW_SUFFIXES_DEFAULT_VALUE);
     }
 
     /**

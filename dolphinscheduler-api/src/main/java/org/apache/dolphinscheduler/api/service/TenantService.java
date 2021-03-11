@@ -57,8 +57,8 @@ public interface TenantService {
      * updateProcessInstance tenant
      *
      * @param loginUser login user
-     * @param id tennat id
-     * @param tenantCode tennat code
+     * @param id tenant id
+     * @param tenantCode tenant code
      * @param queueId queue id
      * @param desc description
      * @return update result code

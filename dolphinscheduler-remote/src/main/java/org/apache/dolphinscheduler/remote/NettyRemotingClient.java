@@ -101,7 +101,7 @@ public class NettyRemotingClient {
     private final NettyClientConfig clientConfig;
 
     /**
-     * saync semaphore
+     * async semaphore
      */
     private final Semaphore asyncSemaphore = new Semaphore(200, true);
 

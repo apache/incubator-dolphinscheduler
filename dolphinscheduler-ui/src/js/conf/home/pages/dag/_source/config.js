@@ -132,7 +132,7 @@ const runningType = [
   },
   {
     desc: `${i18n.$t('Recovery waiting thread')}`,
-    code: 'RECOVER_WAITTING_THREAD'
+    code: 'RECOVER_WAITING_THREAD'
   }
 ]
 
@@ -216,14 +216,14 @@ const tasksState = {
     icoUnicode: 'el-icon-remove-outline',
     isSpin: false
   },
-  WAITTING_THREAD: {
+  WAITING_THREAD: {
     id: 10,
     desc: `${i18n.$t('Waiting for thread')}`,
     color: '#912eed',
     icoUnicode: 'ri-time-line',
     isSpin: false
   },
-  WAITTING_DEPEND: {
+  WAITING_DEPEND: {
     id: 11,
     desc: `${i18n.$t('Waiting for dependence')}`,
     color: '#5101be',

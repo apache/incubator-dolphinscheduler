@@ -325,7 +325,7 @@ public class SchedulerServiceImpl extends BaseServiceImpl implements SchedulerSe
         if (scheduleObj.getReleaseState() == scheduleStatus) {
             logger.info("schedule release is already {},needn't to change schedule id: {} from {} to {}",
                     scheduleObj.getReleaseState(), scheduleObj.getId(), scheduleObj.getReleaseState(), scheduleStatus);
-            putMsg(result, Status.SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE, scheduleStatus);
+            putMsg(result, Status.SCHEDULE_CRON_RELEASE_NEED_NOT_CHANGE, scheduleStatus);
             return result;
         }
         ProcessDefinition processDefinition = processService.findProcessDefineById(scheduleObj.getProcessDefinitionId());
@@ -530,7 +530,7 @@ public class SchedulerServiceImpl extends BaseServiceImpl implements SchedulerSe
      *
      * @param loginUser login user
      * @param projectName project name
-     * @param scheduleId scheule id
+     * @param scheduleId schedule id
      * @return delete result code
      */
     @Override

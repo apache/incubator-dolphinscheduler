@@ -216,7 +216,7 @@ public class DataSourceController extends BaseController {
     }
 
     /**
-     * query datasouce by type
+     * query datasource by type
      *
      * @param loginUser login user
      * @param type      data source type
@@ -271,7 +271,7 @@ public class DataSourceController extends BaseController {
      *
      * @param loginUser login user
      * @param name      data source name
-     * @param note      data soruce description
+     * @param note      data source description
      * @param type      data source type
      * @param other     other parameters
      * @param host      host
@@ -381,7 +381,7 @@ public class DataSourceController extends BaseController {
     public Result verifyDataSourceName(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                        @RequestParam(value = "name") String name
     ) {
-        logger.info("login user {}, verfiy datasource name: {}",
+        logger.info("login user {}, verify datasource name: {}",
                 loginUser.getUserName(), name);
 
         return dataSourceService.verifyDataSourceName(name);

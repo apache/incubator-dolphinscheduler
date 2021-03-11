@@ -93,7 +93,7 @@ public class DataSourceMapperTest {
         DataSource expectedDataSource = createDataSource();
 
         expectedDataSource.setName("modify " + expectedDataSource.getName());
-        expectedDataSource.setNote("modifiy " + expectedDataSource.getNote());
+        expectedDataSource.setNote("modify " + expectedDataSource.getNote());
         expectedDataSource.setUserId(2);
         expectedDataSource.setType(DbType.HIVE);
         expectedDataSource.setConnectionParams("modify " + expectedDataSource.getConnectionParams());
@@ -258,20 +258,20 @@ public class DataSourceMapperTest {
 
         //create data source
         DataSource dataSource = createDataSource(generalUser1.getId(), "ds-1");
-        DataSource unauthorizdDataSource = createDataSource(generalUser2.getId(), "ds-2");
+        DataSource unauthorizedDataSource = createDataSource(generalUser2.getId(), "ds-2");
 
 
         //data source ids
-        Integer[] dataSourceIds = new Integer[]{dataSource.getId(),unauthorizdDataSource.getId()};
+        Integer[] dataSourceIds = new Integer[]{dataSource.getId(),unauthorizedDataSource.getId()};
 
         List<DataSource> authorizedDataSource = dataSourceMapper.listAuthorizedDataSource(generalUser1.getId(), dataSourceIds);
 
         Assert.assertEquals(generalUser1.getId(),dataSource.getUserId());
-        Assert.assertNotEquals(generalUser1.getId(),unauthorizdDataSource.getUserId());
+        Assert.assertNotEquals(generalUser1.getId(),unauthorizedDataSource.getUserId());
         Assert.assertFalse(authorizedDataSource.stream().map(t -> t.getId()).collect(toList()).containsAll(Arrays.asList(dataSourceIds)));
 
-        //authorize object unauthorizdDataSource to generalUser1
-        createUserDataSource(generalUser1, unauthorizdDataSource);
+        //authorize object unauthorizedDataSource to generalUser1
+        createUserDataSource(generalUser1, unauthorizedDataSource);
         authorizedDataSource = dataSourceMapper.listAuthorizedDataSource(generalUser1.getId(), dataSourceIds);
 
         Assert.assertTrue(authorizedDataSource.stream().map(t -> t.getId()).collect(toList()).containsAll(Arrays.asList(dataSourceIds)));

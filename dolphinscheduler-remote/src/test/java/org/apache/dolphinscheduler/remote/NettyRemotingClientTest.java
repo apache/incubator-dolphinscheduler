@@ -41,7 +41,7 @@ public class NettyRemotingClientTest {
 
 
     /**
-     *  test sned sync
+     *  test send sync
      */
     @Test
     public void testSendSync(){
@@ -72,7 +72,7 @@ public class NettyRemotingClientTest {
     }
 
     /**
-     *  test sned async
+     *  test send async
      */
     @Test
     public void testSendAsync(){

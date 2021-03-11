@@ -176,14 +176,14 @@ public class AlertGroupMapperTest {
     }
 
     /**
-     * compare AlertGruops
+     * compare AlertGroups
      *
      * @param alertGroupMap  alertGroupMap
      * @param alertGroupList alertGroupList
      */
     private void compareAlertGroups(Map<Integer, AlertGroup> alertGroupMap,
                                     List<AlertGroup> alertGroupList) {
-        // greaterThanOrEqualTo，beacuse maybe db have already exists
+        // greaterThanOrEqualTo，because maybe db have already exists
         assertThat(alertGroupList.size(), greaterThanOrEqualTo(alertGroupMap.size()));
 
         for (AlertGroup alertGroup : alertGroupList) {

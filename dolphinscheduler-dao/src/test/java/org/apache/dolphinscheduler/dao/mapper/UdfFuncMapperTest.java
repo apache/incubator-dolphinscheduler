@@ -295,20 +295,20 @@ public class UdfFuncMapperTest {
 
         //create udf function
         UdfFunc udfFunc = insertOne(generalUser1);
-        UdfFunc unauthorizdUdfFunc = insertOne(generalUser2);
+        UdfFunc unauthorizedUdfFunc = insertOne(generalUser2);
 
         //udf function ids
-        Integer[] udfFuncIds = new Integer[]{udfFunc.getId(), unauthorizdUdfFunc.getId()};
+        Integer[] udfFuncIds = new Integer[]{udfFunc.getId(), unauthorizedUdfFunc.getId()};
 
         List<UdfFunc> authorizedUdfFunc = udfFuncMapper.listAuthorizedUdfFunc(generalUser1.getId(), udfFuncIds);
 
         Assert.assertEquals(generalUser1.getId(), udfFunc.getUserId());
-        Assert.assertNotEquals(generalUser1.getId(), unauthorizdUdfFunc.getUserId());
+        Assert.assertNotEquals(generalUser1.getId(), unauthorizedUdfFunc.getUserId());
         Assert.assertFalse(authorizedUdfFunc.stream().map(t -> t.getId()).collect(toList()).containsAll(Arrays.asList(udfFuncIds)));
 
 
-        //authorize object unauthorizdUdfFunc to generalUser1
-        insertOneUDFUser(generalUser1, unauthorizdUdfFunc);
+        //authorize object unauthorizedUdfFunc to generalUser1
+        insertOneUDFUser(generalUser1, unauthorizedUdfFunc);
         authorizedUdfFunc = udfFuncMapper.listAuthorizedUdfFunc(generalUser1.getId(), udfFuncIds);
         Assert.assertTrue(authorizedUdfFunc.stream().map(t -> t.getId()).collect(toList()).containsAll(Arrays.asList(udfFuncIds)));
     }

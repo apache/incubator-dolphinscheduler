@@ -27,7 +27,7 @@ import java.util.Map;
 public interface AlertPluginInstanceService {
 
     /**
-     * creat alert plugin instance
+     * create alert plugin instance
      *
      * @param loginUser login user
      * @param pluginDefineId plugin define id

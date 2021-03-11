@@ -248,7 +248,7 @@ public class ExecutorService2Test {
     }
 
     @Test
-    public void testNoMsterServers() throws ParseException {
+    public void testNoMasterServers() throws ParseException {
         Mockito.when(monitorService.getServerListFromZK(true)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,

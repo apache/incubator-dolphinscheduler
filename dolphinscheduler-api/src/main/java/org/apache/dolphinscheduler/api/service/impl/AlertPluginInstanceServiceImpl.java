@@ -65,7 +65,7 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
     private AlertGroupMapper alertGroupMapper;
 
     /**
-     * creat alert plugin instance
+     * create alert plugin instance
      *
      * @param loginUser login user
      * @param pluginDefineId plugin define id

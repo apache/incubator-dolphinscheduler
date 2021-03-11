@@ -156,7 +156,7 @@ public class DataxTask extends AbstractTask {
                     CommandType.of(taskExecutionContext.getCmdTypeIfComplement()),
                     taskExecutionContext.getScheduleTime());
 
-            // run datax procesDataSourceService.s
+            // run datax processDataSourceService.s
             String jsonFilePath = buildDataxJsonFile(paramsMap);
             String shellCommandFilePath = buildShellCommandFile(jsonFilePath, paramsMap);
             CommandExecuteResult commandExecuteResult = shellCommandExecutor.run(shellCommandFilePath);

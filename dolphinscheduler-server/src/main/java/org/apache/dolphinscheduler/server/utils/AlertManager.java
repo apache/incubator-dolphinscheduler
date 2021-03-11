@@ -204,27 +204,27 @@ public class AlertManager {
         if (Flag.YES == processInstance.getIsSubProcess()) {
             return;
         }
-        boolean sendWarnning = false;
+        boolean sendWarning = false;
         WarningType warningType = processInstance.getWarningType();
         switch (warningType) {
             case ALL:
                 if (processInstance.getState().typeIsFinished()) {
-                    sendWarnning = true;
+                    sendWarning = true;
                 }
                 break;
             case SUCCESS:
                 if (processInstance.getState().typeIsSuccess()) {
-                    sendWarnning = true;
+                    sendWarning = true;
                 }
                 break;
             case FAILURE:
                 if (processInstance.getState().typeIsFailure()) {
-                    sendWarnning = true;
+                    sendWarning = true;
                 }
                 break;
             default:
         }
-        if (!sendWarnning) {
+        if (!sendWarning) {
             return;
         }
         Alert alert = new Alert();

@@ -133,7 +133,7 @@
     <select id="listChildren" resultType="java.lang.Integer">
         select id
         from t_ds_resources
-        where pid = #{direcotyId}
+        where pid = #{directoryId}
     </select>
 
     <select id="queryResource" resultType="org.apache.dolphinscheduler.dao.entity.Resource">

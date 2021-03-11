@@ -136,7 +136,7 @@ public enum Status {
     VERIFY_PROCESS_DEFINITION_NAME_UNIQUE_ERROR(10106, "verify process definition name unique error", "工作流定义名称验证错误"),
     UPDATE_PROCESS_DEFINITION_ERROR(10107, "update process definition error", "更新工作流定义错误"),
     RELEASE_PROCESS_DEFINITION_ERROR(10108, "release process definition error", "上线工作流错误"),
-    QUERY_DATAIL_OF_PROCESS_DEFINITION_ERROR(10109, "query datail of process definition error", "查询工作流详细信息错误"),
+    QUERY_DETAIL_OF_PROCESS_DEFINITION_ERROR(10109, "query detail of process definition error", "查询工作流详细信息错误"),
     QUERY_PROCESS_DEFINITION_LIST(10110, "query process definition list", "查询工作流列表错误"),
     ENCAPSULATION_TREEVIEW_STRUCTURE_ERROR(10111, "encapsulation treeview structure error", "查询工作流树形图数据错误"),
     GET_TASKS_LIST_BY_PROCESS_DEFINITION_ID_ERROR(10112, "get tasks list by process definition id error", "查询工作流定义节点信息错误"),
@@ -153,7 +153,7 @@ public enum Status {
     SIGN_OUT_ERROR(10123, "sign out error", "退出错误"),
     OS_TENANT_CODE_HAS_ALREADY_EXISTS(10124, "os tenant code has already exists", "操作系统租户已存在"),
     IP_IS_EMPTY(10125, "ip is empty", "IP地址不能为空"),
-    SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE(10126, "schedule release is already {0}", "调度配置上线错误[{0}]"),
+    SCHEDULE_CRON_RELEASE_NEED_NOT_CHANGE(10126, "schedule release is already {0}", "调度配置上线错误[{0}]"),
     CREATE_QUEUE_ERROR(10127, "create queue error", "创建队列错误"),
     QUEUE_NOT_EXIST(10128, "queue {0} not exists", "队列ID[{0}]不存在"),
     QUEUE_VALUE_EXIST(10129, "queue value {0} already exists", "队列值[{0}]已存在"),
@@ -272,7 +272,7 @@ public enum Status {
 
 
     COMMAND_STATE_COUNT_ERROR(80001, "task instance state count error", "查询各状态任务实例数错误"),
-    NEGTIVE_SIZE_NUMBER_ERROR(80002, "query size number error", "查询size错误"),
+    NEGATIVE_SIZE_NUMBER_ERROR(80002, "query size number error", "查询size错误"),
     START_TIME_BIGGER_THAN_END_TIME_ERROR(80003, "start time bigger than end time error", "开始时间在结束时间之后错误"),
     QUEUE_COUNT_ERROR(90001, "queue count error", "查询队列数据错误"),
 

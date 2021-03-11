@@ -327,7 +327,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     }
 
     /**
-     * query datail of process definition
+     * query detail of process definition
      *
      * @param loginUser login user
      * @param projectName project name
@@ -1611,7 +1611,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     }
 
     /**
-     * switch the defined process definition verison
+     * switch the defined process definition version
      *
      * @param loginUser login user
      * @param projectName project name

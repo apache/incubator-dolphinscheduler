@@ -72,7 +72,7 @@
         ]).then((data) => {
           let item = data[0]
           let flag = false
-          if (item.state !== 'WAITTING_THREAD' && item.state !== 'SUCCESS' && item.state !== 'PAUSE' && item.state !== 'FAILURE' && item.state !== 'STOP') {
+          if (item.state !== 'WAITING_THREAD' && item.state !== 'SUCCESS' && item.state !== 'PAUSE' && item.state !== 'FAILURE' && item.state !== 'STOP') {
             flag = true
           } else {
             flag = false
@@ -93,7 +93,7 @@
         this.getInstancedetail(this.$route.params.id).then(res => {
           let item = res
           let flag = false
-          if (item.state !== 'WAITTING_THREAD' && item.state !== 'SUCCESS' && item.state !== 'PAUSE' && item.state !== 'FAILURE' && item.state !== 'STOP') {
+          if (item.state !== 'WAITING_THREAD' && item.state !== 'SUCCESS' && item.state !== 'PAUSE' && item.state !== 'FAILURE' && item.state !== 'STOP') {
             flag = true
           } else {
             flag = false

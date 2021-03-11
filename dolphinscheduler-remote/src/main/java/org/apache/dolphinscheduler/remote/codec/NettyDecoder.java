@@ -56,33 +56,33 @@ public class NettyDecoder extends ReplayingDecoder<NettyDecoder.State> {
             case MAGIC:
                 checkMagic(in.readByte());
                 checkpoint(State.VERSION);
-                // fallthru
+                // fallthrough
             case VERSION:
                 checkVersion(in.readByte());
                 checkpoint(State.COMMAND);
-                // fallthru
+                // fallthrough
             case COMMAND:
                 commandHeader.setType(in.readByte());
                 checkpoint(State.OPAQUE);
-                // fallthru
+                // fallthrough
             case OPAQUE:
                 commandHeader.setOpaque(in.readLong());
                 checkpoint(State.CONTEXT_LENGTH);
-                // fallthru
+                // fallthrough
             case CONTEXT_LENGTH:
                 commandHeader.setContextLength(in.readInt());
                 checkpoint(State.CONTEXT);
-                // fallthru
+                // fallthrough
             case CONTEXT:
                 byte[] context = new byte[commandHeader.getContextLength()];
                 in.readBytes(context);
                 commandHeader.setContext(context);
                 checkpoint(State.BODY_LENGTH);
-                // fallthru
+                // fallthrough
             case BODY_LENGTH:
                 commandHeader.setBodyLength(in.readInt());
                 checkpoint(State.BODY);
-                // fallthru
+                // fallthrough
             case BODY:
                 byte[] body = new byte[commandHeader.getBodyLength()];
                 in.readBytes(body);

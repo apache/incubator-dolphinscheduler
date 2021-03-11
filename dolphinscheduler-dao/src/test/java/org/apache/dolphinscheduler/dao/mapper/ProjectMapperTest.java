@@ -172,7 +172,7 @@ public class ProjectMapperTest {
     }
 
     /**
-     * test query authed prject list by userId
+     * test query authed project list by userId
      */
     @Test
     public void testQueryAuthedProjectListByUserId() {
