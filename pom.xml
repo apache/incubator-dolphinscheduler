@@ -1024,6 +1024,8 @@
                         <include>**/alert/processor/AlertRequestProcessorTest.java</include>
                         <include>**/alert/runner/AlertSenderTest.java</include>
                         <include>**/alert/AlertServerTest.java</include>
+                        <include>**/alert/utils/ZookeeperClientTest.java</include>
+                        <include>**/alert/exception/AlertExceptionTest.java</include>
                     </includes>
                     <!-- <skip>true</skip> -->
                 </configuration>

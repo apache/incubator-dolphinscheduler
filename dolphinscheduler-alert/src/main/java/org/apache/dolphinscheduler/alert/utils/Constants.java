@@ -21,18 +21,27 @@ package org.apache.dolphinscheduler.alert.utils;
  * constants
  */
 public class Constants {
-    private Constants() {
-        throw new IllegalStateException("Constants class");
-    }
-
     /**
      * alert properties path
      */
     public static final String ALERT_PROPERTIES_PATH = "/alert.properties";
-
-    /** default alert plugin dir **/
+    /**
+     * zookeeper properties path
+     */
+    public static final String ZOOKEEPER_PROPERTIES_PATH = "/zookeeper.properties";
+    /**
+     * default alert plugin dir
+     **/
     public static final String ALERT_PLUGIN_PATH = "./lib/plugin/alert";
-
     public static final int ALERT_SCAN_INTERVAL = 5000;
+
+    public static final String ZOOKEEPER_LIST = "zookeeper.quorum";
+    public static final String ZOOKEEPER_DOLPHINSCHEDULER_LOCK_ALERTS = "/lock/alerts";
+    public static final String ZOOKEEPER_ROOT = "zookeeper.dolphinscheduler.root";
+    public static final String ZOOKEEPER_ABNORMAL_TOLERATING_NUMBER = "zookeeper.abnormal.tolerating.number";
+
+    private Constants() {
+        throw new IllegalStateException("Constants class");
+    }
 
 }

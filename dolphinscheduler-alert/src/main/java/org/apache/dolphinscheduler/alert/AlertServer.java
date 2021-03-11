@@ -26,6 +26,7 @@ import org.apache.dolphinscheduler.alert.processor.AlertRequestProcessor;
 import org.apache.dolphinscheduler.alert.runner.AlertSender;
 import org.apache.dolphinscheduler.alert.utils.Constants;
 import org.apache.dolphinscheduler.alert.utils.PropertyUtils;
+import org.apache.dolphinscheduler.alert.utils.ZookeeperClient;
 import org.apache.dolphinscheduler.common.thread.Stopper;
 import org.apache.dolphinscheduler.dao.AlertDao;
 import org.apache.dolphinscheduler.dao.DaoFactory;
@@ -36,6 +37,7 @@ import org.apache.dolphinscheduler.remote.config.NettyServerConfig;
 import org.apache.dolphinscheduler.spi.utils.StringUtils;
 
 import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,33 +48,26 @@ import com.google.common.collect.ImmutableList;
  * alert of start
  */
 public class AlertServer {
+    public static final String ALERT_PLUGIN_BINDING = "alert.plugin.binding";
+    public static final String ALERT_PLUGIN_DIR = "alert.plugin.dir";
+    public static final String MAVEN_LOCAL_REPOSITORY = "maven.local.repository";
     private static final Logger logger = LoggerFactory.getLogger(AlertServer.class);
+    private static AlertServer instance;
     /**
      * Alert Dao
      */
     private AlertDao alertDao = DaoFactory.getDaoInstance(AlertDao.class);
-
     private AlertSender alertSender;
-
-    private static AlertServer instance;
-
     private AlertPluginManager alertPluginManager;
-
     private DolphinPluginManagerConfig alertPluginManagerConfig;
-
-    public static final String ALERT_PLUGIN_BINDING = "alert.plugin.binding";
-
-    public static final String ALERT_PLUGIN_DIR = "alert.plugin.dir";
-
-    public static final String MAVEN_LOCAL_REPOSITORY = "maven.local.repository";
-
+    private int zookeeperStateAbnormalToleratingNumber = 0;
     /**
      * netty server
      */
     private NettyRemotingServer server;
 
-    private static class AlertServerHolder {
-        private static final AlertServer INSTANCE = new AlertServer();
+    private AlertServer() {
+
     }
 
     public static final AlertServer getInstance() {
@@ -80,8 +75,15 @@ public class AlertServer {
 
     }
 
-    private AlertServer() {
-
+    public static void main(String[] args) {
+        AlertServer alertServer = AlertServer.getInstance();
+        alertServer.start();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                alertServer.stop();
+            }
+        });
     }
 
     private void initPlugin() {
@@ -119,6 +121,7 @@ public class AlertServer {
      * Cyclic alert info sending alert
      */
     private void runSender() {
+
         while (Stopper.isRunning()) {
             try {
                 Thread.sleep(Constants.ALERT_SCAN_INTERVAL);
@@ -129,11 +132,34 @@ public class AlertServer {
             if (alertPluginManager == null || alertPluginManager.getAlertChannelMap().size() == 0) {
                 logger.warn("No Alert Plugin . Can not send alert info. ");
             } else {
-                List<Alert> alerts = alertDao.listWaitExecutionAlert();
-                alertSender = new AlertSender(alerts, alertDao, alertPluginManager);
-                alertSender.run();
+                try {
+                    Properties properties = ZookeeperClient.getZookeeperProperties();
+                    ZookeeperClient.concurrentOperation(new ZookeeperClient.LockCallBall() {
+                        @Override
+                        public void handle() {
+                            senderRunner();
+                            zookeeperStateAbnormalToleratingNumber = 0;
+                        }
+                    }, properties.getProperty(Constants.ZOOKEEPER_LIST));
+                } catch (Exception e) {
+                    logger.error("alert server with error : ", e);
+                }
+
+                if (zookeeperStateAbnormalToleratingNumber > ZookeeperClient.checkZkStateAbnormalToleratingNumber()) {
+                    senderRunner();
+                    zookeeperStateAbnormalToleratingNumber = 0;
+                } else {
+                    zookeeperStateAbnormalToleratingNumber++;
+                }
+
             }
         }
+    }
+
+    private void senderRunner() {
+        List<Alert> alerts = alertDao.listWaitExecutionAlert();
+        alertSender = new AlertSender(alerts, alertDao, alertPluginManager);
+        alertSender.run();
     }
 
     /**
@@ -154,15 +180,8 @@ public class AlertServer {
         logger.info("alert server shut down");
     }
 
-    public static void main(String[] args) {
-        AlertServer alertServer = AlertServer.getInstance();
-        alertServer.start();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                alertServer.stop();
-            }
-        });
+    private static class AlertServerHolder {
+        private static final AlertServer INSTANCE = new AlertServer();
     }
 
 }

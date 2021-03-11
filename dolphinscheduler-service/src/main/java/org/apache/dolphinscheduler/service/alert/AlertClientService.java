@@ -31,21 +31,15 @@ import org.slf4j.LoggerFactory;
 public class AlertClientService {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertClientService.class);
-
-    private final NettyClientConfig clientConfig;
-
-    private final NettyRemotingClient client;
-
-    private volatile boolean isRunning;
-
-    private String host;
-
-    private int port;
-
     /**
      * request time out
      */
     private static final long ALERT_REQUEST_TIMEOUT = 10 * 1000L;
+    private final NettyClientConfig clientConfig;
+    private final NettyRemotingClient client;
+    private volatile boolean isRunning;
+    private String host;
+    private int port;
 
     /**
      * alert client
@@ -78,17 +72,14 @@ public class AlertClientService {
 
     /**
      * alert sync send data
-     * @param groupId
-     * @param title
-     * @param content
-     * @return
      */
-    public AlertSendResponseCommand sendAlert(int groupId, String title,  String content) {
-        return this.sendAlert(this.host,this.port,groupId,title,content);
+    public AlertSendResponseCommand sendAlert(int groupId, String title, String content) {
+        return this.sendAlert(this.host, this.port, groupId, title, content);
     }
 
     /**
      * alert sync send data
+     *
      * @param host host
      * @param port port
      * @param groupId groupId
@@ -96,22 +87,31 @@ public class AlertClientService {
      * @param content content
      * @return AlertSendResponseCommand
      */
-    public AlertSendResponseCommand sendAlert(String host, int port, int groupId, String title,  String content) {
+    public AlertSendResponseCommand sendAlert(String host, int port, int groupId, String title, String content) {
         logger.info("sync alert send, host : {}, port : {}, groupId : {}, title : {} ", host, port, groupId, title);
         AlertSendRequestCommand request = new AlertSendRequestCommand(groupId, title, content);
-        final Host address = new Host(host, port);
-        try {
-            Command command = request.convert2Command();
-            Command response = this.client.sendSync(address, command, ALERT_REQUEST_TIMEOUT);
-            if (response != null) {
-                return JsonSerializer.deserialize(response.getBody(), AlertSendResponseCommand.class);
+        AlertSendResponseCommand alertSendResponseCommand = null;
+        String[] hosts = host.split(",");
+        for (String hostName : hosts) {
+            final Host address = new Host(hostName, port);
+            try {
+                Command command = request.convert2Command();
+                Command response = this.client.sendSync(address, command, ALERT_REQUEST_TIMEOUT);
+                if (response != null) {
+                    alertSendResponseCommand = JsonSerializer.deserialize(response.getBody(), AlertSendResponseCommand.class);
+                    if (alertSendResponseCommand.getResStatus()) {
+                        return alertSendResponseCommand;
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("sync alert send error", e);
+            } finally {
+                this.client.closeChannel(address);
             }
-        } catch (Exception e) {
-            logger.error("sync alert send error", e);
-        } finally {
-            this.client.closeChannel(address);
+
         }
-        return null;
+        //Multiple alert services were sent without success. The latest result is returned
+        return alertSendResponseCommand;
     }
 
     public boolean isRunning() {
