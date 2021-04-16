@@ -19,6 +19,7 @@ package org.apache.dolphinscheduler.server.worker.task.sql;
 
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.CommandType;
+import org.apache.dolphinscheduler.common.enums.DataType;
 import org.apache.dolphinscheduler.common.enums.DbType;
 import org.apache.dolphinscheduler.common.enums.Direct;
 import org.apache.dolphinscheduler.common.enums.TaskTimeoutStrategy;
@@ -42,6 +43,7 @@ import org.apache.dolphinscheduler.server.utils.UDFUtils;
 import org.apache.dolphinscheduler.server.worker.task.AbstractTask;
 import org.apache.dolphinscheduler.service.alert.AlertClientService;
 import org.apache.dolphinscheduler.service.bean.SpringApplicationContext;
+import org.apache.dolphinscheduler.service.exceptions.ServiceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -53,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -134,11 +137,18 @@ public class SqlTask extends AbstractTask {
 
             // ready to execute SQL and parameter entity Map
             SqlBinds mainSqlBinds = getSqlAndSqlParamsMap(sqlParameters.getSql());
+
             List<SqlBinds> preStatementSqlBinds = Optional.ofNullable(sqlParameters.getPreStatements())
                     .orElse(new ArrayList<>())
                     .stream()
                     .map(this::getSqlAndSqlParamsMap)
                     .collect(Collectors.toList());
+
+            // handle preSql of query type
+            if (!preStatementSqlBinds.isEmpty()) {
+                handlePreQuerySql(sqlParameters.getPreStatements());
+            }
+
             List<SqlBinds> postStatementSqlBinds = Optional.ofNullable(sqlParameters.getPostStatements())
                     .orElse(new ArrayList<>())
                     .stream()
@@ -160,17 +170,61 @@ public class SqlTask extends AbstractTask {
         }
     }
 
+    public void handlePreQuerySql(List<String> preStatements) {
+        try (Connection con = baseDataSource.getConnection()) {
+            for (String preSql : preStatements) {
+                if (!isQuerySql(preSql)) {
+                    continue;
+                }
+                SqlBinds sqlBind = getSqlAndSqlParamsMap(preSql);
+                extractPreQuerySqlParams(con, sqlBind);
+            }
+        } catch (Exception e) {
+            throw new ServiceException("execute pre-query-sql error:" + preStatements, e);
+        }
+    }
+
+    /**
+     * check whether preSql is a query type sql or not
+     *
+     * @param preSql
+     * @return
+     */
+    public boolean isQuerySql(String preSql) {
+        return (Objects.nonNull(preSql) && preSql.trim().toLowerCase().startsWith("select "));
+    }
+
+    public void extractPreQuerySqlParams(Connection connection, SqlBinds sqlBind) throws Exception {
+        Map<String, Property> nodeParams = sqlParameters.getLocalParametersMap();
+        if (nodeParams == null) {
+            nodeParams = new HashMap<>();
+        }
+        try (PreparedStatement pstmt = prepareStatementAndBind(connection, sqlBind);
+             ResultSet rs = pstmt.executeQuery(sqlBind.getSql())) {
+            ResultSetMetaData metaData = rs.getMetaData();
+            // get only 1 row
+            if (rs.next()) {
+                for (int i = 0; i < metaData.getColumnCount(); i++) {
+                    String key = metaData.getColumnName(i);
+                    Property p = new Property(key, Direct.IN, DataType.VARCHAR, rs.getString(i));
+                    nodeParams.put(key, p);
+                }
+            }
+            logger.info("pre statement execute result: {}, for sql: {}", nodeParams.values(), sqlBind.getSql());
+        }
+        sqlParameters.setLocalParams(nodeParams.values().stream().collect(Collectors.toList()));
+    }
+
     /**
      * ready to execute SQL and parameter entity Map
      *
      * @return SqlBinds
      */
-    private SqlBinds getSqlAndSqlParamsMap(String sql) {
+    public SqlBinds getSqlAndSqlParamsMap(String sql) {
         Map<Integer, Property> sqlParamsMap = new HashMap<>();
         StringBuilder sqlBuilder = new StringBuilder();
 
         // find process instance by task id
-
         Map<String, Property> paramsMap = ParamUtils.convert(ParamUtils.getUserDefParamsMap(taskExecutionContext.getDefinedParams()),
                 taskExecutionContext.getDefinedParams(),
                 sqlParameters.getLocalParametersMap(),
@@ -230,10 +284,10 @@ public class SqlTask extends AbstractTask {
     /**
      * execute function and sql
      *
-     * @param mainSqlBinds main sql binds
-     * @param preStatementsBinds pre statements binds
+     * @param mainSqlBinds        main sql binds
+     * @param preStatementsBinds  pre statements binds
      * @param postStatementsBinds post statements binds
-     * @param createFuncs create functions
+     * @param createFuncs         create functions
      */
     public void executeFuncAndSql(SqlBinds mainSqlBinds,
                                   List<SqlBinds> preStatementsBinds,
@@ -255,6 +309,7 @@ public class SqlTask extends AbstractTask {
 
             // pre sql
             preSql(connection, preStatementsBinds);
+
             stmt = prepareStatementAndBind(connection, mainSqlBinds);
 
             String result = null;
@@ -338,12 +393,15 @@ public class SqlTask extends AbstractTask {
     /**
      * pre sql
      *
-     * @param connection connection
+     * @param connection         connection
      * @param preStatementsBinds preStatementsBinds
      */
     private void preSql(Connection connection,
                         List<SqlBinds> preStatementsBinds) throws Exception {
         for (SqlBinds sqlBind : preStatementsBinds) {
+            if (isQuerySql(sqlBind.getSql())) {
+                continue;
+            }
             try (PreparedStatement pstmt = prepareStatementAndBind(connection, sqlBind)) {
                 int result = pstmt.executeUpdate();
                 logger.info("pre statement execute result: {}, for sql: {}", result, sqlBind.getSql());
@@ -355,7 +413,7 @@ public class SqlTask extends AbstractTask {
     /**
      * post sql
      *
-     * @param connection connection
+     * @param connection          connection
      * @param postStatementsBinds postStatementsBinds
      */
     private void postSql(Connection connection,
@@ -371,7 +429,7 @@ public class SqlTask extends AbstractTask {
     /**
      * create temp function
      *
-     * @param connection connection
+     * @param connection  connection
      * @param createFuncs createFuncs
      */
     private void createTempFunction(Connection connection,
@@ -387,8 +445,8 @@ public class SqlTask extends AbstractTask {
     /**
      * close jdbc resource
      *
-     * @param resultSet resultSet
-     * @param pstmt pstmt
+     * @param resultSet  resultSet
+     * @param pstmt      pstmt
      * @param connection connection
      */
     private void close(ResultSet resultSet,
@@ -423,7 +481,7 @@ public class SqlTask extends AbstractTask {
      * preparedStatement bind
      *
      * @param connection connection
-     * @param sqlBinds sqlBinds
+     * @param sqlBinds   sqlBinds
      * @return PreparedStatement
      * @throws Exception Exception
      */
@@ -449,7 +507,7 @@ public class SqlTask extends AbstractTask {
     /**
      * send mail as an attachment
      *
-     * @param title title
+     * @param title   title
      * @param content content
      */
     public void sendAttachment(int groupId, String title, String content) {
@@ -462,9 +520,9 @@ public class SqlTask extends AbstractTask {
     /**
      * regular expressions match the contents between two specified strings
      *
-     * @param content content
-     * @param rgex rgex
-     * @param sqlParamsMap sql params map
+     * @param content        content
+     * @param rgex           rgex
+     * @param sqlParamsMap   sql params map
      * @param paramsPropsMap params props map
      */
     public void setSqlParamsMap(String content, String rgex, Map<Integer, Property> sqlParamsMap, Map<String, Property> paramsPropsMap) {
@@ -484,9 +542,9 @@ public class SqlTask extends AbstractTask {
     /**
      * print replace sql
      *
-     * @param content content
-     * @param formatSql format sql
-     * @param rgex rgex
+     * @param content      content
+     * @param formatSql    format sql
+     * @param rgex         rgex
      * @param sqlParamsMap sql params map
      */
     public void printReplacedSql(String content, String formatSql, String rgex, Map<Integer, Property> sqlParamsMap) {
