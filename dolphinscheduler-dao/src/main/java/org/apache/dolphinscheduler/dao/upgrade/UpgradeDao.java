@@ -14,20 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.dao.upgrade;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.apache.dolphinscheduler.dao.utils.Constants.TABLE_VERSION_V1;
+import static org.apache.dolphinscheduler.dao.utils.Constants.TABLE_VERSION_V2;
+
 import org.apache.dolphinscheduler.common.enums.DbType;
 import org.apache.dolphinscheduler.common.process.ResourceInfo;
-import org.apache.dolphinscheduler.common.utils.*;
+import org.apache.dolphinscheduler.common.utils.CollectionUtils;
+import org.apache.dolphinscheduler.common.utils.ConnectionUtils;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.SchemaUtils;
+import org.apache.dolphinscheduler.common.utils.ScriptRunner;
+import org.apache.dolphinscheduler.common.utils.StringUtils;
 import org.apache.dolphinscheduler.dao.AbstractBaseDao;
 import org.apache.dolphinscheduler.dao.datasource.ConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-import java.io.*;
+import java.io.FileReader;
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -38,15 +43,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+/**
+ *  upgrade sql script
+ */
 public abstract class UpgradeDao extends AbstractBaseDao {
 
     public static final Logger logger = LoggerFactory.getLogger(UpgradeDao.class);
-    private static final String T_VERSION_NAME = "t_escheduler_version";
-    private static final String T_NEW_VERSION_NAME = "t_ds_version";
     private static final String rootDir = System.getProperty("user.dir");
     protected static final DataSource dataSource = getDataSource();
     private static final DbType dbType = getCurrentDbType();
-
 
     @Override
     protected void init() {
@@ -57,7 +70,7 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * get datasource
      * @return DruidDataSource
      */
-    public static DataSource getDataSource(){
+    public static DataSource getDataSource() {
         return ConnectionFactory.getInstance().getDataSource();
     }
 
@@ -65,7 +78,7 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * get db type
      * @return dbType
      */
-    public static DbType getDbType(){
+    public static DbType getDbType() {
         return dbType;
     }
 
@@ -73,7 +86,7 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * get current dbType
      * @return
      */
-    private static DbType getCurrentDbType(){
+    private static DbType getCurrentDbType() {
         Connection conn = null;
         try {
             conn = dataSource.getConnection();
@@ -82,7 +95,7 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         } catch (Exception e) {
             logger.error(e.getMessage(),e);
             return null;
-        }finally {
+        } finally {
             ConnectionUtils.releaseResource(conn);
         }
     }
@@ -110,7 +123,6 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         }
     }
 
-
     /**
      * init scheam
      *
@@ -124,7 +136,6 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         // Execute the dolphinscheduler DML, it can be rolled back
         runInitDML(initSqlPath);
 
-
     }
 
     /**
@@ -133,44 +144,7 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * @param initSqlPath initSqlPath
      */
     private void runInitDML(String initSqlPath) {
-        Connection conn = null;
-        if (StringUtils.isEmpty(rootDir)) {
-            throw new RuntimeException("Environment variable user.dir not found");
-        }
-        String mysqlSQLFilePath = rootDir + initSqlPath + "dolphinscheduler_dml.sql";
-        try {
-            conn = dataSource.getConnection();
-            conn.setAutoCommit(false);
-
-            // Execute the dolphinscheduler_dml.sql script to import related data of dolphinscheduler
-            ScriptRunner initScriptRunner = new ScriptRunner(conn, false, true);
-            Reader initSqlReader = new FileReader(new File(mysqlSQLFilePath));
-            initScriptRunner.runScript(initSqlReader);
-
-            conn.commit();
-        } catch (IOException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException e1) {
-                logger.error(e1.getMessage(), e1);
-            }
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (Exception e) {
-            try {
-                if (null != conn) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                logger.error(e1.getMessage(), e1);
-            }
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            ConnectionUtils.releaseResource(conn);
-
-        }
-
+        this.runSqlScript(initSqlPath + "dolphinscheduler_dml.sql", false, true);
     }
 
     /**
@@ -179,32 +153,50 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * @param initSqlPath initSqlPath
      */
     private void runInitDDL(String initSqlPath) {
-        Connection conn = null;
+        this.runSqlScript(initSqlPath + "dolphinscheduler_ddl.sql", false, true);
+    }
+
+    /**
+     *  run sql script
+     *
+     * @param initSqlFile initSqlFile
+     * @param autoCommit autoCommit
+     * @param stopOnError stopOnError
+     */
+    private void runSqlScript(String initSqlFile, boolean autoCommit, boolean stopOnError) {
         if (StringUtils.isEmpty(rootDir)) {
             throw new RuntimeException("Environment variable user.dir not found");
         }
-        //String mysqlSQLFilePath = rootDir + "/sql/create/release-1.0.0_schema/mysql/dolphinscheduler_ddl.sql";
-        String mysqlSQLFilePath = rootDir + initSqlPath + "dolphinscheduler_ddl.sql";
-        try {
-            conn = dataSource.getConnection();
-            // Execute the dolphinscheduler_ddl.sql script to create the table structure of dolphinscheduler
-            ScriptRunner initScriptRunner = new ScriptRunner(conn, true, true);
-            Reader initSqlReader = new FileReader(new File(mysqlSQLFilePath));
-            initScriptRunner.runScript(initSqlReader);
+        String mysqlSQLFilePath = rootDir + initSqlFile;
 
-        } catch (IOException e) {
-
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
+        try (Connection conn = dataSource.getConnection();
+             Reader initSqlReader = new FileReader(mysqlSQLFilePath)) {
+            this.runSqlScript(initSqlReader, conn, autoCommit, stopOnError);
         } catch (Exception e) {
-
             logger.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            ConnectionUtils.releaseResource(conn);
-
         }
+    }
 
+    /**
+     * run sql script
+     *
+     * @param initSqlReader Reader
+     * @param conn Connection
+     * @param autoCommit autoCommit
+     * @param stopOnError stopOnError
+     */
+    private void runSqlScript(Reader initSqlReader, Connection conn, boolean autoCommit, boolean stopOnError) {
+        try {
+            conn.setAutoCommit(autoCommit);
+            // Execute the DolphinScheduler sql script to import related data of DolphinScheduler
+            ScriptRunner initScriptRunner = new ScriptRunner(conn, autoCommit, stopOnError);
+            initScriptRunner.runScript(initSqlReader);
+        } catch (Exception e) {
+            ConnectionUtils.rollback(conn);
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -223,7 +215,6 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * @return if column name exist return true，else return false
      */
     public abstract boolean isExistsColumn(String tableName, String columnName);
-
 
     /**
      * get current version
@@ -256,7 +247,6 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         }
     }
 
-
     /**
      * upgrade DolphinScheduler
      *
@@ -268,7 +258,6 @@ public abstract class UpgradeDao extends AbstractBaseDao {
 
         upgradeDolphinSchedulerDML(schemaDir);
     }
-
 
     /**
      * upgrade DolphinScheduler worker group
@@ -401,69 +390,40 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         }
         String sqlFilePath = MessageFormat.format("{0}/sql/upgrade/{1}/{2}/dolphinscheduler_dml.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
         logger.info("sqlSQLFilePath" + sqlFilePath);
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        try {
-            conn = dataSource.getConnection();
-            conn.setAutoCommit(false);
-            // Execute the upgraded dolphinscheduler dml
-            ScriptRunner scriptRunner = new ScriptRunner(conn, false, true);
-            Reader sqlReader = new FileReader(new File(sqlFilePath));
-            scriptRunner.runScript(sqlReader);
-            if (isExistsTable(T_VERSION_NAME)) {
-                // Change version in the version table to the new version
-                String upgradeSQL = String.format("update %s set version = ?", T_VERSION_NAME);
-                pstmt = conn.prepareStatement(upgradeSQL);
-                pstmt.setString(1, schemaVersion);
-                pstmt.executeUpdate();
-            } else if (isExistsTable(T_NEW_VERSION_NAME)) {
-                // Change version in the version table to the new version
-                String upgradeSQL = String.format("update %s set version = ?", T_NEW_VERSION_NAME);
-                pstmt = conn.prepareStatement(upgradeSQL);
-                pstmt.setString(1, schemaVersion);
-                pstmt.executeUpdate();
-            }
-            conn.commit();
-        } catch (FileNotFoundException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException e1) {
-                logger.error(e1.getMessage(), e1);
-            }
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException("sql file not found ", e);
-        } catch (IOException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException e1) {
-                logger.error(e1.getMessage(), e1);
-            }
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (SQLException e) {
-            try {
-                if (null != conn) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                logger.error(e1.getMessage(), e1);
-            }
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (Exception e) {
-            try {
-                if (null != conn) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                logger.error(e1.getMessage(), e1);
-            }
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            ConnectionUtils.releaseResource(pstmt, conn);
-        }
 
+        try (Connection conn = dataSource.getConnection();
+             Reader sqlReader = new FileReader((sqlFilePath))) {
+            try {
+                conn.setAutoCommit(false);
+                // Execute the upgraded dolphinscheduler dml
+                ScriptRunner scriptRunner = new ScriptRunner(conn, false, true);
+                scriptRunner.runScript(sqlReader);
+                String versionTable;
+                if (isExistsTable(TABLE_VERSION_V1)) {
+                    versionTable = TABLE_VERSION_V1;
+                } else if (isExistsTable(TABLE_VERSION_V2)) {
+                    versionTable = TABLE_VERSION_V2;
+                } else {
+                    return;
+                }
+
+                // Change version in the version table to the new version
+                String upgradeSQL = String.format("update %s set version = ?", versionTable);
+                try (PreparedStatement pstmt = conn.prepareStatement(upgradeSQL)) {
+                    pstmt.setString(1, schemaVersion);
+                    pstmt.executeUpdate();
+                }
+                conn.commit();
+            } catch (Exception e) {
+                ConnectionUtils.rollback(conn);
+                logger.error(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -472,44 +432,9 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      * @param schemaDir schemaDir
      */
     private void upgradeDolphinSchedulerDDL(String schemaDir) {
-        if (StringUtils.isEmpty(rootDir)) {
-            throw new RuntimeException("Environment variable user.dir not found");
-        }
-        String sqlFilePath = MessageFormat.format("{0}/sql/upgrade/{1}/{2}/dolphinscheduler_ddl.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        try {
-            conn = dataSource.getConnection();
-            String dbName = conn.getCatalog();
-            logger.info(dbName);
-            conn.setAutoCommit(true);
-            // Execute the dolphinscheduler ddl.sql for the upgrade
-            ScriptRunner scriptRunner = new ScriptRunner(conn, true, true);
-            Reader sqlReader = new FileReader(new File(sqlFilePath));
-            scriptRunner.runScript(sqlReader);
-
-        } catch (FileNotFoundException e) {
-
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException("sql file not found ", e);
-        } catch (IOException e) {
-
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (SQLException e) {
-
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (Exception e) {
-
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            ConnectionUtils.releaseResource(pstmt, conn);
-        }
-
+        String sqlFilePath = MessageFormat.format("/sql/upgrade/{0}/{1}/dolphinscheduler_ddl.sql", schemaDir, getDbType().name().toLowerCase());
+        this.runSqlScript(sqlFilePath, true, true);
     }
-
 
     /**
      * update version
@@ -518,9 +443,9 @@ public abstract class UpgradeDao extends AbstractBaseDao {
      */
     public void updateVersion(String version) {
         // Change version in the version table to the new version
-        String versionName = T_VERSION_NAME;
+        String versionName = TABLE_VERSION_V1;
         if (!SchemaUtils.isAGreatVersion("1.2.0", version)) {
-            versionName = "t_ds_version";
+            versionName = TABLE_VERSION_V2;
         }
         String upgradeSQL = String.format("update %s set version = ?", versionName);
         PreparedStatement pstmt = null;

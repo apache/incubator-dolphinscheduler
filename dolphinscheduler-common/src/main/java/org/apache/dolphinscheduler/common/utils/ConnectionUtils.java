@@ -17,6 +17,8 @@
 
 package org.apache.dolphinscheduler.common.utils;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -49,5 +51,20 @@ public class ConnectionUtils {
                         logger.error(e.getMessage(), e);
                     }
                 });
+    }
+
+    /**
+     * sql connection rollback
+     *
+     * @param conn Connection
+     */
+    public static void rollback(Connection conn) {
+        try {
+            if (null != conn) {
+                conn.rollback();
+            }
+        } catch (SQLException e1) {
+            logger.error(e1.getMessage(), e1);
+        }
     }
 }

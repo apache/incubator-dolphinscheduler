@@ -1003,6 +1003,7 @@
                         <include>**/dao/datasource/BaseDataSourceTest.java</include>
                         <include>**/dao/upgrade/ProcessDefinitionDaoTest.java</include>
                         <include>**/dao/upgrade/WokrerGrouopDaoTest.java</include>
+                        <include>**/dao/upgrade/DolphinSchedulerManagerTest.java</include>
                         <include>**/dao/upgrade/UpgradeDaoTest.java</include>
                         <include>**/plugin/alert/email/EmailAlertChannelFactoryTest.java</include>
                         <include>**/plugin/alert/email/EmailAlertChannelTest.java</include>
