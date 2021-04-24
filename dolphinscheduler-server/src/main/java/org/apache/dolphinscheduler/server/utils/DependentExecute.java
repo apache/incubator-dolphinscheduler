@@ -20,11 +20,13 @@ import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.DependResult;
 import org.apache.dolphinscheduler.common.enums.DependentRelation;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
+import org.apache.dolphinscheduler.common.enums.Flag;
 import org.apache.dolphinscheduler.common.model.DateInterval;
 import org.apache.dolphinscheduler.common.model.DependentItem;
 import org.apache.dolphinscheduler.common.model.TaskNode;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.common.utils.DependentUtils;
+import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.ProcessInstance;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
 import org.apache.dolphinscheduler.dao.utils.DagHelper;
@@ -104,7 +106,11 @@ public class DependentExecute {
             ProcessInstance processInstance = findLastProcessInterval(dependentItem.getDefinitionId(),
                                                     dateInterval);
             if(processInstance == null){
-                return DependResult.WAITING;
+                ProcessDefinition processDefinition = processService.findProcessDefineById(dependentItem.getDefinitionId());
+                if (null != processDefinition && processDefinition.getFlag().equals(Flag.YES)) {
+                    logger.info("processDefinition is not run ,DependResult calculateResultForTasks wait processDefinition id:{} to run...", dependentItem.getDefinitionId());
+                    return DependResult.WAITING;
+                }
             }
             // need to check workflow for updates, so get all task and check the task state
             if(dependentItem.getDepTasks().equals(Constants.DEPENDENT_ALL)){
