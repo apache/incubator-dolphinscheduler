@@ -22,8 +22,8 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.AlertGroupServiceImpl;
-import org.apache.dolphinscheduler.api.utils.PageInfo;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.dao.entity.AlertGroup;
@@ -32,7 +32,6 @@ import org.apache.dolphinscheduler.dao.mapper.AlertGroupMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,9 +66,9 @@ public class AlertGroupServiceTest {
     public void testQueryAlertGroup() {
 
         Mockito.when(alertGroupMapper.queryAllGroupList()).thenReturn(getList());
-        Map<String, Object> result = alertGroupService.queryAlertgroup();
+        Result<List<AlertGroup>> result = alertGroupService.queryAlertgroup();
         logger.info(result.toString());
-        List<AlertGroup> alertGroups = (List<AlertGroup>) result.get(Constants.DATA_LIST);
+        List<AlertGroup> alertGroups = result.getData();
         Assert.assertTrue(CollectionUtils.isNotEmpty(alertGroups));
     }
 
@@ -81,15 +80,15 @@ public class AlertGroupServiceTest {
         Mockito.when(alertGroupMapper.queryAlertGroupPage(any(Page.class), eq(groupName))).thenReturn(page);
         User user = new User();
         // no operate
-        Map<String, Object> result = alertGroupService.listPaging(user, groupName, 1, 10);
-        logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Result<PageListVO<AlertGroup>> pageListVOResult = alertGroupService.listPaging(user, groupName, 1, 10);
+        logger.info(pageListVOResult.toString());
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) pageListVOResult.getCode());
         //success
         user.setUserType(UserType.ADMIN_USER);
-        result = alertGroupService.listPaging(user, groupName, 1, 10);
-        logger.info(result.toString());
-        PageInfo<AlertGroup> pageInfo = (PageInfo<AlertGroup>) result.get(Constants.DATA_LIST);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(pageInfo.getLists()));
+        pageListVOResult = alertGroupService.listPaging(user, groupName, 1, 10);
+        logger.info(pageListVOResult.toString());
+        PageListVO<AlertGroup> alertGroupPageListVO = pageListVOResult.getData();
+        Assert.assertTrue(CollectionUtils.isNotEmpty(alertGroupPageListVO.getTotalList()));
 
     }
 
@@ -99,14 +98,14 @@ public class AlertGroupServiceTest {
         Mockito.when(alertGroupMapper.insert(any(AlertGroup.class))).thenReturn(2);
         User user = new User();
         //no operate
-        Map<String, Object> result = alertGroupService.createAlertgroup(user, groupName, groupName, null);
+        Result<?> result = alertGroupService.createAlertgroup(user, groupName, groupName, null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         user.setUserType(UserType.ADMIN_USER);
         //success
         result = alertGroupService.createAlertgroup(user, groupName, groupName, null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
@@ -114,19 +113,19 @@ public class AlertGroupServiceTest {
 
         User user = new User();
         // no operate
-        Map<String, Object> result = alertGroupService.updateAlertgroup(user, 1, groupName, groupName, null);
+        Result<Void> result = alertGroupService.updateAlertgroup(user, 1, groupName, groupName, null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         user.setUserType(UserType.ADMIN_USER);
         // not exist
         result = alertGroupService.updateAlertgroup(user, 1, groupName, groupName, null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.ALERT_GROUP_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.ALERT_GROUP_NOT_EXIST.getCode(), (int) result.getCode());
         //success
         Mockito.when(alertGroupMapper.selectById(2)).thenReturn(getEntity());
         result = alertGroupService.updateAlertgroup(user, 2, groupName, groupName, null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 
@@ -135,19 +134,19 @@ public class AlertGroupServiceTest {
 
         User user = new User();
         // no operate
-        Map<String, Object> result = alertGroupService.delAlertgroupById(user, 1);
+        Result<Void> result = alertGroupService.delAlertgroupById(user, 1);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         user.setUserType(UserType.ADMIN_USER);
         // not exist
         result = alertGroupService.delAlertgroupById(user, 2);
         logger.info(result.toString());
-        Assert.assertEquals(Status.ALERT_GROUP_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.ALERT_GROUP_NOT_EXIST.getCode(), (int) result.getCode());
         //success
         Mockito.when(alertGroupMapper.selectById(2)).thenReturn(getEntity());
         result = alertGroupService.delAlertgroupById(user, 2);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 

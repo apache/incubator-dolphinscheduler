@@ -20,7 +20,8 @@ package org.apache.dolphinscheduler.api.service.impl;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.AlertGroupService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.utils.BooleanUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
 import org.apache.dolphinscheduler.dao.entity.AlertGroup;
@@ -28,9 +29,7 @@ import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.AlertGroupMapper;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,14 +53,11 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
      * @return alert group list
      */
     @Override
-    public Map<String, Object> queryAlertgroup() {
+    public Result<List<AlertGroup>> queryAlertgroup() {
 
-        HashMap<String, Object> result = new HashMap<>();
         List<AlertGroup> alertGroups = alertGroupMapper.queryAllGroupList();
-        result.put(Constants.DATA_LIST, alertGroups);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(alertGroups);
     }
 
     /**
@@ -74,11 +70,10 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
      * @return alert group list page
      */
     @Override
-    public Map<String, Object> listPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
+    public Result<PageListVO<AlertGroup>> listPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
 
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         Page<AlertGroup> page = new Page<>(pageNo, pageSize);
@@ -87,10 +82,8 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
         PageInfo<AlertGroup> pageInfo = new PageInfo<>(pageNo, pageSize);
         pageInfo.setTotalCount((int) alertGroupIPage.getTotal());
         pageInfo.setLists(alertGroupIPage.getRecords());
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -103,11 +96,10 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
      * @return create result code
      */
     @Override
-    public Map<String, Object> createAlertgroup(User loginUser, String groupName, String desc, String alertInstanceIds) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> createAlertgroup(User loginUser, String groupName, String desc, String alertInstanceIds) {
         //only admin can operate
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         AlertGroup alertGroup = new AlertGroup();
@@ -124,11 +116,10 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
         int insert = alertGroupMapper.insert(alertGroup);
 
         if (insert > 0) {
-            putMsg(result, Status.SUCCESS);
+            return Result.success(null);
         } else {
-            putMsg(result, Status.CREATE_ALERT_GROUP_ERROR);
+            return Result.error(Status.CREATE_ALERT_GROUP_ERROR);
         }
-        return result;
     }
 
     /**
@@ -142,18 +133,16 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
      * @return update result code
      */
     @Override
-    public Map<String, Object> updateAlertgroup(User loginUser, int id, String groupName, String desc, String alertInstanceIds) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> updateAlertgroup(User loginUser, int id, String groupName, String desc, String alertInstanceIds) {
 
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         AlertGroup alertGroup = alertGroupMapper.selectById(id);
 
         if (alertGroup == null) {
-            putMsg(result, Status.ALERT_GROUP_NOT_EXIST);
-            return result;
+            return Result.error(Status.ALERT_GROUP_NOT_EXIST);
 
         }
 
@@ -167,8 +156,7 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
         alertGroup.setCreateUserId(loginUser.getId());
         alertGroup.setAlertInstanceIds(alertInstanceIds);
         alertGroupMapper.updateById(alertGroup);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -180,23 +168,19 @@ public class AlertGroupServiceImpl extends BaseServiceImpl implements AlertGroup
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Map<String, Object> delAlertgroupById(User loginUser, int id) {
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
+    public Result<Void> delAlertgroupById(User loginUser, int id) {
 
         //only admin can operate
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         //check exist
         AlertGroup alertGroup = alertGroupMapper.selectById(id);
         if (alertGroup == null) {
-            putMsg(result, Status.ALERT_GROUP_NOT_EXIST);
-            return result;
+            return Result.error(Status.ALERT_GROUP_NOT_EXIST);
         }
         alertGroupMapper.deleteById(id);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**

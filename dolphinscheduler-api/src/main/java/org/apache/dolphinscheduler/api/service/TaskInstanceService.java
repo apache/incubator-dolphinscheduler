@@ -17,6 +17,8 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.dao.entity.User;
 
@@ -43,10 +45,10 @@ public interface TaskInstanceService {
      * @param pageSize page size
      * @return task list page
      */
-    Map<String, Object> queryTaskListPaging(User loginUser, String projectName,
-                                            Integer processInstanceId, String processInstanceName, String taskName, String executorName, String startDate,
-                                            String endDate, String searchVal, ExecutionStatus stateType, String host,
-                                            Integer pageNo, Integer pageSize);
+    Result<PageListVO<Map<String, Object>>> queryTaskListPaging(User loginUser, String projectName,
+                                                         Integer processInstanceId, String processInstanceName, String taskName, String executorName, String startDate,
+                                                         String endDate, String searchVal, ExecutionStatus stateType, String host,
+                                                         Integer pageNo, Integer pageSize);
 
     /**
      * change one task instance's state from failure to forced success
@@ -56,6 +58,6 @@ public interface TaskInstanceService {
      * @param taskInstanceId task instance id
      * @return the result code and msg
      */
-    Map<String, Object> forceTaskSuccess(User loginUser, String projectName, Integer taskInstanceId);
+    Result<Void> forceTaskSuccess(User loginUser, String projectName, Integer taskInstanceId);
 
 }

@@ -21,6 +21,7 @@ import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.QueueService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.BooleanUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
@@ -30,9 +31,7 @@ import org.apache.dolphinscheduler.dao.mapper.QueueMapper;
 import org.apache.dolphinscheduler.dao.mapper.UserMapper;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,17 +62,14 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
      * @return queue list
      */
     @Override
-    public Map<String, Object> queryList(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<List<Queue>> queryList(User loginUser) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<Queue> queueList = queueMapper.selectList(null);
-        result.put(Constants.DATA_LIST, queueList);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(queueList);
     }
 
     /**
@@ -86,10 +82,9 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
      * @return queue list
      */
     @Override
-    public Map<String, Object> queryList(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<PageListVO<Queue>> queryList(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         Page<Queue> page = new Page<>(pageNo, pageSize);
@@ -100,10 +95,8 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
         PageInfo<Queue> pageInfo = new PageInfo<>(pageNo, pageSize);
         pageInfo.setTotalCount(count);
         pageInfo.setLists(queueList.getRecords());
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -115,30 +108,25 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
      * @return create result
      */
     @Override
-    public Map<String, Object> createQueue(User loginUser, String queue, String queueName) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<Void> createQueue(User loginUser, String queue, String queueName) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         if (StringUtils.isEmpty(queue)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE);
         }
 
         if (StringUtils.isEmpty(queueName)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE_NAME);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE_NAME);
         }
 
         if (checkQueueNameExist(queueName)) {
-            putMsg(result, Status.QUEUE_NAME_EXIST, queueName);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_NAME_EXIST, queueName);
         }
 
         if (checkQueueExist(queue)) {
-            putMsg(result, Status.QUEUE_VALUE_EXIST, queue);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_VALUE_EXIST, queue);
         }
 
         Queue queueObj = new Queue();
@@ -150,9 +138,8 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
         queueObj.setUpdateTime(now);
 
         queueMapper.insert(queueObj);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -165,45 +152,38 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
      * @return update result code
      */
     @Override
-    public Map<String, Object> updateQueue(User loginUser, int id, String queue, String queueName) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<Void> updateQueue(User loginUser, int id, String queue, String queueName) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         if (StringUtils.isEmpty(queue)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE);
         }
 
         if (StringUtils.isEmpty(queueName)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE_NAME);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE_NAME);
         }
 
         Queue queueObj = queueMapper.selectById(id);
         if (queueObj == null) {
-            putMsg(result, Status.QUEUE_NOT_EXIST, id);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_NOT_EXIST, id);
         }
 
         // whether queue value or queueName is changed
         if (queue.equals(queueObj.getQueue()) && queueName.equals(queueObj.getQueueName())) {
-            putMsg(result, Status.NEED_NOT_UPDATE_QUEUE);
-            return result;
+            return Result.error(Status.NEED_NOT_UPDATE_QUEUE);
         }
 
         // check queue name is exist
         if (!queueName.equals(queueObj.getQueueName())
                 && checkQueueNameExist(queueName)) {
-            putMsg(result, Status.QUEUE_NAME_EXIST, queueName);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_NAME_EXIST, queueName);
         }
 
         // check queue value is exist
         if (!queue.equals(queueObj.getQueue()) && checkQueueExist(queue)) {
-            putMsg(result, Status.QUEUE_VALUE_EXIST, queue);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_VALUE_EXIST, queue);
         }
 
         // check old queue using by any user
@@ -221,44 +201,36 @@ public class QueueServiceImpl extends BaseServiceImpl implements QueueService {
 
         queueMapper.updateById(queueObj);
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(null);
     }
 
     /**
      * verify queue and queueName
      *
-     * @param queue     queue
+     * @param queue queue
      * @param queueName queue name
      * @return true if the queue name not exists, otherwise return false
      */
     @Override
-    public Result<Object> verifyQueue(String queue, String queueName) {
-        Result<Object> result = new Result<>();
+    public Result<Void> verifyQueue(String queue, String queueName) {
 
         if (StringUtils.isEmpty(queue)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE);
         }
 
         if (StringUtils.isEmpty(queueName)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE_NAME);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.QUEUE_NAME);
         }
 
         if (checkQueueNameExist(queueName)) {
-            putMsg(result, Status.QUEUE_NAME_EXIST, queueName);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_NAME_EXIST, queueName);
         }
 
         if (checkQueueExist(queue)) {
-            putMsg(result, Status.QUEUE_VALUE_EXIST, queue);
-            return result;
+            return Result.errorWithArgs(Status.QUEUE_VALUE_EXIST, queue);
         }
 
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**

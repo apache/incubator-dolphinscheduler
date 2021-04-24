@@ -17,12 +17,16 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
+import org.apache.dolphinscheduler.api.dto.CheckParamResultWithInfo;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.ProcessInstanceService;
 import org.apache.dolphinscheduler.api.service.ProjectService;
 import org.apache.dolphinscheduler.api.service.TaskInstanceService;
 import org.apache.dolphinscheduler.api.service.UsersService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
@@ -35,7 +39,6 @@ import org.apache.dolphinscheduler.dao.mapper.TaskInstanceMapper;
 import org.apache.dolphinscheduler.service.process.ProcessService;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -88,17 +91,15 @@ public class TaskInstanceServiceImpl extends BaseServiceImpl implements TaskInst
      * @return task list page
      */
     @Override
-    public Map<String, Object> queryTaskListPaging(User loginUser, String projectName,
-                                                   Integer processInstanceId, String processInstanceName, String taskName, String executorName, String startDate,
-                                                   String endDate, String searchVal, ExecutionStatus stateType, String host,
-                                                   Integer pageNo, Integer pageSize) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<PageListVO<Map<String, Object>>> queryTaskListPaging(User loginUser, String projectName,
+                                                                Integer processInstanceId, String processInstanceName, String taskName, String executorName, String startDate,
+                                                                String endDate, String searchVal, ExecutionStatus stateType, String host,
+                                                                Integer pageNo, Integer pageSize) {
         Project project = projectMapper.queryByName(projectName);
 
-        Map<String, Object> checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
-        Status status = (Status) checkResult.get(Constants.STATUS);
-        if (status != Status.SUCCESS) {
-            return checkResult;
+        CheckParamResult checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         int[] statusArray = null;
@@ -106,12 +107,12 @@ public class TaskInstanceServiceImpl extends BaseServiceImpl implements TaskInst
             statusArray = new int[]{stateType.ordinal()};
         }
 
-        Map<String, Object> checkAndParseDateResult = checkAndParseDateParameters(startDate, endDate);
-        if (checkAndParseDateResult.get(Constants.STATUS) != Status.SUCCESS) {
-            return checkAndParseDateResult;
+        CheckParamResultWithInfo<Map<String, Date>> checkParamResultWithInfo = checkAndParseDateParameters(startDate, endDate);
+        if (!Status.SUCCESS.equals(checkParamResultWithInfo.getStatus())) {
+            return Result.error(checkParamResultWithInfo);
         }
-        Date start = (Date) checkAndParseDateResult.get(Constants.START_TIME);
-        Date end = (Date) checkAndParseDateResult.get(Constants.END_TIME);
+        Date start = checkParamResultWithInfo.getInfo().get(Constants.START_TIME);
+        Date end = checkParamResultWithInfo.getInfo().get(Constants.END_TIME);
 
         Page<TaskInstance> page = new Page<>(pageNo, pageSize);
         PageInfo<Map<String, Object>> pageInfo = new PageInfo<>(pageNo, pageSize);
@@ -134,54 +135,46 @@ public class TaskInstanceServiceImpl extends BaseServiceImpl implements TaskInst
         }
         pageInfo.setTotalCount((int) taskInstanceIPage.getTotal());
         pageInfo.setLists(CollectionUtils.getListByExclusion(taskInstanceIPage.getRecords(), exclusionSet));
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
      * change one task instance's state from failure to forced success
      *
-     * @param loginUser      login user
-     * @param projectName    project name
+     * @param loginUser login user
+     * @param projectName project name
      * @param taskInstanceId task instance id
      * @return the result code and msg
      */
     @Override
-    public Map<String, Object> forceTaskSuccess(User loginUser, String projectName, Integer taskInstanceId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> forceTaskSuccess(User loginUser, String projectName, Integer taskInstanceId) {
         Project project = projectMapper.queryByName(projectName);
 
         // check user auth
-        Map<String, Object> checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
-        Status status = (Status) checkResult.get(Constants.STATUS);
-        if (status != Status.SUCCESS) {
-            return checkResult;
+        CheckParamResult checkParamResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
+        if (!Status.SUCCESS.equals(checkParamResult.getStatus())) {
+            return Result.error(checkParamResult);
         }
 
         // check whether the task instance can be found
         TaskInstance task = taskInstanceMapper.selectById(taskInstanceId);
         if (task == null) {
-            putMsg(result, Status.TASK_INSTANCE_NOT_FOUND);
-            return result;
+            return Result.error(Status.TASK_INSTANCE_NOT_FOUND);
         }
 
         // check whether the task instance state type is failure or cancel
         if (!task.getState().typeIsFailure() && !task.getState().typeIsCancel()) {
-            putMsg(result, Status.TASK_INSTANCE_STATE_OPERATION_ERROR, taskInstanceId, task.getState().toString());
-            return result;
+            return Result.errorWithArgs(Status.TASK_INSTANCE_STATE_OPERATION_ERROR, taskInstanceId, task.getState().toString());
         }
 
         // change the state of the task instance
         task.setState(ExecutionStatus.FORCED_SUCCESS);
         int changedNum = taskInstanceMapper.updateById(task);
         if (changedNum > 0) {
-            putMsg(result, Status.SUCCESS);
+            return Result.success(null);
         } else {
-            putMsg(result, Status.FORCE_TASK_SUCCESS_ERROR);
+            return Result.error(Status.FORCE_TASK_SUCCESS_ERROR);
         }
-
-        return result;
     }
 }

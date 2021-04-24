@@ -17,9 +17,10 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
+import org.apache.dolphinscheduler.dao.entity.AccessToken;
 import org.apache.dolphinscheduler.dao.entity.User;
-
-import java.util.Map;
 
 /**
  * access token service
@@ -35,7 +36,7 @@ public interface AccessTokenService {
      * @param pageSize page size
      * @return token list for page number and page size
      */
-    Map<String, Object> queryAccessTokenList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<AccessToken>> queryAccessTokenList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * create token
@@ -45,7 +46,7 @@ public interface AccessTokenService {
      * @param token token string
      * @return create result code
      */
-    Map<String, Object> createToken(User loginUser, int userId, String expireTime, String token);
+    Result<Void> createToken(User loginUser, int userId, String expireTime, String token);
 
 
     /**
@@ -55,7 +56,7 @@ public interface AccessTokenService {
      * @param expireTime token expire time
      * @return token string
      */
-    Map<String, Object> generateToken(User loginUser, int userId, String expireTime);
+    Result<String> generateToken(User loginUser, int userId, String expireTime);
 
     /**
      * delete access token
@@ -64,7 +65,7 @@ public interface AccessTokenService {
      * @param id token id
      * @return delete result code
      */
-    Map<String, Object> delAccessTokenById(User loginUser, int id);
+    Result<Void> delAccessTokenById(User loginUser, int id);
 
     /**
      * update token by id
@@ -75,5 +76,5 @@ public interface AccessTokenService {
      * @param token token string
      * @return update result code
      */
-    Map<String, Object> updateToken(User loginUser, int id, int userId, String expireTime, String token);
+    Result<Void> updateToken(User loginUser, int id, int userId, String expireTime, String token);
 }

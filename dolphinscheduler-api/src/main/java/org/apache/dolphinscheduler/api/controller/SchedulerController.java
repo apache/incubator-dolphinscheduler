@@ -27,20 +27,23 @@ import static org.apache.dolphinscheduler.api.enums.Status.QUERY_SCHEDULE_LIST_P
 import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_SCHEDULE_ERROR;
 import static org.apache.dolphinscheduler.common.Constants.SESSION_USER;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.SchedulerService;
 import org.apache.dolphinscheduler.api.utils.RegexUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.FailureStrategy;
 import org.apache.dolphinscheduler.common.enums.Priority;
 import org.apache.dolphinscheduler.common.enums.ReleaseState;
 import org.apache.dolphinscheduler.common.enums.WarningType;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
+import org.apache.dolphinscheduler.dao.entity.Schedule;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +110,7 @@ public class SchedulerController extends BaseController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(CREATE_SCHEDULE_ERROR)
-    public Result createSchedule(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+    public Result<Schedule> createSchedule(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
                                  @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                                  @RequestParam(value = "processDefinitionId") Integer processDefinitionId,
                                  @RequestParam(value = "schedule") String schedule,
@@ -120,10 +123,8 @@ public class SchedulerController extends BaseController {
                         + "failure policy: {},processInstancePriority : {}, workGroupId:{}",
                 RegexUtils.escapeNRT(loginUser.getUserName()), RegexUtils.escapeNRT(projectName), processDefinitionId, schedule, warningType, warningGroupId,
                 failureStrategy, processInstancePriority, workerGroup);
-        Map<String, Object> result = schedulerService.insertSchedule(loginUser, projectName, processDefinitionId, schedule,
+        return schedulerService.insertSchedule(loginUser, projectName, processDefinitionId, schedule,
                 warningType, warningGroupId, failureStrategy, processInstancePriority, workerGroup);
-
-        return returnDataList(result);
     }
 
     /**
@@ -152,7 +153,7 @@ public class SchedulerController extends BaseController {
     })
     @PostMapping("/update")
     @ApiException(UPDATE_SCHEDULE_ERROR)
-    public Result updateSchedule(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+    public Result<Void> updateSchedule(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
                                  @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                                  @RequestParam(value = "id") Integer id,
                                  @RequestParam(value = "schedule") String schedule,
@@ -166,9 +167,8 @@ public class SchedulerController extends BaseController {
                 RegexUtils.escapeNRT(loginUser.getUserName()), RegexUtils.escapeNRT(projectName), id, schedule, warningType, warningGroupId, failureStrategy,
                 processInstancePriority, workerGroup);
 
-        Map<String, Object> result = schedulerService.updateSchedule(loginUser, projectName, id, schedule,
+        return schedulerService.updateSchedule(loginUser, projectName, id, schedule,
                 warningType, warningGroupId, failureStrategy, null, processInstancePriority, workerGroup);
-        return returnDataList(result);
     }
 
     /**
@@ -185,13 +185,12 @@ public class SchedulerController extends BaseController {
     })
     @PostMapping("/online")
     @ApiException(PUBLISH_SCHEDULE_ONLINE_ERROR)
-    public Result online(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+    public Result<Void> online(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
                          @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                          @RequestParam("id") Integer id) {
         logger.info("login user {}, schedule setScheduleState, project name: {}, id: {}",
                 loginUser.getUserName(), projectName, id);
-        Map<String, Object> result = schedulerService.setScheduleState(loginUser, projectName, id, ReleaseState.ONLINE);
-        return returnDataList(result);
+        return schedulerService.setScheduleState(loginUser, projectName, id, ReleaseState.ONLINE);
     }
 
     /**
@@ -208,14 +207,13 @@ public class SchedulerController extends BaseController {
     })
     @PostMapping("/offline")
     @ApiException(OFFLINE_SCHEDULE_ERROR)
-    public Result offline(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+    public Result<Void> offline(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
                           @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                           @RequestParam("id") Integer id) {
         logger.info("login user {}, schedule offline, project name: {}, process definition id: {}",
                 loginUser.getUserName(), projectName, id);
 
-        Map<String, Object> result = schedulerService.setScheduleState(loginUser, projectName, id, ReleaseState.OFFLINE);
-        return returnDataList(result);
+        return schedulerService.setScheduleState(loginUser, projectName, id, ReleaseState.OFFLINE);
     }
 
     /**
@@ -239,21 +237,20 @@ public class SchedulerController extends BaseController {
     })
     @GetMapping("/list-paging")
     @ApiException(QUERY_SCHEDULE_LIST_PAGING_ERROR)
-    public Result queryScheduleListPaging(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
-                                          @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
-                                          @RequestParam Integer processDefinitionId,
-                                          @RequestParam(value = "searchVal", required = false) String searchVal,
-                                          @RequestParam("pageNo") Integer pageNo,
-                                          @RequestParam("pageSize") Integer pageSize) {
+    public Result<PageListVO<Schedule>> queryScheduleListPaging(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+                                                                @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+                                                                @RequestParam Integer processDefinitionId,
+                                                                @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                                @RequestParam("pageNo") Integer pageNo,
+                                                                @RequestParam("pageSize") Integer pageSize) {
         logger.info("login user {}, query schedule, project name: {}, process definition id: {}",
                 loginUser.getUserName(), projectName, processDefinitionId);
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkParamResult = checkPageParams(pageNo, pageSize);
+        if (checkParamResult.getStatus() != Status.SUCCESS) {
+            return error(checkParamResult);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = schedulerService.querySchedule(loginUser, projectName, processDefinitionId, searchVal, pageNo, pageSize);
-        return returnDataListPaging(result);
+        return schedulerService.querySchedule(loginUser, projectName, processDefinitionId, searchVal, pageNo, pageSize);
     }
 
     /**
@@ -271,14 +268,13 @@ public class SchedulerController extends BaseController {
     @GetMapping(value = "/delete")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(DELETE_SCHEDULE_CRON_BY_ID_ERROR)
-    public Result deleteScheduleById(@RequestAttribute(value = SESSION_USER) User loginUser,
+    public Result<Void> deleteScheduleById(@RequestAttribute(value = SESSION_USER) User loginUser,
                                      @PathVariable String projectName,
                                      @RequestParam("scheduleId") Integer scheduleId
     ) {
         logger.info("delete schedule by id, login user:{}, project name:{}, schedule id:{}",
                 loginUser.getUserName(), projectName, scheduleId);
-        Map<String, Object> result = schedulerService.deleteScheduleById(loginUser, projectName, scheduleId);
-        return returnDataList(result);
+        return schedulerService.deleteScheduleById(loginUser, projectName, scheduleId);
     }
 
     /**
@@ -291,12 +287,11 @@ public class SchedulerController extends BaseController {
     @ApiOperation(value = "queryScheduleList", notes = "QUERY_SCHEDULE_LIST_NOTES")
     @PostMapping("/list")
     @ApiException(QUERY_SCHEDULE_LIST_ERROR)
-    public Result queryScheduleList(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
-                                    @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName) {
+    public Result<List<Schedule>> queryScheduleList(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+                                                    @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName) {
         logger.info("login user {}, query schedule list, project name: {}",
                 loginUser.getUserName(), projectName);
-        Map<String, Object> result = schedulerService.queryScheduleList(loginUser, projectName);
-        return returnDataList(result);
+        return schedulerService.queryScheduleList(loginUser, projectName);
     }
 
     /**
@@ -314,13 +309,12 @@ public class SchedulerController extends BaseController {
     @PostMapping("/preview")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(PREVIEW_SCHEDULE_ERROR)
-    public Result previewSchedule(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
-                                  @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
-                                  @RequestParam(value = "schedule") String schedule
+    public Result<List<String>> previewSchedule(@ApiIgnore @RequestAttribute(value = SESSION_USER) User loginUser,
+                                                @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+                                                @RequestParam(value = "schedule") String schedule
     ) {
         logger.info("login user {}, project name: {}, preview schedule: {}",
                 loginUser.getUserName(), projectName, schedule);
-        Map<String, Object> result = schedulerService.previewSchedule(loginUser, projectName, schedule);
-        return returnDataList(result);
+        return schedulerService.previewSchedule(loginUser, projectName, schedule);
     }
 }

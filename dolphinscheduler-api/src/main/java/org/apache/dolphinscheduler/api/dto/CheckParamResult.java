@@ -15,21 +15,46 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.api.service;
+package org.apache.dolphinscheduler.api.dto;
 
-import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.enums.PluginType;
-import org.apache.dolphinscheduler.dao.entity.PluginDefine;
+import org.apache.dolphinscheduler.api.enums.Status;
 
-import java.util.List;
+import java.io.Serializable;
 
-/**
- * ui plugin service
- */
-public interface UiPluginService {
+public class CheckParamResult implements Serializable {
 
-    Result<List<PluginDefine>> queryUiPluginsByType(PluginType pluginType);
+    private Status status;
 
-    Result<PluginDefine> queryUiPluginDetailById(int id);
+    private String msg;
+
+    public CheckParamResult() {
+
+    }
+
+    public CheckParamResult(Status status) {
+        this.status = status;
+        this.msg = status.getMsg();
+    }
+
+    public CheckParamResult(Status status, String mes) {
+        this.status = status;
+        this.msg = mes;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
 
 }

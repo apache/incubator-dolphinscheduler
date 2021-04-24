@@ -20,7 +20,9 @@ package org.apache.dolphinscheduler.api.service.impl;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.WorkerGroupService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.api.utils.ZookeeperMonitor;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ZKNodeType;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
@@ -35,7 +37,6 @@ import org.apache.dolphinscheduler.service.zk.ZookeeperCachedOperator;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -76,14 +77,12 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
      * @return create or update result code
      */
     @Override
-    public Map<String, Object> saveWorkerGroup(User loginUser, int id, String name, String addrList) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<Void> saveWorkerGroup(User loginUser, int id, String name, String addrList) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         if (StringUtils.isEmpty(name)) {
-            putMsg(result, Status.NAME_NULL);
-            return result;
+            return Result.error(Status.NAME_NULL);
         }
         Date now = new Date();
         WorkerGroup workerGroup;
@@ -103,21 +102,18 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
         workerGroup.setUpdateTime(now);
 
         if (checkWorkerGroupNameExists(workerGroup)) {
-            putMsg(result, Status.NAME_EXIST, workerGroup.getName());
-            return result;
+            return Result.errorWithArgs(Status.NAME_EXIST, workerGroup.getName());
         }
         String invalidAddr = checkWorkerGroupAddrList(workerGroup);
         if (invalidAddr != null) {
-            putMsg(result, Status.WORKER_ADDRESS_INVALID, invalidAddr);
-            return result;
+            return Result.errorWithArgs(Status.WORKER_ADDRESS_INVALID, invalidAddr);
         }
         if (workerGroup.getId() != 0) {
             workerGroupMapper.updateById(workerGroup);
         } else {
             workerGroupMapper.insert(workerGroup);
         }
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -169,15 +165,14 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
      * @return worker group list page
      */
     @Override
-    public Map<String, Object> queryAllGroupPaging(User loginUser, Integer pageNo, Integer pageSize, String searchVal) {
+    public Result<PageListVO<WorkerGroup>> queryAllGroupPaging(User loginUser, Integer pageNo, Integer pageSize, String searchVal) {
         // list from index
         int fromIndex = (pageNo - 1) * pageSize;
         // list to index
         int toIndex = (pageNo - 1) * pageSize + pageSize;
 
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<WorkerGroup> workerGroups = getWorkerGroups(true);
@@ -208,9 +203,7 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
         pageInfo.setTotalCount(resultDataList.size());
         pageInfo.setLists(resultDataList);
 
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -219,8 +212,7 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
      * @return all worker group list
      */
     @Override
-    public Map<String, Object> queryAllGroup() {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<String>> queryAllGroup() {
         List<WorkerGroup> workerGroups = getWorkerGroups(false);
         List<String> availableWorkerGroupList = workerGroups.stream()
                 .map(WorkerGroup::getName)
@@ -230,9 +222,7 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
             availableWorkerGroupList.remove(index);
             availableWorkerGroupList.add(0, Constants.DEFAULT_WORKER_GROUP);
         }
-        result.put(Constants.DATA_LIST, availableWorkerGroupList);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(availableWorkerGroupList);
     }
 
     /**
@@ -289,30 +279,27 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
 
     /**
      * delete worker group by id
+     *
      * @param id worker group id
      * @return delete result code
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> deleteWorkerGroupById(User loginUser, Integer id) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<Void> deleteWorkerGroupById(User loginUser, Integer id) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         WorkerGroup workerGroup = workerGroupMapper.selectById(id);
         if (workerGroup == null) {
-            putMsg(result, Status.DELETE_WORKER_GROUP_NOT_EXIST);
-            return result;
+            return Result.error(Status.DELETE_WORKER_GROUP_NOT_EXIST);
         }
         List<ProcessInstance> processInstances = processInstanceMapper.queryByWorkerGroupNameAndStatus(workerGroup.getName(), Constants.NOT_TERMINATED_STATES);
         if (CollectionUtils.isNotEmpty(processInstances)) {
-            putMsg(result, Status.DELETE_WORKER_GROUP_BY_ID_FAIL, processInstances.size());
-            return result;
+            return Result.errorWithArgs(Status.DELETE_WORKER_GROUP_BY_ID_FAIL, processInstances.size());
         }
         workerGroupMapper.deleteById(id);
         processInstanceMapper.updateProcessInstanceByWorkerGroupName(workerGroup.getName(), "");
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -321,12 +308,9 @@ public class WorkerGroupServiceImpl extends BaseServiceImpl implements WorkerGro
      * @return all worker address list
      */
     @Override
-    public Map<String, Object> getWorkerAddressList() {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<String>> getWorkerAddressList() {
         List<String> serverNodeList = zookeeperMonitor.getServerNodeList(ZKNodeType.WORKER, true);
-        result.put(Constants.DATA_LIST, serverNodeList);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(serverNodeList);
     }
 
 }

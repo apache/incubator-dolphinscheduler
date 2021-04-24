@@ -17,8 +17,13 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CommandStateCount;
+import org.apache.dolphinscheduler.api.dto.DefineUserDto;
+import org.apache.dolphinscheduler.api.dto.TaskCountDto;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.dao.entity.User;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,7 +40,7 @@ public interface DataAnalysisService {
      * @param endDate end date
      * @return task state count data
      */
-    Map<String, Object> countTaskStateByProject(User loginUser, int projectId, String startDate, String endDate);
+    Result<TaskCountDto> countTaskStateByProject(User loginUser, int projectId, String startDate, String endDate);
 
     /**
      * statistical process instance status data
@@ -46,7 +51,7 @@ public interface DataAnalysisService {
      * @param endDate end date
      * @return process instance state count data
      */
-    Map<String, Object> countProcessInstanceStateByProject(User loginUser, int projectId, String startDate, String endDate);
+    Result<TaskCountDto> countProcessInstanceStateByProject(User loginUser, int projectId, String startDate, String endDate);
 
     /**
      * statistics the process definition quantities of certain person
@@ -55,7 +60,7 @@ public interface DataAnalysisService {
      * @param projectId project id
      * @return definition count data
      */
-    Map<String, Object> countDefinitionByUser(User loginUser, int projectId);
+    Result<DefineUserDto> countDefinitionByUser(User loginUser, int projectId);
 
     /**
      * statistical command status data
@@ -66,7 +71,7 @@ public interface DataAnalysisService {
      * @param endDate end date
      * @return command state count data
      */
-    Map<String, Object> countCommandState(User loginUser, int projectId, String startDate, String endDate);
+    Result<List<CommandStateCount>> countCommandState(User loginUser, int projectId, String startDate, String endDate);
 
     /**
      * count queue state
@@ -75,6 +80,6 @@ public interface DataAnalysisService {
      * @param projectId project id
      * @return queue state count data
      */
-    Map<String, Object> countQueueState(User loginUser, int projectId);
+    Result<Map<String, Integer>> countQueueState(User loginUser, int projectId);
 
 }

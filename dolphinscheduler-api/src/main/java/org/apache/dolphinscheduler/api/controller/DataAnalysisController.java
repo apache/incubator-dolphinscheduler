@@ -23,12 +23,16 @@ import static org.apache.dolphinscheduler.api.enums.Status.COUNT_PROCESS_INSTANC
 import static org.apache.dolphinscheduler.api.enums.Status.QUEUE_COUNT_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.TASK_INSTANCE_STATE_COUNT_ERROR;
 
+import org.apache.dolphinscheduler.api.dto.CommandStateCount;
+import org.apache.dolphinscheduler.api.dto.DefineUserDto;
+import org.apache.dolphinscheduler.api.dto.TaskCountDto;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.DataAnalysisService;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.dao.entity.User;
 
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -80,14 +84,13 @@ public class DataAnalysisController extends BaseController {
     @GetMapping(value = "/task-state-count")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(TASK_INSTANCE_STATE_COUNT_ERROR)
-    public Result countTaskState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<TaskCountDto> countTaskState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                  @RequestParam(value = "startDate", required = false) String startDate,
                                  @RequestParam(value = "endDate", required = false) String endDate,
                                  @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
         logger.info("count task state, user:{}, start date: {}, end date:{}, project id {}",
                 loginUser.getUserName(), startDate, endDate, projectId);
-        Map<String, Object> result = dataAnalysisService.countTaskStateByProject(loginUser, projectId, startDate, endDate);
-        return returnDataList(result);
+        return dataAnalysisService.countTaskStateByProject(loginUser, projectId, startDate, endDate);
     }
 
     /**
@@ -108,14 +111,13 @@ public class DataAnalysisController extends BaseController {
     @GetMapping(value = "/process-state-count")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(COUNT_PROCESS_INSTANCE_STATE_ERROR)
-    public Result countProcessInstanceState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                            @RequestParam(value = "startDate", required = false) String startDate,
-                                            @RequestParam(value = "endDate", required = false) String endDate,
-                                            @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
+    public Result<TaskCountDto> countProcessInstanceState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                          @RequestParam(value = "startDate", required = false) String startDate,
+                                                          @RequestParam(value = "endDate", required = false) String endDate,
+                                                          @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
         logger.info("count process instance state, user:{}, start date: {}, end date:{}, project id:{}",
                 loginUser.getUserName(), startDate, endDate, projectId);
-        Map<String, Object> result = dataAnalysisService.countProcessInstanceStateByProject(loginUser, projectId, startDate, endDate);
-        return returnDataList(result);
+        return dataAnalysisService.countProcessInstanceStateByProject(loginUser, projectId, startDate, endDate);
     }
 
     /**
@@ -132,12 +134,11 @@ public class DataAnalysisController extends BaseController {
     @GetMapping(value = "/define-user-count")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(COUNT_PROCESS_DEFINITION_USER_ERROR)
-    public Result countDefinitionByUser(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                        @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
+    public Result<DefineUserDto> countDefinitionByUser(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                       @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
         logger.info("count process definition , user:{}, project id:{}",
                 loginUser.getUserName(), projectId);
-        Map<String, Object> result = dataAnalysisService.countDefinitionByUser(loginUser, projectId);
-        return returnDataList(result);
+        return dataAnalysisService.countDefinitionByUser(loginUser, projectId);
     }
 
 
@@ -159,14 +160,13 @@ public class DataAnalysisController extends BaseController {
     @GetMapping(value = "/command-state-count")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(COMMAND_STATE_COUNT_ERROR)
-    public Result countCommandState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                    @RequestParam(value = "startDate", required = false) String startDate,
-                                    @RequestParam(value = "endDate", required = false) String endDate,
-                                    @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
+    public Result<List<CommandStateCount>> countCommandState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                             @RequestParam(value = "startDate", required = false) String startDate,
+                                                             @RequestParam(value = "endDate", required = false) String endDate,
+                                                             @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
         logger.info("count command state, user:{}, start date: {}, end date:{}, project id {}",
                 loginUser.getUserName(), startDate, endDate, projectId);
-        Map<String, Object> result = dataAnalysisService.countCommandState(loginUser, projectId, startDate, endDate);
-        return returnDataList(result);
+        return dataAnalysisService.countCommandState(loginUser, projectId, startDate, endDate);
     }
 
     /**
@@ -183,12 +183,11 @@ public class DataAnalysisController extends BaseController {
     @GetMapping(value = "/queue-count")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUEUE_COUNT_ERROR)
-    public Result countQueueState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<Map<String, Integer>> countQueueState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                   @RequestParam(value = "projectId", required = false, defaultValue = "0") int projectId) {
         logger.info("count command state, user:{}, project id {}",
                 loginUser.getUserName(), projectId);
-        Map<String, Object> result = dataAnalysisService.countQueueState(loginUser, projectId);
-        return returnDataList(result);
+        return dataAnalysisService.countQueueState(loginUser, projectId);
     }
 
 

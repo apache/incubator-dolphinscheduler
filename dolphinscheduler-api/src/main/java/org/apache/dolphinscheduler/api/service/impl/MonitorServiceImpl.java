@@ -19,10 +19,9 @@ package org.apache.dolphinscheduler.api.service.impl;
 
 import static org.apache.dolphinscheduler.common.utils.Preconditions.checkNotNull;
 
-import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.MonitorService;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.api.utils.ZookeeperMonitor;
-import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ZKNodeType;
 import org.apache.dolphinscheduler.common.model.Server;
 import org.apache.dolphinscheduler.common.model.WorkerServerModel;
@@ -31,7 +30,7 @@ import org.apache.dolphinscheduler.dao.entity.MonitorRecord;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.entity.ZookeeperRecord;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -61,15 +60,11 @@ public class MonitorServiceImpl extends BaseServiceImpl implements MonitorServic
      * @return data base state
      */
     @Override
-    public Map<String,Object> queryDatabaseState(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<MonitorRecord>> queryDatabaseState(User loginUser) {
 
         List<MonitorRecord> monitorRecordList = monitorDBDao.queryDatabaseState();
 
-        result.put(Constants.DATA_LIST, monitorRecordList);
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(monitorRecordList);
 
     }
 
@@ -80,15 +75,11 @@ public class MonitorServiceImpl extends BaseServiceImpl implements MonitorServic
      * @return master information list
      */
     @Override
-    public Map<String,Object> queryMaster(User loginUser) {
-
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Server>> queryMaster(User loginUser) {
 
         List<Server> masterServers = getServerListFromZK(true);
-        result.put(Constants.DATA_LIST, masterServers);
-        putMsg(result,Status.SUCCESS);
 
-        return result;
+        return Result.success(masterServers);
     }
 
     /**
@@ -98,15 +89,11 @@ public class MonitorServiceImpl extends BaseServiceImpl implements MonitorServic
      * @return zookeeper information list
      */
     @Override
-    public Map<String,Object> queryZookeeperState(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<ZookeeperRecord>> queryZookeeperState(User loginUser) {
 
         List<ZookeeperRecord> zookeeperRecordList = zookeeperMonitor.zookeeperInfoList();
 
-        result.put(Constants.DATA_LIST, zookeeperRecordList);
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(zookeeperRecordList);
 
     }
 
@@ -117,9 +104,8 @@ public class MonitorServiceImpl extends BaseServiceImpl implements MonitorServic
      * @return worker information list
      */
     @Override
-    public Map<String,Object> queryWorker(User loginUser) {
+    public Result<Collection<WorkerServerModel>> queryWorker(User loginUser) {
 
-        Map<String, Object> result = new HashMap<>();
         List<WorkerServerModel> workerServers = getServerListFromZK(false)
                 .stream()
                 .map((Server server) -> {
@@ -148,10 +134,7 @@ public class MonitorServiceImpl extends BaseServiceImpl implements MonitorServic
                         return oldOne;
                     }));
 
-        result.put(Constants.DATA_LIST, workerHostPortServerMapping.values());
-        putMsg(result,Status.SUCCESS);
-
-        return result;
+        return Result.success(workerHostPortServerMapping.values());
     }
 
     @Override

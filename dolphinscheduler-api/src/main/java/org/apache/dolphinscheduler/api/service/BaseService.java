@@ -17,11 +17,14 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
+import org.apache.dolphinscheduler.api.dto.CheckParamResultWithInfo;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -41,19 +44,18 @@ public interface BaseService {
      * isNotAdmin
      *
      * @param loginUser login user
-     * @param result result code
      * @return true if not administrator, otherwise false
      */
-    boolean isNotAdmin(User loginUser, Map<String, Object> result);
+    boolean isNotAdmin(User loginUser);
 
     /**
      * put message to map
      *
-     * @param result result code
+     * @param checkParamResult result code
      * @param status status
      * @param statusParams status message
      */
-    void putMsg(Map<String, Object> result, Status status, Object... statusParams);
+    void putMsg(CheckParamResult checkParamResult, Status status, Object... statusParams);
 
     /**
      * put message to result object
@@ -95,7 +97,7 @@ public interface BaseService {
      *
      * @param startDateStr start date string
      * @param endDateStr end date string
-     * @return map<status,startDate,endDate>
+     * @return map<status, startDate, endDate>
      */
-    Map<String, Object> checkAndParseDateParameters(String startDateStr, String endDateStr);
+    CheckParamResultWithInfo<Map<String, Date>> checkAndParseDateParameters(String startDateStr, String endDateStr);
 }

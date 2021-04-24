@@ -20,11 +20,13 @@ package org.apache.dolphinscheduler.api.controller;
 import static org.apache.dolphinscheduler.api.enums.Status.FORCE_TASK_SUCCESS_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.QUERY_TASK_LIST_PAGING_ERROR;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.TaskInstanceService;
 import org.apache.dolphinscheduler.api.utils.RegexUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
@@ -98,19 +100,20 @@ public class TaskInstanceController extends BaseController {
     @GetMapping("/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_TASK_LIST_PAGING_ERROR)
-    public Result queryTaskListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                      @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
-                                      @RequestParam(value = "processInstanceId", required = false, defaultValue = "0") Integer processInstanceId,
-                                      @RequestParam(value = "processInstanceName", required = false) String processInstanceName,
-                                      @RequestParam(value = "searchVal", required = false) String searchVal,
-                                      @RequestParam(value = "taskName", required = false) String taskName,
-                                      @RequestParam(value = "executorName", required = false) String executorName,
-                                      @RequestParam(value = "stateType", required = false) ExecutionStatus stateType,
-                                      @RequestParam(value = "host", required = false) String host,
-                                      @RequestParam(value = "startDate", required = false) String startTime,
-                                      @RequestParam(value = "endDate", required = false) String endTime,
-                                      @RequestParam("pageNo") Integer pageNo,
-                                      @RequestParam("pageSize") Integer pageSize) {
+    public Result<PageListVO<Map<String, Object>>> queryTaskListPaging(
+            @ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+            @RequestParam(value = "processInstanceId", required = false, defaultValue = "0") Integer processInstanceId,
+            @RequestParam(value = "processInstanceName", required = false) String processInstanceName,
+            @RequestParam(value = "searchVal", required = false) String searchVal,
+            @RequestParam(value = "taskName", required = false) String taskName,
+            @RequestParam(value = "executorName", required = false) String executorName,
+            @RequestParam(value = "stateType", required = false) ExecutionStatus stateType,
+            @RequestParam(value = "host", required = false) String host,
+            @RequestParam(value = "startDate", required = false) String startTime,
+            @RequestParam(value = "endDate", required = false) String endTime,
+            @RequestParam("pageNo") Integer pageNo,
+            @RequestParam("pageSize") Integer pageSize) {
 
         logger.info("query task instance list, projectName:{}, processInstanceId:{}, processInstanceName:{}, search value:{}, taskName:{}, executorName: {}, stateType:{}, host:{}, start:{}, end:{}",
                 RegexUtils.escapeNRT(projectName),
@@ -124,14 +127,13 @@ public class TaskInstanceController extends BaseController {
                 RegexUtils.escapeNRT(startTime),
                 RegexUtils.escapeNRT(endTime));
 
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkParamResult = checkPageParams(pageNo, pageSize);
+        if (checkParamResult.getStatus() != Status.SUCCESS) {
+            return error(checkParamResult);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = taskInstanceService.queryTaskListPaging(
+        return taskInstanceService.queryTaskListPaging(
                 loginUser, projectName, processInstanceId, processInstanceName, taskName, executorName, startTime, endTime, searchVal, stateType, host, pageNo, pageSize);
-        return returnDataListPaging(result);
     }
 
     /**
@@ -149,12 +151,11 @@ public class TaskInstanceController extends BaseController {
     @PostMapping(value = "/force-success")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(FORCE_TASK_SUCCESS_ERROR)
-    public Result<Object> forceTaskSuccess(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<Void> forceTaskSuccess(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                            @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                                            @RequestParam(value = "taskInstanceId") Integer taskInstanceId) {
         logger.info("force task success, project: {}, task instance id: {}", projectName, taskInstanceId);
-        Map<String, Object> result = taskInstanceService.forceTaskSuccess(loginUser, projectName, taskInstanceId);
-        return returnDataList(result);
+        return taskInstanceService.forceTaskSuccess(loginUser, projectName, taskInstanceId);
     }
 
 }

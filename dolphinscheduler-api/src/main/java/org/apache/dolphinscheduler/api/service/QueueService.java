@@ -18,9 +18,11 @@
 package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
+import org.apache.dolphinscheduler.dao.entity.Queue;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * queue service
@@ -33,7 +35,7 @@ public interface QueueService {
      * @param loginUser login user
      * @return queue list
      */
-    Map<String, Object> queryList(User loginUser);
+    Result<List<Queue>> queryList(User loginUser);
 
     /**
      * query queue list paging
@@ -44,7 +46,7 @@ public interface QueueService {
      * @param pageSize page size
      * @return queue list
      */
-    Map<String, Object> queryList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<Queue>> queryList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * create queue
@@ -54,7 +56,7 @@ public interface QueueService {
      * @param queueName queue name
      * @return create result
      */
-    Map<String, Object> createQueue(User loginUser, String queue, String queueName);
+    Result<Void> createQueue(User loginUser, String queue, String queueName);
 
     /**
      * update queue
@@ -65,15 +67,15 @@ public interface QueueService {
      * @param queueName queue name
      * @return update result code
      */
-    Map<String, Object> updateQueue(User loginUser, int id, String queue, String queueName);
+    Result<Void> updateQueue(User loginUser, int id, String queue, String queueName);
 
     /**
      * verify queue and queueName
      *
-     * @param queue     queue
+     * @param queue queue
      * @param queueName queue name
      * @return true if the queue name not exists, otherwise return false
      */
-    Result<Object> verifyQueue(String queue, String queueName);
+    Result<Void> verifyQueue(String queue, String queueName);
 
 }

@@ -18,6 +18,7 @@
 package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.enums.ExecuteType;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.enums.CommandType;
 import org.apache.dolphinscheduler.common.enums.FailureStrategy;
 import org.apache.dolphinscheduler.common.enums.Priority;
@@ -54,13 +55,13 @@ public interface ExecutorService {
      * @param startParams the global param values which pass to new process instance
      * @return execute process instance code
      */
-    Map<String, Object> execProcessInstance(User loginUser, String projectName,
-                                            int processDefinitionId, String cronTime, CommandType commandType,
-                                            FailureStrategy failureStrategy, String startNodeList,
-                                            TaskDependType taskDependType, WarningType warningType, int warningGroupId,
-                                            RunMode runMode,
-                                            Priority processInstancePriority, String workerGroup, Integer timeout,
-                                            Map<String, String> startParams);
+    Result<Void> execProcessInstance(User loginUser, String projectName,
+                                     int processDefinitionId, String cronTime, CommandType commandType,
+                                     FailureStrategy failureStrategy, String startNodeList,
+                                     TaskDependType taskDependType, WarningType warningType, int warningGroupId,
+                                     RunMode runMode,
+                                     Priority processInstancePriority, String workerGroup, Integer timeout,
+                                     Map<String, String> startParams);
 
     /**
      * check whether the process definition can be executed
@@ -69,7 +70,7 @@ public interface ExecutorService {
      * @param processDefineId process definition id
      * @return check result code
      */
-    Map<String, Object> checkProcessDefinitionValid(ProcessDefinition processDefinition, int processDefineId);
+    Result<Void> checkProcessDefinitionValid(ProcessDefinition processDefinition, int processDefineId);
 
     /**
      * do action to process instance：pause, stop, repeat, recover from pause, recover from stop
@@ -80,7 +81,7 @@ public interface ExecutorService {
      * @param executeType execute type
      * @return execute result code
      */
-    Map<String, Object> execute(User loginUser, String projectName, Integer processInstanceId, ExecuteType executeType);
+    Result<Void> execute(User loginUser, String projectName, Integer processInstanceId, ExecuteType executeType);
 
     /**
      * check if sub processes are offline before starting process definition
@@ -88,5 +89,5 @@ public interface ExecutorService {
      * @param processDefineId process definition id
      * @return check result code
      */
-    Map<String, Object> startCheckByProcessDefinedId(int processDefineId);
+    Result<Void> startCheckByProcessDefinedId(int processDefineId);
 }

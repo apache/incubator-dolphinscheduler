@@ -28,18 +28,21 @@ import static org.apache.dolphinscheduler.api.enums.Status.UNAUTHORIZED_DATASOUR
 import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_DATASOURCE_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.VERIFY_DATASOURCE_NAME_FAILURE;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.DataSourceService;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.DbConnectType;
 import org.apache.dolphinscheduler.common.enums.DbType;
 import org.apache.dolphinscheduler.common.utils.CommonUtils;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
+import org.apache.dolphinscheduler.dao.entity.DataSource;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,8 +214,7 @@ public class DataSourceController extends BaseController {
                                   @RequestParam("id") int id) {
         logger.info("login user {}, query datasource: {}",
                 loginUser.getUserName(), id);
-        Map<String, Object> result = dataSourceService.queryDataSource(id);
-        return returnDataList(result);
+        return dataSourceService.queryDataSource(id);
     }
 
     /**
@@ -229,10 +231,9 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATASOURCE_ERROR)
-    public Result queryDataSourceList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<List<DataSource>> queryDataSourceList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                       @RequestParam("type") DbType type) {
-        Map<String, Object> result = dataSourceService.queryDataSourceList(loginUser, type.ordinal());
-        return returnDataList(result);
+        return dataSourceService.queryDataSourceList(loginUser, type.ordinal());
     }
 
     /**
@@ -253,17 +254,16 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATASOURCE_ERROR)
-    public Result queryDataSourceListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                            @RequestParam(value = "searchVal", required = false) String searchVal,
-                                            @RequestParam("pageNo") Integer pageNo,
-                                            @RequestParam("pageSize") Integer pageSize) {
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+    public Result<PageListVO<DataSource>> queryDataSourceListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                                    @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                                    @RequestParam("pageNo") Integer pageNo,
+                                                                    @RequestParam("pageSize") Integer pageSize) {
+        CheckParamResult result = checkPageParams(pageNo, pageSize);
+        if (result.getStatus() != Status.SUCCESS) {
+            return error(result);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = dataSourceService.queryDataSourceListPaging(loginUser, searchVal, pageNo, pageSize);
-        return returnDataListPaging(result);
+        return dataSourceService.queryDataSourceListPaging(loginUser, searchVal, pageNo, pageSize);
     }
 
     /**
@@ -402,12 +402,11 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/unauth-datasource")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(UNAUTHORIZED_DATASOURCE)
-    public Result unauthDatasource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam("userId") Integer userId) {
+    public Result<List<DataSource>> unauthDatasource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                     @RequestParam("userId") Integer userId) {
         logger.info("unauthorized datasource, login user:{}, unauthorized userId:{}",
                 loginUser.getUserName(), userId);
-        Map<String, Object> result = dataSourceService.unauthDatasource(loginUser, userId);
-        return returnDataList(result);
+        return dataSourceService.unauthDatasource(loginUser, userId);
     }
 
 
@@ -425,12 +424,11 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/authed-datasource")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(AUTHORIZED_DATA_SOURCE)
-    public Result authedDatasource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<List<DataSource>> authedDatasource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                    @RequestParam("userId") Integer userId) {
         logger.info("authorized data source, login user:{}, authorized useId:{}",
                 loginUser.getUserName(), userId);
-        Map<String, Object> result = dataSourceService.authedDatasource(loginUser, userId);
-        return returnDataList(result);
+        return dataSourceService.authedDatasource(loginUser, userId);
     }
 
     /**

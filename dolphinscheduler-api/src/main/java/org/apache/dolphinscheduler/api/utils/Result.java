@@ -16,6 +16,7 @@
  */
 package org.apache.dolphinscheduler.api.utils;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 
 import java.text.MessageFormat;
@@ -49,11 +50,6 @@ public class Result<T> {
         this.msg = msg;
     }
 
-    private Result(T data) {
-        this.code  = 0;
-        this.data = data;
-    }
-
     private Result(Status status) {
         if (status != null) {
             this.code = status.getCode();
@@ -69,17 +65,26 @@ public class Result<T> {
      * @return resule
      */
     public static <T> Result<T> success(T data) {
-        return new Result<>(data);
+        Result<T> result = new Result<>(Status.SUCCESS);
+        result.setData(data);
+        return result;
     }
 
     /**
      * Call this function if there is any error
      *
-     * @param status status
+     * @param errorStatus errorStatus
      * @return result
      */
-    public static Result error(Status status) {
-        return new Result(status);
+    public static <T> Result<T> error(Status errorStatus) {
+        return new Result<>(errorStatus);
+    }
+
+    public static <T> Result<T> error(CheckParamResult checkParamResult) {
+        Result<T> result = new Result<>();
+        result.setCode(checkParamResult.getStatus().getCode());
+        result.setMsg(checkParamResult.getMsg());
+        return result;
     }
 
     /**
@@ -89,8 +94,8 @@ public class Result<T> {
      * @param args args
      * @return result
      */
-    public static Result errorWithArgs(Status status, Object... args) {
-        return new Result(status.getCode(), MessageFormat.format(status.getMsg(), args));
+    public static <T> Result<T> errorWithArgs(Status status, Object... args) {
+        return new Result<>(status.getCode(), MessageFormat.format(status.getMsg(), args));
     }
 
     public Integer getCode() {

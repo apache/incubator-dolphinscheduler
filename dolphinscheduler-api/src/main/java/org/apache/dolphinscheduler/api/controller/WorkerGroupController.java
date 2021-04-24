@@ -22,16 +22,19 @@ import static org.apache.dolphinscheduler.api.enums.Status.QUERY_WORKER_ADDRESS_
 import static org.apache.dolphinscheduler.api.enums.Status.QUERY_WORKER_GROUP_FAIL;
 import static org.apache.dolphinscheduler.api.enums.Status.SAVE_ERROR;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.WorkerGroupService;
 import org.apache.dolphinscheduler.api.utils.RegexUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
 import org.apache.dolphinscheduler.dao.entity.User;
+import org.apache.dolphinscheduler.dao.entity.WorkerGroup;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,15 +85,14 @@ public class WorkerGroupController extends BaseController {
     @PostMapping(value = "/save")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(SAVE_ERROR)
-    public Result saveWorkerGroup(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<Void> saveWorkerGroup(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                   @RequestParam(value = "id", required = false, defaultValue = "0") int id,
                                   @RequestParam(value = "name") String name,
                                   @RequestParam(value = "addrList") String addrList
     ) {
         logger.info("save worker group: login user {}, id:{}, name: {}, addrList: {} ",
                 RegexUtils.escapeNRT(loginUser.getUserName()), id, RegexUtils.escapeNRT(name), RegexUtils.escapeNRT(addrList));
-        Map<String, Object> result = workerGroupService.saveWorkerGroup(loginUser, id, name, addrList);
-        return returnDataList(result);
+        return workerGroupService.saveWorkerGroup(loginUser, id, name, addrList);
     }
 
     /**
@@ -111,20 +113,19 @@ public class WorkerGroupController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_WORKER_GROUP_FAIL)
-    public Result queryAllWorkerGroupsPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<PageListVO<WorkerGroup>> queryAllWorkerGroupsPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                              @RequestParam("pageNo") Integer pageNo,
                                              @RequestParam("pageSize") Integer pageSize,
                                              @RequestParam(value = "searchVal", required = false) String searchVal
     ) {
         logger.info("query all worker group paging: login user {}, pageNo:{}, pageSize:{}, searchVal:{}",
                 RegexUtils.escapeNRT(loginUser.getUserName()), pageNo, pageSize, searchVal);
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkParamResult = checkPageParams(pageNo, pageSize);
+        if (checkParamResult.getStatus() != Status.SUCCESS) {
+            return error(checkParamResult);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = workerGroupService.queryAllGroupPaging(loginUser, pageNo, pageSize, searchVal);
-        return returnDataListPaging(result);
+        return workerGroupService.queryAllGroupPaging(loginUser, pageNo, pageSize, searchVal);
     }
 
     /**
@@ -137,10 +138,9 @@ public class WorkerGroupController extends BaseController {
     @GetMapping(value = "/all-groups")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_WORKER_GROUP_FAIL)
-    public Result queryAllWorkerGroups(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<String>> queryAllWorkerGroups(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("query all worker group: login user {}", RegexUtils.escapeNRT(loginUser.getUserName()));
-        Map<String, Object> result = workerGroupService.queryAllGroup();
-        return returnDataList(result);
+        return workerGroupService.queryAllGroup();
     }
 
     /**
@@ -157,12 +157,11 @@ public class WorkerGroupController extends BaseController {
     @PostMapping(value = "/delete-by-id")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(DELETE_WORKER_GROUP_FAIL)
-    public Result deleteById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<Void> deleteById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                              @RequestParam("id") Integer id
     ) {
         logger.info("delete worker group: login user {}, id:{} ", RegexUtils.escapeNRT(loginUser.getUserName()), id);
-        Map<String, Object> result = workerGroupService.deleteWorkerGroupById(loginUser, id);
-        return returnDataList(result);
+        return workerGroupService.deleteWorkerGroupById(loginUser, id);
     }
 
     /**
@@ -175,10 +174,9 @@ public class WorkerGroupController extends BaseController {
     @GetMapping(value = "/worker-address-list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_WORKER_ADDRESS_LIST_FAIL)
-    public Result queryWorkerAddressList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<String>> queryWorkerAddressList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("query worker address list: login user {}", RegexUtils.escapeNRT(loginUser.getUserName()));
-        Map<String, Object> result = workerGroupService.getWorkerAddressList();
-        return returnDataList(result);
+        return workerGroupService.getWorkerAddressList();
     }
 
 }

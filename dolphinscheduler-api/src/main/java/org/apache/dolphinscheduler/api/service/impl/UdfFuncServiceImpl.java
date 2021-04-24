@@ -21,7 +21,7 @@ import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.UdfFuncService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.UdfType;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
@@ -33,9 +33,7 @@ import org.apache.dolphinscheduler.dao.mapper.UDFUserMapper;
 import org.apache.dolphinscheduler.dao.mapper.UdfFuncMapper;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,20 +143,16 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
     /**
      * query udf function
      *
-     * @param id  udf function id
+     * @param id udf function id
      * @return udf function detail
      */
     @Override
-    public Map<String, Object> queryUdfFuncDetail(int id) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<UdfFunc> queryUdfFuncDetail(int id) {
         UdfFunc udfFunc = udfFuncMapper.selectById(id);
         if (udfFunc == null) {
-            putMsg(result, Status.RESOURCE_NOT_EXIST);
-            return result;
+            return Result.error(Status.RESOURCE_NOT_EXIST);
         }
-        result.put(Constants.DATA_LIST, udfFunc);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(udfFunc);
     }
 
     /**
@@ -175,47 +169,39 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
      * @return update result code
      */
     @Override
-    public Map<String, Object> updateUdfFunc(int udfFuncId,
-                                             String funcName,
-                                             String className,
-                                             String argTypes,
-                                             String database,
-                                             String desc,
-                                             UdfType type,
-                                             int resourceId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> updateUdfFunc(int udfFuncId,
+                                      String funcName,
+                                      String className,
+                                      String argTypes,
+                                      String database,
+                                      String desc,
+                                      UdfType type,
+                                      int resourceId) {
         // verify udfFunc is exist
         UdfFunc udf = udfFuncMapper.selectUdfById(udfFuncId);
 
         if (udf == null) {
-            result.put(Constants.STATUS, Status.UDF_FUNCTION_NOT_EXIST);
-            result.put(Constants.MSG, Status.UDF_FUNCTION_NOT_EXIST.getMsg());
-            return result;
+            return Result.error(Status.UDF_FUNCTION_NOT_EXIST);
         }
 
         // if resource upload startup
         if (!PropertyUtils.getResUploadStartupState()) {
             logger.error("resource upload startup state: {}", PropertyUtils.getResUploadStartupState());
-            putMsg(result, Status.HDFS_NOT_STARTUP);
-            return result;
+            return Result.error(Status.HDFS_NOT_STARTUP);
         }
 
         // verify udfFuncName is exist
         if (!funcName.equals(udf.getFuncName())) {
             if (checkUdfFuncNameExists(funcName)) {
                 logger.error("UdfFunc {} has exist, can't create again.", funcName);
-                result.put(Constants.STATUS, Status.UDF_FUNCTION_EXISTS);
-                result.put(Constants.MSG, Status.UDF_FUNCTION_EXISTS.getMsg());
-                return result;
+                return Result.error(Status.UDF_FUNCTION_EXISTS);
             }
         }
 
         Resource resource = resourceMapper.selectById(resourceId);
         if (resource == null) {
             logger.error("resourceId {} is not exist", resourceId);
-            result.put(Constants.STATUS, Status.RESOURCE_NOT_EXIST);
-            result.put(Constants.MSG, Status.RESOURCE_NOT_EXIST.getMsg());
-            return result;
+            return Result.error(Status.RESOURCE_NOT_EXIST);
         }
         Date now = new Date();
         udf.setFuncName(funcName);
@@ -232,8 +218,7 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
         udf.setUpdateTime(now);
 
         udfFuncMapper.updateById(udf);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -246,15 +231,12 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
      * @return udf function list page
      */
     @Override
-    public Map<String, Object> queryUdfFuncListPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<PageListVO<UdfFunc>> queryUdfFuncListPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
         PageInfo<UdfFunc> pageInfo = new PageInfo<>(pageNo, pageSize);
         IPage<UdfFunc> udfFuncList = getUdfFuncsPage(loginUser, searchVal, pageSize, pageNo);
-        pageInfo.setTotalCount((int)udfFuncList.getTotal());
+        pageInfo.setTotalCount((int) udfFuncList.getTotal());
         pageInfo.setLists(udfFuncList.getRecords());
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -279,21 +261,18 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
      * query udf list
      *
      * @param loginUser login user
-     * @param type  udf type
+     * @param type udf type
      * @return udf func list
      */
     @Override
-    public Map<String, Object> queryUdfFuncList(User loginUser, Integer type) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<UdfFunc>> queryUdfFuncList(User loginUser, Integer type) {
         int userId = loginUser.getId();
         if (isAdmin(loginUser)) {
             userId = 0;
         }
         List<UdfFunc> udfFuncList = udfFuncMapper.getUdfFuncByType(userId, type);
 
-        result.put(Constants.DATA_LIST, udfFuncList);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(udfFuncList);
     }
 
     /**
@@ -304,12 +283,10 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Result<Object> delete(int id) {
-        Result<Object> result = new Result<>();
+    public Result<Void> delete(int id) {
         udfFuncMapper.deleteById(id);
         udfUserMapper.deleteByUdfFuncId(id);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -319,14 +296,11 @@ public class UdfFuncServiceImpl extends BaseServiceImpl implements UdfFuncServic
      * @return true if the name can user, otherwise return false
      */
     @Override
-    public Result<Object> verifyUdfFuncByName(String name) {
-        Result<Object> result = new Result<>();
+    public Result<Void> verifyUdfFuncByName(String name) {
         if (checkUdfFuncNameExists(name)) {
-            putMsg(result, Status.UDF_FUNCTION_EXISTS);
-        } else {
-            putMsg(result, Status.SUCCESS);
+            return Result.error(Status.UDF_FUNCTION_EXISTS);
         }
-        return result;
+        return Result.success(null);
     }
 
 }

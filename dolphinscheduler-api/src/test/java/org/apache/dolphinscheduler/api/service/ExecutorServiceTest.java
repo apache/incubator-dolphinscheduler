@@ -20,6 +20,7 @@ package org.apache.dolphinscheduler.api.service;
 import org.apache.dolphinscheduler.api.ApiApplicationServer;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.ExecutorServiceImpl;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 
 import java.text.MessageFormat;
@@ -51,8 +52,8 @@ public class ExecutorServiceTest {
     @Ignore
     @Test
     public void startCheckByProcessDefinedId(){
-        Map<String, Object> map = executorService.startCheckByProcessDefinedId(1234);
-        Assert.assertNull(map);
+        Result<Void> result = executorService.startCheckByProcessDefinedId(1234);
+        Assert.assertNull(result.getData());
     }
 
     @Test

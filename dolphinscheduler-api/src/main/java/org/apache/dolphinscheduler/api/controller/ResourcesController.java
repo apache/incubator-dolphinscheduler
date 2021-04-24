@@ -41,25 +41,29 @@ import static org.apache.dolphinscheduler.api.enums.Status.VERIFY_UDF_FUNCTION_N
 import static org.apache.dolphinscheduler.api.enums.Status.VIEW_RESOURCE_FILE_ON_LINE_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.VIEW_UDF_FUNCTION_ERROR;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
+import org.apache.dolphinscheduler.api.dto.resources.ResourceComponent;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.ResourcesService;
 import org.apache.dolphinscheduler.api.service.UdfFuncService;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ProgramType;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
 import org.apache.dolphinscheduler.common.enums.UdfType;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
+import org.apache.dolphinscheduler.dao.entity.Resource;
+import org.apache.dolphinscheduler.dao.entity.UdfFunc;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -205,12 +209,11 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_RESOURCES_LIST_ERROR)
-    public Result queryResourceList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                    @RequestParam(value = "type") ResourceType type
+    public Result<List<ResourceComponent>> queryResourceList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                             @RequestParam(value = "type") ResourceType type
     ) {
         logger.info("query resource list, login user:{}, resource type:{}", loginUser.getUserName(), type);
-        Map<String, Object> result = resourceService.queryResourceList(loginUser, type);
-        return returnDataList(result);
+        return resourceService.queryResourceList(loginUser, type);
     }
 
     /**
@@ -234,23 +237,22 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_RESOURCES_LIST_PAGING)
-    public Result queryResourceListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                          @RequestParam(value = "type") ResourceType type,
-                                          @RequestParam(value = "id") int id,
-                                          @RequestParam("pageNo") Integer pageNo,
-                                          @RequestParam(value = "searchVal", required = false) String searchVal,
-                                          @RequestParam("pageSize") Integer pageSize
+    public Result<PageListVO<Resource>> queryResourceListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                                @RequestParam(value = "type") ResourceType type,
+                                                                @RequestParam(value = "id") int id,
+                                                                @RequestParam("pageNo") Integer pageNo,
+                                                                @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                                @RequestParam("pageSize") Integer pageSize
     ) {
         logger.info("query resource list, login user:{}, resource type:{}, search value:{}",
                 loginUser.getUserName(), type, searchVal);
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkResult = checkPageParams(pageNo, pageSize);
+        if (checkResult.getStatus() != Status.SUCCESS) {
+            return Result.error(checkResult);
         }
 
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = resourceService.queryResourceListPaging(loginUser, id, type, searchVal, pageNo, pageSize);
-        return returnDataListPaging(result);
+        return resourceService.queryResourceListPaging(loginUser, id, type, searchVal, pageNo, pageSize);
     }
 
 
@@ -317,14 +319,13 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/list/jar")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_RESOURCES_LIST_ERROR)
-    public Result queryResourceJarList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                       @RequestParam(value = "type") ResourceType type,
-                                       @RequestParam(value = "programType",required = false) ProgramType programType
+    public Result<List<ResourceComponent>> queryResourceJarList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                                @RequestParam(value = "type") ResourceType type,
+                                                                @RequestParam(value = "programType", required = false) ProgramType programType
     ) {
         String programTypeName = programType == null ? "" : programType.name();
         logger.info("query resource list, resource type:{}, program type:{}", type, programTypeName);
-        Map<String, Object> result = resourceService.queryResourceByProgramType(loginUser, type,programType);
-        return returnDataList(result);
+        return resourceService.queryResourceByProgramType(loginUser, type, programType);
     }
 
     /**
@@ -472,7 +473,7 @@ public class ResourcesController extends BaseController {
                                            @RequestParam(value = "id") int resourceId) throws Exception {
         logger.info("login user {}, download resource : {}",
                 loginUser.getUserName(), resourceId);
-        Resource file = resourceService.downloadResource(resourceId);
+        org.springframework.core.io.Resource file = resourceService.downloadResource(resourceId);
         if (file == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Status.RESOURCE_NOT_EXIST.getMsg());
         }
@@ -538,12 +539,11 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/udf-func/update-ui")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(VIEW_UDF_FUNCTION_ERROR)
-    public Result viewUIUdfFunction(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                    @RequestParam("id") int id) {
+    public Result<UdfFunc> viewUIUdfFunction(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                             @RequestParam("id") int id) {
         logger.info("login user {}, query udf{}",
                 loginUser.getUserName(), id);
-        Map<String, Object> map = udfFuncService.queryUdfFuncDetail(id);
-        return returnDataList(map);
+        return udfFuncService.queryUdfFuncDetail(id);
     }
 
     /**
@@ -574,19 +574,18 @@ public class ResourcesController extends BaseController {
     })
     @PostMapping(value = "/udf-func/update")
     @ApiException(UPDATE_UDF_FUNCTION_ERROR)
-    public Result updateUdfFunc(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                @RequestParam(value = "id") int udfFuncId,
-                                @RequestParam(value = "type") UdfType type,
-                                @RequestParam(value = "funcName") String funcName,
-                                @RequestParam(value = "className") String className,
-                                @RequestParam(value = "argTypes", required = false) String argTypes,
-                                @RequestParam(value = "database", required = false) String database,
-                                @RequestParam(value = "description", required = false) String description,
-                                @RequestParam(value = "resourceId") int resourceId) {
+    public Result<Void> updateUdfFunc(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                      @RequestParam(value = "id") int udfFuncId,
+                                      @RequestParam(value = "type") UdfType type,
+                                      @RequestParam(value = "funcName") String funcName,
+                                      @RequestParam(value = "className") String className,
+                                      @RequestParam(value = "argTypes", required = false) String argTypes,
+                                      @RequestParam(value = "database", required = false) String database,
+                                      @RequestParam(value = "description", required = false) String description,
+                                      @RequestParam(value = "resourceId") int resourceId) {
         logger.info("login user {}, updateProcessInstance udf function id: {},type: {},  funcName: {},argTypes: {} ,database: {},desc: {},resourceId: {}",
                 loginUser.getUserName(), udfFuncId, type, funcName, argTypes, database, description, resourceId);
-        Map<String, Object> result = udfFuncService.updateUdfFunc(udfFuncId, funcName, className, argTypes, database, description, type, resourceId);
-        return returnDataList(result);
+        return udfFuncService.updateUdfFunc(udfFuncId, funcName, className, argTypes, database, description, type, resourceId);
     }
 
     /**
@@ -607,20 +606,19 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/udf-func/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_UDF_FUNCTION_LIST_PAGING_ERROR)
-    public Result<Object> queryUdfFuncListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam("pageNo") Integer pageNo,
-                                   @RequestParam(value = "searchVal", required = false) String searchVal,
-                                   @RequestParam("pageSize") Integer pageSize
+    public Result<PageListVO<UdfFunc>> queryUdfFuncListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                              @RequestParam("pageNo") Integer pageNo,
+                                                              @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                              @RequestParam("pageSize") Integer pageSize
     ) {
         logger.info("query udf functions list, login user:{},search value:{}",
                 loginUser.getUserName(), searchVal);
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkResult = checkPageParams(pageNo, pageSize);
+        if (checkResult.getStatus() != Status.SUCCESS) {
+            return Result.error(checkResult);
         }
 
-        result = udfFuncService.queryUdfFuncListPaging(loginUser, searchVal, pageNo, pageSize);
-        return returnDataListPaging(result);
+        return udfFuncService.queryUdfFuncListPaging(loginUser, searchVal, pageNo, pageSize);
     }
 
     /**
@@ -637,11 +635,10 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/udf-func/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATASOURCE_BY_TYPE_ERROR)
-    public Result<Object> queryUdfFuncList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                    @RequestParam("type") UdfType type) {
+    public Result<List<UdfFunc>> queryUdfFuncList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                  @RequestParam("type") UdfType type) {
         logger.info("query udf func list, type:{}", type);
-        Map<String, Object> result = udfFuncService.queryUdfFuncList(loginUser, type.ordinal());
-        return returnDataList(result);
+        return udfFuncService.queryUdfFuncList(loginUser, type.ordinal());
     }
 
     /**
@@ -703,11 +700,10 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/authed-file")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(AUTHORIZED_FILE_RESOURCE_ERROR)
-    public Result authorizedFile(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                 @RequestParam("userId") Integer userId) {
+    public Result<List<ResourceComponent>> authorizedFile(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                          @RequestParam("userId") Integer userId) {
         logger.info("authorized file resource, user: {}, user id:{}", loginUser.getUserName(), userId);
-        Map<String, Object> result = resourceService.authorizedFile(loginUser, userId);
-        return returnDataList(result);
+        return resourceService.authorizedFile(loginUser, userId);
     }
 
 
@@ -725,11 +721,10 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/authorize-resource-tree")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(AUTHORIZE_RESOURCE_TREE)
-    public Result authorizeResourceTree(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                        @RequestParam("userId") Integer userId) {
+    public Result<List<ResourceComponent>> authorizeResourceTree(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                                 @RequestParam("userId") Integer userId) {
         logger.info("all resource file, user:{}, user id:{}", loginUser.getUserName(), userId);
-        Map<String, Object> result = resourceService.authorizeResourceTree(loginUser, userId);
-        return returnDataList(result);
+        return resourceService.authorizeResourceTree(loginUser, userId);
     }
 
 
@@ -747,12 +742,11 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/unauth-udf-func")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(UNAUTHORIZED_UDF_FUNCTION_ERROR)
-    public Result unauthUDFFunc(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                @RequestParam("userId") Integer userId) {
+    public Result<List<UdfFunc>> unauthUDFFunc(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                               @RequestParam("userId") Integer userId) {
         logger.info("unauthorized udf function, login user:{}, unauthorized user id:{}", loginUser.getUserName(), userId);
 
-        Map<String, Object> result = resourceService.unauthorizedUDFFunction(loginUser, userId);
-        return returnDataList(result);
+        return resourceService.unauthorizedUDFFunction(loginUser, userId);
     }
 
 
@@ -770,10 +764,9 @@ public class ResourcesController extends BaseController {
     @GetMapping(value = "/authed-udf-func")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(AUTHORIZED_UDF_FUNCTION_ERROR)
-    public Result authorizedUDFFunction(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                        @RequestParam("userId") Integer userId) {
+    public Result<List<UdfFunc>> authorizedUDFFunction(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                       @RequestParam("userId") Integer userId) {
         logger.info("auth udf function, login user:{}, auth user id:{}", loginUser.getUserName(), userId);
-        Map<String, Object> result = resourceService.authorizedUDFFunction(loginUser, userId);
-        return returnDataList(result);
+        return resourceService.authorizedUDFFunction(loginUser, userId);
     }
 }

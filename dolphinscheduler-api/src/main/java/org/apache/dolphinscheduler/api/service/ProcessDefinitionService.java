@@ -17,10 +17,17 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
+import org.apache.dolphinscheduler.api.dto.treeview.TreeViewDto;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.ReleaseState;
+import org.apache.dolphinscheduler.common.model.TaskNode;
 import org.apache.dolphinscheduler.dao.entity.ProcessData;
+import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.User;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -47,13 +54,13 @@ public interface ProcessDefinitionService {
      * @return create result code
      * @throws JsonProcessingException JsonProcessingException
      */
-    Map<String, Object> createProcessDefinition(User loginUser,
-                                                String projectName,
-                                                String name,
-                                                String processDefinitionJson,
-                                                String desc,
-                                                String locations,
-                                                String connects) throws JsonProcessingException;
+    Result<Integer> createProcessDefinition(User loginUser,
+                                            String projectName,
+                                            String name,
+                                            String processDefinitionJson,
+                                            String desc,
+                                            String locations,
+                                            String connects) throws JsonProcessingException;
 
     /**
      * query process definition list
@@ -62,8 +69,8 @@ public interface ProcessDefinitionService {
      * @param projectName project name
      * @return definition list
      */
-    Map<String, Object> queryProcessDefinitionList(User loginUser,
-                                                   String projectName);
+    Result<List<ProcessDefinition>> queryProcessDefinitionList(User loginUser,
+                                                               String projectName);
 
     /**
      * query process definition list paging
@@ -76,12 +83,12 @@ public interface ProcessDefinitionService {
      * @param userId user id
      * @return process definition page
      */
-    Map<String, Object> queryProcessDefinitionListPaging(User loginUser,
-                                                         String projectName,
-                                                         String searchVal,
-                                                         Integer pageNo,
-                                                         Integer pageSize,
-                                                         Integer userId);
+    Result<PageListVO<ProcessDefinition>> queryProcessDefinitionListPaging(User loginUser,
+                                                                           String projectName,
+                                                                           String searchVal,
+                                                                           Integer pageNo,
+                                                                           Integer pageSize,
+                                                                           Integer userId);
 
     /**
      * query datail of process definition
@@ -92,9 +99,9 @@ public interface ProcessDefinitionService {
      * @return process definition detail
      */
 
-    Map<String, Object> queryProcessDefinitionById(User loginUser,
-                                                   String projectName,
-                                                   Integer processId);
+    Result<ProcessDefinition> queryProcessDefinitionById(User loginUser,
+                                                         String projectName,
+                                                         Integer processId);
 
     /**
      * query datail of process definition
@@ -105,9 +112,9 @@ public interface ProcessDefinitionService {
      * @return process definition detail
      */
 
-    Map<String, Object> queryProcessDefinitionByName(User loginUser,
-                                                   String projectName,
-                                                   String processDefinitionName);
+    Result<ProcessDefinition> queryProcessDefinitionByName(User loginUser,
+                                                           String projectName,
+                                                           String processDefinitionName);
 
     /**
      * batch copy process definition
@@ -117,7 +124,7 @@ public interface ProcessDefinitionService {
      * @param processDefinitionIds processDefinitionIds
      * @param targetProjectId targetProjectId
      */
-    Map<String, Object> batchCopyProcessDefinition(User loginUser,
+    Result<Void> batchCopyProcessDefinition(User loginUser,
                                                    String projectName,
                                                    String processDefinitionIds,
                                                    int targetProjectId);
@@ -130,7 +137,7 @@ public interface ProcessDefinitionService {
      * @param processDefinitionIds processDefinitionIds
      * @param targetProjectId targetProjectId
      */
-    Map<String, Object> batchMoveProcessDefinition(User loginUser,
+    Result<Void> batchMoveProcessDefinition(User loginUser,
                                                    String projectName,
                                                    String processDefinitionIds,
                                                    int targetProjectId);
@@ -148,12 +155,12 @@ public interface ProcessDefinitionService {
      * @param connects connects for nodes
      * @return update result code
      */
-    Map<String, Object> updateProcessDefinition(User loginUser,
-                                                String projectName,
-                                                int id,
-                                                String name,
-                                                String processDefinitionJson, String desc,
-                                                String locations, String connects);
+    Result<ProcessDefinition> updateProcessDefinition(User loginUser,
+                                                      String projectName,
+                                                      int id,
+                                                      String name,
+                                                      String processDefinitionJson, String desc,
+                                                      String locations, String connects);
 
     /**
      * verify process definition name unique
@@ -163,9 +170,9 @@ public interface ProcessDefinitionService {
      * @param name name
      * @return true if process definition name not exists, otherwise false
      */
-    Map<String, Object> verifyProcessDefinitionName(User loginUser,
-                                                    String projectName,
-                                                    String name);
+    CheckParamResult verifyProcessDefinitionName(User loginUser,
+                                                 String projectName,
+                                                 String name);
 
     /**
      * delete process definition by id
@@ -175,7 +182,7 @@ public interface ProcessDefinitionService {
      * @param processDefinitionId process definition id
      * @return delete result code
      */
-    Map<String, Object> deleteProcessDefinitionById(User loginUser,
+    Result<Void> deleteProcessDefinitionById(User loginUser,
                                                     String projectName,
                                                     Integer processDefinitionId);
 
@@ -188,10 +195,10 @@ public interface ProcessDefinitionService {
      * @param releaseState release state
      * @return release result code
      */
-    Map<String, Object> releaseProcessDefinition(User loginUser,
-                                                 String projectName,
-                                                 int id,
-                                                 ReleaseState releaseState);
+    Result<ProcessDefinition> releaseProcessDefinition(User loginUser,
+                                                       String projectName,
+                                                       int id,
+                                                       ReleaseState releaseState);
 
     /**
      * batch export process definition by ids
@@ -214,7 +221,7 @@ public interface ProcessDefinitionService {
      * @param currentProjectName current project name
      * @return import process
      */
-    Map<String, Object> importProcessDefinition(User loginUser,
+    Result<Void> importProcessDefinition(User loginUser,
                                                 MultipartFile file,
                                                 String currentProjectName);
 
@@ -225,8 +232,8 @@ public interface ProcessDefinitionService {
      * @param processDefinitionJson process definition json
      * @return check result code
      */
-    Map<String, Object> checkProcessNodeList(ProcessData processData,
-                                             String processDefinitionJson);
+    CheckParamResult checkProcessNodeList(ProcessData processData,
+                                          String processDefinitionJson);
 
     /**
      * get task node details based on process definition
@@ -234,7 +241,7 @@ public interface ProcessDefinitionService {
      * @param defineId define id
      * @return task node list
      */
-    Map<String, Object> getTaskNodeListByDefinitionId(Integer defineId);
+    Result<List<TaskNode>> getTaskNodeListByDefinitionId(Integer defineId);
 
     /**
      * get task node details based on process definition
@@ -242,7 +249,7 @@ public interface ProcessDefinitionService {
      * @param defineIdList define id list
      * @return task node list
      */
-    Map<String, Object> getTaskNodeListByDefinitionIdList(String defineIdList);
+    Result<Map<Integer, List<TaskNode>>> getTaskNodeListByDefinitionIdList(String defineIdList);
 
     /**
      * query process definition all by project id
@@ -250,7 +257,7 @@ public interface ProcessDefinitionService {
      * @param projectId project id
      * @return process definitions in the project
      */
-    Map<String, Object> queryProcessDefinitionAllByProjectId(Integer projectId);
+    Result<List<ProcessDefinition>> queryProcessDefinitionAllByProjectId(Integer projectId);
 
     /**
      * Encapsulates the TreeView structure
@@ -260,7 +267,7 @@ public interface ProcessDefinitionService {
      * @return tree view json data
      * @throws Exception exception
      */
-    Map<String, Object> viewTree(Integer processId,
+    Result<TreeViewDto> viewTree(Integer processId,
                                  Integer limit) throws Exception;
 
     /**
@@ -272,7 +279,7 @@ public interface ProcessDefinitionService {
      * @param version the version user want to switch
      * @return switch process definition version result code
      */
-    Map<String, Object> switchProcessDefinitionVersion(User loginUser, String projectName
+    Result<Void> switchProcessDefinitionVersion(User loginUser, String projectName
             , int processDefinitionId, long version);
 
     /**

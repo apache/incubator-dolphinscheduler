@@ -31,6 +31,7 @@ import org.apache.dolphinscheduler.api.service.ResourcesService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.RegexUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ProgramType;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
@@ -512,9 +513,8 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return resource list page
      */
     @Override
-    public Map<String, Object> queryResourceListPaging(User loginUser, int directoryId, ResourceType type, String searchVal, Integer pageNo, Integer pageSize) {
+    public Result<PageListVO<Resource>> queryResourceListPaging(User loginUser, int directoryId, ResourceType type, String searchVal, Integer pageNo, Integer pageSize) {
 
-        HashMap<String, Object> result = new HashMap<>();
         Page<Resource> page = new Page<>(pageNo, pageSize);
         int userId = loginUser.getId();
         if (isAdmin(loginUser)) {
@@ -523,8 +523,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
         if (directoryId != -1) {
             Resource directory = resourcesMapper.selectById(directoryId);
             if (directory == null) {
-                putMsg(result, Status.RESOURCE_NOT_EXIST);
-                return result;
+                return Result.error(Status.RESOURCE_NOT_EXIST);
             }
         }
 
@@ -535,9 +534,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
         PageInfo<Resource> pageInfo = new PageInfo<>(pageNo, pageSize);
         pageInfo.setTotalCount((int)resourceIPage.getTotal());
         pageInfo.setLists(resourceIPage.getRecords());
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result,Status.SUCCESS);
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -614,14 +611,11 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return resource list
      */
     @Override
-    public Map<String, Object> queryResourceList(User loginUser, ResourceType type) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<ResourceComponent>> queryResourceList(User loginUser, ResourceType type) {
         List<Resource> allResourceList = queryAuthoredResourceList(loginUser, type);
         Visitor resourceTreeVisitor = new ResourceTreeVisitor(allResourceList);
-        result.put(Constants.DATA_LIST, resourceTreeVisitor.visit().getChildren());
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(resourceTreeVisitor.visit().getChildren());
     }
 
     /**
@@ -632,8 +626,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return resource list
      */
     @Override
-    public Map<String, Object> queryResourceByProgramType(User loginUser, ResourceType type, ProgramType programType) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<ResourceComponent>> queryResourceByProgramType(User loginUser, ResourceType type, ProgramType programType) {
 
         List<Resource> allResourceList = queryAuthoredResourceList(loginUser, type);
 
@@ -651,10 +644,8 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
         }
         List<Resource> resources = new ResourceFilter(suffix, new ArrayList<>(allResourceList)).filter();
         Visitor resourceTreeVisitor = new ResourceTreeVisitor(resources);
-        result.put(Constants.DATA_LIST, resourceTreeVisitor.visit().getChildren());
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(resourceTreeVisitor.visit().getChildren());
     }
 
     /**
@@ -1129,11 +1120,10 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return unauthorized result code
      */
     @Override
-    public Map<String, Object> authorizeResourceTree(User loginUser, Integer userId) {
+    public Result<List<ResourceComponent>> authorizeResourceTree(User loginUser, Integer userId) {
 
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         List<Resource> resourceList = resourcesMapper.queryResourceExceptUserId(userId);
         List<ResourceComponent> list;
@@ -1144,9 +1134,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
             list = new ArrayList<>(0);
         }
 
-        result.put(Constants.DATA_LIST, list);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(list);
     }
 
     /**
@@ -1157,11 +1145,10 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return unauthorized result code
      */
     @Override
-    public Map<String, Object> unauthorizedFile(User loginUser, Integer userId) {
+    public Result<List<ResourceComponent>> unauthorizedFile(User loginUser, Integer userId) {
 
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         List<Resource> resourceList = resourcesMapper.queryResourceExceptUserId(userId);
         List<Resource> list;
@@ -1174,9 +1161,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
             list = new ArrayList<>(0);
         }
         Visitor visitor = new ResourceTreeVisitor(list);
-        result.put(Constants.DATA_LIST, visitor.visit().getChildren());
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(visitor.visit().getChildren());
     }
 
     /**
@@ -1187,11 +1172,10 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return unauthorized result code
      */
     @Override
-    public Map<String, Object> unauthorizedUDFFunction(User loginUser, Integer userId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<UdfFunc>> unauthorizedUDFFunction(User loginUser, Integer userId) {
         //only admin can operate
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<UdfFunc> udfFuncList = udfFunctionMapper.queryUdfFuncExceptUserId(userId);
@@ -1205,9 +1189,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
             getAuthorizedResourceList(udfFuncSet, authedUDFFuncList);
             resultList = new ArrayList<>(udfFuncSet);
         }
-        result.put(Constants.DATA_LIST, resultList);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(resultList);
     }
 
     /**
@@ -1218,15 +1200,12 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return authorized result code
      */
     @Override
-    public Map<String, Object> authorizedUDFFunction(User loginUser, Integer userId) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<List<UdfFunc>> authorizedUDFFunction(User loginUser, Integer userId) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         List<UdfFunc> udfFuncs = udfFunctionMapper.queryAuthedUdfFunc(userId);
-        result.put(Constants.DATA_LIST, udfFuncs);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(udfFuncs);
     }
 
     /**
@@ -1237,10 +1216,9 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
      * @return authorized result
      */
     @Override
-    public Map<String, Object> authorizedFile(User loginUser, Integer userId) {
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<List<ResourceComponent>> authorizedFile(User loginUser, Integer userId) {
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         List<Resource> authedResources = queryResourceList(userId, Constants.AUTHORIZE_WRITABLE_PERM);
         Visitor visitor = new ResourceTreeVisitor(authedResources);
@@ -1248,9 +1226,7 @@ public class ResourcesServiceImpl extends BaseServiceImpl implements ResourcesSe
         logger.info(visit);
         String jsonTreeStr = JSONUtils.toJsonString(visitor.visit().getChildren(), SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         logger.info(jsonTreeStr);
-        result.put(Constants.DATA_LIST, visitor.visit().getChildren());
-        putMsg(result,Status.SUCCESS);
-        return result;
+        return Result.success(visitor.visit().getChildren());
     }
 
     /**

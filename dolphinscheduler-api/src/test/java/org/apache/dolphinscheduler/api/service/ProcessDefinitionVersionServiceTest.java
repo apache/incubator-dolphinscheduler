@@ -17,11 +17,12 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.ProcessDefinitionVersionServiceImpl;
 import org.apache.dolphinscheduler.api.service.impl.ProjectServiceImpl;
-import org.apache.dolphinscheduler.api.utils.PageInfo;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinitionVersion;
@@ -31,8 +32,6 @@ import org.apache.dolphinscheduler.dao.mapper.ProcessDefinitionVersionMapper;
 import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -92,29 +91,28 @@ public class ProcessDefinitionVersionServiceTest {
         loginUser.setId(-1);
         loginUser.setUserType(UserType.GENERAL_USER);
 
-        Map<String, Object> res = new HashMap<>();
-        putMsg(res, Status.PROJECT_NOT_FOUNT);
+        CheckParamResult checkResult = new CheckParamResult(Status.PROJECT_NOT_FOUNT);
         Project project = getProject(projectName);
         Mockito.when(projectMapper.queryByName(projectName))
                 .thenReturn(project);
         Mockito.when(projectService.checkProjectAndAuth(loginUser, project, projectName))
-                .thenReturn(res);
+                .thenReturn(checkResult);
 
         // project auth fail
         pageNo = 1;
         pageSize = 10;
-        Map<String, Object> resultMap3 = processDefinitionVersionService.queryProcessDefinitionVersions(
+        Result<PageListVO<ProcessDefinitionVersion>> result3 = processDefinitionVersionService.queryProcessDefinitionVersions(
                 loginUser
                 , projectName
                 , pageNo
                 , pageSize
                 , processDefinitionId);
-        Assert.assertEquals(Status.PROJECT_NOT_FOUNT, resultMap3.get(Constants.STATUS));
+        Assert.assertEquals(Status.PROJECT_NOT_FOUNT.getCode(), (int) result3.getCode());
 
-        putMsg(res, Status.SUCCESS);
+        putMsg(checkResult, Status.SUCCESS);
 
         Mockito.when(projectService.checkProjectAndAuth(loginUser, project, projectName))
-                .thenReturn(res);
+                .thenReturn(checkResult);
 
         ProcessDefinitionVersion processDefinitionVersion = getProcessDefinitionVersion(getProcessDefinition());
 
@@ -123,16 +121,14 @@ public class ProcessDefinitionVersionServiceTest {
                 .thenReturn(new Page<ProcessDefinitionVersion>()
                         .setRecords(Lists.newArrayList(processDefinitionVersion)));
 
-        Map<String, Object> resultMap4 = processDefinitionVersionService.queryProcessDefinitionVersions(
+        Result<PageListVO<ProcessDefinitionVersion>> result4 = processDefinitionVersionService.queryProcessDefinitionVersions(
                 loginUser
                 , projectName
                 , pageNo
                 , pageSize
                 , processDefinitionId);
-        Assert.assertEquals(Status.SUCCESS, resultMap4.get(Constants.STATUS));
-        Assert.assertEquals(processDefinitionVersion
-                , ((PageInfo<ProcessDefinitionVersion>) resultMap4.get(Constants.DATA_LIST))
-                        .getLists().get(0));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result4.getCode());
+        Assert.assertEquals(processDefinitionVersion, result4.getData().getTotalList().get(0));
     }
 
     @Test
@@ -167,42 +163,39 @@ public class ProcessDefinitionVersionServiceTest {
 
         // project auth fail
         Mockito.when(projectService.checkProjectAndAuth(loginUser, project, projectName))
-                .thenReturn(new HashMap<>());
+                .thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PERM));
 
-        Map<String, Object> resultMap1 = processDefinitionVersionService.deleteByProcessDefinitionIdAndVersion(
+        Result<Void> result1 = processDefinitionVersionService.deleteByProcessDefinitionIdAndVersion(
                 loginUser
                 , projectName
                 , processDefinitionId
                 , version);
 
-        Assert.assertEquals(0, resultMap1.size());
-
-        Map<String, Object> res = new HashMap<>();
-        putMsg(res, Status.SUCCESS);
+        Assert.assertNotEquals(Status.SUCCESS.getCode(), (int) result1.getCode());
 
         Mockito.when(processDefinitionVersionMapper.deleteByProcessDefinitionIdAndVersion(processDefinitionId, version))
                 .thenReturn(1);
         Mockito.when(projectService.checkProjectAndAuth(loginUser, project, projectName))
-                .thenReturn(res);
+                .thenReturn(new CheckParamResult(Status.SUCCESS));
         Mockito.when(processDefinitionService.checkHasAssociatedProcessDefinition(processDefinitionId, version))
                 .thenReturn(false);
 
-        Map<String, Object> resultMap2 = processDefinitionVersionService.deleteByProcessDefinitionIdAndVersion(
+        Result<Void> result = processDefinitionVersionService.deleteByProcessDefinitionIdAndVersion(
                 loginUser
                 , projectName
                 , processDefinitionId
                 , version);
 
-        Assert.assertEquals(Status.SUCCESS, resultMap2.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
         Mockito.when(processDefinitionService.checkHasAssociatedProcessDefinition(processDefinitionId, version))
                 .thenReturn(true);
-        Map<String, Object> resultMap3 = processDefinitionVersionService.deleteByProcessDefinitionIdAndVersion(
+        Result<Void> result2 = processDefinitionVersionService.deleteByProcessDefinitionIdAndVersion(
                 loginUser
                 , projectName
                 , processDefinitionId
                 , version);
-        Assert.assertEquals(Status.PROCESS_DEFINITION_VERSION_IS_USED, resultMap3.get(Constants.STATUS));
+        Assert.assertEquals(Status.PROCESS_DEFINITION_VERSION_IS_USED.getCode(), (int) result2.getCode());
     }
 
     /**
@@ -258,12 +251,12 @@ public class ProcessDefinitionVersionServiceTest {
         return project;
     }
 
-    private void putMsg(Map<String, Object> result, Status status, Object... statusParams) {
-        result.put(Constants.STATUS, status);
+    private void putMsg(CheckParamResult checkResult, Status status, Object... statusParams) {
+        checkResult.setStatus(status);
         if (statusParams != null && statusParams.length > 0) {
-            result.put(Constants.MSG, MessageFormat.format(status.getMsg(), statusParams));
+            checkResult.setMsg(MessageFormat.format(status.getMsg(), statusParams));
         } else {
-            result.put(Constants.MSG, status.getMsg());
+            checkResult.setMsg(status.getMsg());
         }
     }
 }

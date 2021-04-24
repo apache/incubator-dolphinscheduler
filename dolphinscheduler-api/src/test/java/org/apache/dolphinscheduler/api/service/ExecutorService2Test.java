@@ -21,10 +21,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.ExecuteType;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.ExecutorServiceImpl;
 import org.apache.dolphinscheduler.api.service.impl.ProjectServiceImpl;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.CommandType;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
@@ -46,10 +48,8 @@ import org.apache.dolphinscheduler.service.process.ProcessService;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -146,13 +146,13 @@ public class ExecutorService2Test {
     public void testNoComplement() throws ParseException {
 
         Mockito.when(processService.queryReleaseSchedulerListByProcessDefinitionId(processDefinitionId)).thenReturn(zeroSchedulerList());
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, cronTime, CommandType.START_PROCESS,
                 null, null,
                 null, null, 0,
                 RunMode.RUN_MODE_SERIAL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         verify(processService, times(1)).createCommand(any(Command.class));
 
     }
@@ -164,13 +164,13 @@ public class ExecutorService2Test {
     public void testComplementWithStartNodeList() throws ParseException {
 
         Mockito.when(processService.queryReleaseSchedulerListByProcessDefinitionId(processDefinitionId)).thenReturn(zeroSchedulerList());
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, cronTime, CommandType.START_PROCESS,
                 null, "n1,n2",
                 null, null, 0,
                 RunMode.RUN_MODE_SERIAL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         verify(processService, times(1)).createCommand(any(Command.class));
 
     }
@@ -183,13 +183,13 @@ public class ExecutorService2Test {
     public void testDateError() throws ParseException {
 
         Mockito.when(processService.queryReleaseSchedulerListByProcessDefinitionId(processDefinitionId)).thenReturn(zeroSchedulerList());
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, "2020-01-31 23:00:00,2020-01-01 00:00:00", CommandType.COMPLEMENT_DATA,
                 null, null,
                 null, null, 0,
                 RunMode.RUN_MODE_SERIAL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(Status.START_PROCESS_INSTANCE_ERROR, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.START_PROCESS_INSTANCE_ERROR.getCode(), (int) result.getCode());
         verify(processService, times(0)).createCommand(any(Command.class));
     }
 
@@ -200,13 +200,13 @@ public class ExecutorService2Test {
     public void testSerial() throws ParseException {
 
         Mockito.when(processService.queryReleaseSchedulerListByProcessDefinitionId(processDefinitionId)).thenReturn(zeroSchedulerList());
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, cronTime, CommandType.COMPLEMENT_DATA,
                 null, null,
                 null, null, 0,
                 RunMode.RUN_MODE_SERIAL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         verify(processService, times(1)).createCommand(any(Command.class));
 
     }
@@ -218,13 +218,13 @@ public class ExecutorService2Test {
     public void testParallelWithOutSchedule() throws ParseException {
 
         Mockito.when(processService.queryReleaseSchedulerListByProcessDefinitionId(processDefinitionId)).thenReturn(zeroSchedulerList());
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, cronTime, CommandType.COMPLEMENT_DATA,
                 null, null,
                 null, null, 0,
                 RunMode.RUN_MODE_PARALLEL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         verify(processService, times(31)).createCommand(any(Command.class));
 
     }
@@ -236,13 +236,13 @@ public class ExecutorService2Test {
     public void testParallelWithSchedule() throws ParseException {
 
         Mockito.when(processService.queryReleaseSchedulerListByProcessDefinitionId(processDefinitionId)).thenReturn(oneSchedulerList());
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, cronTime, CommandType.COMPLEMENT_DATA,
                 null, null,
                 null, null, 0,
                 RunMode.RUN_MODE_PARALLEL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         verify(processService, times(15)).createCommand(any(Command.class));
 
     }
@@ -251,22 +251,22 @@ public class ExecutorService2Test {
     public void testNoMsterServers() throws ParseException {
         Mockito.when(monitorService.getServerListFromZK(true)).thenReturn(new ArrayList<>());
 
-        Map<String, Object> result = executorService.execProcessInstance(loginUser, projectName,
+        Result<Void> result = executorService.execProcessInstance(loginUser, projectName,
                 processDefinitionId, cronTime, CommandType.COMPLEMENT_DATA,
                 null, null,
                 null, null, 0,
                 RunMode.RUN_MODE_PARALLEL,
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
-        Assert.assertEquals(result.get(Constants.STATUS), Status.MASTER_NOT_EXISTS);
+        Assert.assertEquals(Status.MASTER_NOT_EXISTS.getCode(), (int) result.getCode());
 
     }
 
     @Test
     public void testExecuteRepeatRunning() throws Exception {
         Mockito.when(processService.verifyIsNeedCreateCommand(any(Command.class))).thenReturn(true);
-        
-        Map<String, Object> result = executorService.execute(loginUser, projectName, processInstanceId, ExecuteType.REPEAT_RUNNING);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+
+        Result<Void> result = executorService.execute(loginUser, projectName, processInstanceId, ExecuteType.REPEAT_RUNNING);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     private List<Server> getMasterServersList() {
@@ -299,9 +299,7 @@ public class ExecutorService2Test {
         return schedulerList;
     }
 
-    private Map<String, Object> checkProjectAndAuth() {
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, Status.SUCCESS);
-        return result;
+    private CheckParamResult checkProjectAndAuth() {
+        return new CheckParamResult(Status.SUCCESS);
     }
 }

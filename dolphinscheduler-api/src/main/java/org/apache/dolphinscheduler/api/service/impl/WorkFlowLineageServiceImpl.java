@@ -17,8 +17,8 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
-import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.WorkFlowLineageService;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.dao.entity.WorkFlowLineage;
@@ -45,12 +45,9 @@ public class WorkFlowLineageServiceImpl extends BaseServiceImpl implements WorkF
     private WorkFlowLineageMapper workFlowLineageMapper;
 
     @Override
-    public Map<String, Object> queryWorkFlowLineageByName(String workFlowName, int projectId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<WorkFlowLineage>> queryWorkFlowLineageByName(String workFlowName, int projectId) {
         List<WorkFlowLineage> workFlowLineageList = workFlowLineageMapper.queryByName(workFlowName, projectId);
-        result.put(Constants.DATA_LIST, workFlowLineageList);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(workFlowLineageList);
     }
 
     private void getWorkFlowRelationRecursion(Set<Integer> ids, List<WorkFlowRelation> workFlowRelations, Set<Integer> sourceIds) {
@@ -71,13 +68,12 @@ public class WorkFlowLineageServiceImpl extends BaseServiceImpl implements WorkF
     }
 
     @Override
-    public Map<String, Object> queryWorkFlowLineageByIds(Set<Integer> ids, int projectId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Map<String, Object>> queryWorkFlowLineageByIds(Set<Integer> ids, int projectId) {
         List<WorkFlowLineage> workFlowLineageList = workFlowLineageMapper.queryByIds(ids, projectId);
         Map<String, Object> workFlowLists = new HashMap<>();
         Set<Integer> idsV = new HashSet<>();
         if (ids == null || ids.isEmpty()) {
-            for (WorkFlowLineage workFlowLineage:workFlowLineageList) {
+            for (WorkFlowLineage workFlowLineage : workFlowLineageList) {
                 idsV.add(workFlowLineage.getWorkFlowId());
             }
         } else {
@@ -103,9 +99,7 @@ public class WorkFlowLineageServiceImpl extends BaseServiceImpl implements WorkF
 
         workFlowLists.put(Constants.WORKFLOW_LIST, workFlowLineageList);
         workFlowLists.put(Constants.WORKFLOW_RELATION_LIST, workFlowRelations);
-        result.put(Constants.DATA_LIST, workFlowLists);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(workFlowLists);
     }
 
 }

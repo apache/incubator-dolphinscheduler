@@ -20,10 +20,10 @@ package org.apache.dolphinscheduler.api.service.impl;
 import static org.apache.dolphinscheduler.common.Constants.TASK_RECORD_TABLE_HISTORY_HIVE_LOG;
 import static org.apache.dolphinscheduler.common.Constants.TASK_RECORD_TABLE_HIVE_LOG;
 
-import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.TaskRecordService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.dao.TaskRecordDao;
 import org.apache.dolphinscheduler.dao.entity.TaskRecord;
 
@@ -55,11 +55,10 @@ public class TaskRecordServiceImpl extends BaseServiceImpl implements TaskRecord
      * @return task record list
      */
     @Override
-    public Map<String,Object> queryTaskRecordListPaging(boolean isHistory, String taskName, String startDate,
+    public Result<PageListVO<TaskRecord>> queryTaskRecordListPaging(boolean isHistory, String taskName, String startDate,
                                                         String taskDate, String sourceTable,
                                                         String destTable, String endDate,
                                                         String state, Integer pageNo, Integer pageSize) {
-        Map<String, Object> result = new HashMap<>();
         PageInfo<TaskRecord> pageInfo = new PageInfo<>(pageNo, pageSize);
 
         Map<String, String> map = new HashMap<>();
@@ -78,9 +77,7 @@ public class TaskRecordServiceImpl extends BaseServiceImpl implements TaskRecord
         List<TaskRecord> recordList = TaskRecordDao.queryAllTaskRecord(map, table);
         pageInfo.setTotalCount(count);
         pageInfo.setLists(recordList);
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 }

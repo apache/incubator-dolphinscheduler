@@ -22,6 +22,7 @@ import org.apache.dolphinscheduler.api.service.TenantService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.RegexUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.BooleanUtils;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
@@ -38,9 +39,7 @@ import org.apache.dolphinscheduler.dao.mapper.TenantMapper;
 import org.apache.dolphinscheduler.dao.mapper.UserMapper;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,25 +78,21 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> createTenant(User loginUser,
-                                            String tenantCode,
-                                            int queueId,
-                                            String desc) throws Exception {
+    public Result<Void> createTenant(User loginUser,
+                                     String tenantCode,
+                                     int queueId,
+                                     String desc) throws Exception {
 
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         if (!RegexUtils.isValidLinuxUserName(tenantCode)) {
-            putMsg(result, Status.CHECK_OS_TENANT_CODE_ERROR);
-            return result;
+            return Result.error(Status.CHECK_OS_TENANT_CODE_ERROR);
         }
 
         if (checkTenantExists(tenantCode)) {
-            putMsg(result, Status.OS_TENANT_CODE_EXIST, tenantCode);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, tenantCode);
         }
 
         Tenant tenant = new Tenant();
@@ -116,9 +111,7 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
             createTenantDirIfNotExists(tenantCode);
         }
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -131,11 +124,10 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      * @return tenant list page
      */
     @Override
-    public Map<String, Object> queryTenantList(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
+    public Result<PageListVO<Tenant>> queryTenantList(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
 
-        Map<String, Object> result = new HashMap<>();
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         Page<Tenant> page = new Page<>(pageNo, pageSize);
@@ -143,11 +135,8 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
         PageInfo<Tenant> pageInfo = new PageInfo<>(pageNo, pageSize);
         pageInfo.setTotalCount((int) tenantIPage.getTotal());
         pageInfo.setLists(tenantIPage.getRecords());
-        result.put(Constants.DATA_LIST, pageInfo);
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -162,21 +151,17 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      * @throws Exception exception
      */
     @Override
-    public Map<String, Object> updateTenant(User loginUser, int id, String tenantCode, int queueId,
-                                            String desc) throws Exception {
+    public Result<Void> updateTenant(User loginUser, int id, String tenantCode, int queueId,
+                                     String desc) throws Exception {
 
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
-
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         Tenant tenant = tenantMapper.queryById(id);
 
         if (tenant == null) {
-            putMsg(result, Status.TENANT_NOT_EXIST);
-            return result;
+            return Result.error(Status.TENANT_NOT_EXIST);
         }
 
         // updateProcessInstance tenant
@@ -194,8 +179,7 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
                     HadoopUtils.getInstance().mkdir(udfsPath);
                 }
             } else {
-                putMsg(result, Status.OS_TENANT_CODE_HAS_ALREADY_EXISTS);
-                return result;
+                return Result.error(Status.OS_TENANT_CODE_HAS_ALREADY_EXISTS);
             }
         }
 
@@ -212,9 +196,7 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
         tenant.setUpdateTime(now);
         tenantMapper.updateById(tenant);
 
-        result.put(Constants.STATUS, Status.SUCCESS);
-        result.put(Constants.MSG, Status.SUCCESS.getMsg());
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -227,36 +209,31 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> deleteTenantById(User loginUser, int id) throws Exception {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> deleteTenantById(User loginUser, int id) throws Exception {
 
-        if (isNotAdmin(loginUser, result)) {
-            return result;
+        if (isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         Tenant tenant = tenantMapper.queryById(id);
         if (tenant == null) {
-            putMsg(result, Status.TENANT_NOT_EXIST);
-            return result;
+            return Result.error(Status.TENANT_NOT_EXIST);
         }
 
         List<ProcessInstance> processInstances = getProcessInstancesByTenant(tenant);
         if (CollectionUtils.isNotEmpty(processInstances)) {
-            putMsg(result, Status.DELETE_TENANT_BY_ID_FAIL, processInstances.size());
-            return result;
+            return Result.errorWithArgs(Status.DELETE_TENANT_BY_ID_FAIL, processInstances.size());
         }
 
         List<ProcessDefinition> processDefinitions =
                 processDefinitionMapper.queryDefinitionListByTenant(tenant.getId());
         if (CollectionUtils.isNotEmpty(processDefinitions)) {
-            putMsg(result, Status.DELETE_TENANT_BY_ID_FAIL_DEFINES, processDefinitions.size());
-            return result;
+            return Result.errorWithArgs(Status.DELETE_TENANT_BY_ID_FAIL_DEFINES, processDefinitions.size());
         }
 
         List<User> userList = userMapper.queryUserListByTenant(tenant.getId());
         if (CollectionUtils.isNotEmpty(userList)) {
-            putMsg(result, Status.DELETE_TENANT_BY_ID_FAIL_USERS, userList.size());
-            return result;
+            return Result.errorWithArgs(Status.DELETE_TENANT_BY_ID_FAIL_USERS, userList.size());
         }
 
         // if resource upload startup
@@ -270,8 +247,7 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
 
         tenantMapper.deleteById(id);
         processInstanceMapper.updateProcessInstanceByTenantId(id, -1);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     private List<ProcessInstance> getProcessInstancesByTenant(Tenant tenant) {
@@ -284,18 +260,14 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      * @param tenantCode tenant code
      * @return tenant list
      */
-    public Map<String, Object> queryTenantList(String tenantCode) {
-
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Tenant>> queryTenantList(String tenantCode) {
 
         List<Tenant> resourceList = tenantMapper.queryByTenantCode(tenantCode);
         if (CollectionUtils.isNotEmpty(resourceList)) {
-            result.put(Constants.DATA_LIST, resourceList);
-            putMsg(result, Status.SUCCESS);
+            return Result.success(resourceList);
         } else {
-            putMsg(result, Status.TENANT_NOT_EXIST);
+            return Result.error(Status.TENANT_NOT_EXIST);
         }
-        return result;
     }
 
     /**
@@ -305,15 +277,11 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      * @return tenant list
      */
     @Override
-    public Map<String, Object> queryTenantList(User loginUser) {
-
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Tenant>> queryTenantList(User loginUser) {
 
         List<Tenant> resourceList = tenantMapper.selectList(null);
-        result.put(Constants.DATA_LIST, resourceList);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(resourceList);
     }
 
     /**
@@ -323,14 +291,11 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      * @return true if tenant code can user, otherwise return false
      */
     @Override
-    public Result verifyTenantCode(String tenantCode) {
-        Result result = new Result();
+    public Result<Void> verifyTenantCode(String tenantCode) {
         if (checkTenantExists(tenantCode)) {
-            putMsg(result, Status.OS_TENANT_CODE_EXIST, tenantCode);
-        } else {
-            putMsg(result, Status.SUCCESS);
+            return Result.errorWithArgs(Status.OS_TENANT_CODE_EXIST, tenantCode);
         }
-        return result;
+        return Result.success(null);
     }
 
     /**

@@ -21,15 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.dto.CommandStateCount;
+import org.apache.dolphinscheduler.api.dto.DefineUserDto;
+import org.apache.dolphinscheduler.api.dto.TaskCountDto;
 import org.apache.dolphinscheduler.api.dto.TaskStateCount;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.DataAnalysisServiceImpl;
 import org.apache.dolphinscheduler.api.service.impl.ProjectServiceImpl;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.enums.CommandType;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.enums.UserType;
+import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.common.utils.DateUtils;
 import org.apache.dolphinscheduler.dao.entity.CommandCount;
 import org.apache.dolphinscheduler.dao.entity.ExecuteStatusCount;
@@ -43,9 +47,10 @@ import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.apache.dolphinscheduler.dao.mapper.TaskInstanceMapper;
 import org.apache.dolphinscheduler.service.process.ProcessService;
 
+import org.apache.commons.collections.MapUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -92,8 +97,6 @@ public class DataAnalysisServiceTest {
     @Mock
     ProcessService processService;
 
-    private Map<String, Object> resultMap;
-
     private User user;
 
     @Before
@@ -102,9 +105,8 @@ public class DataAnalysisServiceTest {
         user = new User();
         Project project = new Project();
         project.setId(1);
-        resultMap = new HashMap<>();
         Mockito.when(projectMapper.selectById(1)).thenReturn(project);
-        Mockito.when(projectService.hasProjectAndPerm(user, project, resultMap)).thenReturn(true);
+        Mockito.when(projectService.hasProjectAndPerm(user, project)).thenReturn(new CheckParamResult(Status.SUCCESS));
 
     }
 
@@ -114,7 +116,6 @@ public class DataAnalysisServiceTest {
 
         user = null;
         projectMapper = null;
-        resultMap = null;
     }
 
     @Test
@@ -124,34 +125,38 @@ public class DataAnalysisServiceTest {
         String endDate = "2020-02-11 16:03:18";
 
         //checkProject false
-        Map<String, Object> result = dataAnalysisService.countTaskStateByProject(user, 2, startDate, endDate);
-        Assert.assertTrue(result.isEmpty());
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PROJECT_PERM));
+        Result<TaskCountDto> result = dataAnalysisService.countTaskStateByProject(user, 2, startDate, endDate);
+        Assert.assertNotEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
 
         //SUCCESS
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
         Mockito.when(taskInstanceMapper.countTaskInstanceStateByUser(DateUtils.getScheduleDate(startDate),
                 DateUtils.getScheduleDate(endDate), new Integer[]{1})).thenReturn(getTaskInstanceStateCounts());
 
         result = dataAnalysisService.countTaskStateByProject(user, 1, startDate, endDate);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
         // when date in illegal format then return error message
         String startDate2 = "illegalDateString";
         String endDate2 = "illegalDateString";
         result = dataAnalysisService.countTaskStateByProject(user, 0, startDate2, endDate2);
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
         // when one of date in illegal format then return error message
         String startDate3 = "2020-08-28 14:13:40";
         String endDate3 = "illegalDateString";
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
         result = dataAnalysisService.countTaskStateByProject(user, 0, startDate3, endDate3);
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
         // when one of date in illegal format then return error message
         String startDate4 = "illegalDateString";
         String endDate4 = "2020-08-28 14:13:40";
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
         result = dataAnalysisService.countTaskStateByProject(user, 0, startDate4, endDate4);
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
         // when counting general user's task status then return user's task status count
         user.setUserType(UserType.GENERAL_USER);
@@ -163,11 +168,11 @@ public class DataAnalysisServiceTest {
         Mockito.when(taskInstanceMapper.countTaskInstanceStateByUser(any(), any(), any()))
                 .thenReturn(Collections.singletonList(executeStatusCount));
         result = dataAnalysisService.countTaskStateByProject(user, 0, startDate, null);
-        assertThat(result.get(Constants.DATA_LIST)).extracting("taskCountDtos").first().asList()
+        assertThat(result.getData()).extracting("taskCountDtos").first().asList()
                 .hasSameSizeAs(ExecutionStatus.values());
-        assertThat(result.get(Constants.DATA_LIST)).extracting("totalCount").first().isEqualTo(10);
+        assertThat(result.getData()).extracting("totalCount").first().isEqualTo(10);
         TaskStateCount taskStateCount = new TaskStateCount(ExecutionStatus.RUNNING_EXECUTION, 10);
-        assertThat(result.get(Constants.DATA_LIST)).extracting("taskCountDtos").first().asList().containsOnlyOnce(taskStateCount);
+        assertThat(result.getData()).extracting("taskCountDtos").first().asList().containsOnlyOnce(taskStateCount);
 
         // when general user doesn't have any task then return all count are 0
         user.setUserType(UserType.GENERAL_USER);
@@ -176,10 +181,10 @@ public class DataAnalysisServiceTest {
         Mockito.when(taskInstanceMapper.countTaskInstanceStateByUser(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         result = dataAnalysisService.countTaskStateByProject(user, 0, null, null);
-        assertThat(result.get(Constants.DATA_LIST)).extracting("totalCount").first().isEqualTo(0);
-        assertThat(result.get(Constants.DATA_LIST)).extracting("taskCountDtos").first().asList()
+        assertThat(result.getData()).extracting("totalCount").first().isEqualTo(0);
+        assertThat(result.getData()).extracting("taskCountDtos").first().asList()
                 .hasSameSizeAs(ExecutionStatus.values());
-        assertThat(result.get(Constants.DATA_LIST)).extracting("taskCountDtos").first().asList()
+        assertThat(result.getData()).extracting("taskCountDtos").first().asList()
                 .extracting("count").allMatch(count -> count.equals(0));
 
         // when general user doesn't have any task then return all count are 0
@@ -189,10 +194,10 @@ public class DataAnalysisServiceTest {
         Mockito.when(taskInstanceMapper.countTaskInstanceStateByUser(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         result = dataAnalysisService.countTaskStateByProject(user, 0, null, null);
-        assertThat(result.get(Constants.DATA_LIST)).extracting("totalCount").first().isEqualTo(0);
-        assertThat(result.get(Constants.DATA_LIST)).extracting("taskCountDtos").first().asList()
+        assertThat(result.getData()).extracting("totalCount").first().isEqualTo(0);
+        assertThat(result.getData()).extracting("taskCountDtos").first().asList()
                 .hasSameSizeAs(ExecutionStatus.values());
-        assertThat(result.get(Constants.DATA_LIST)).extracting("taskCountDtos").first().asList()
+        assertThat(result.getData()).extracting("taskCountDtos").first().asList()
                 .extracting("count").allMatch(count -> count.equals(0));
 
         // when instanceStateCounter return null, then return nothing
@@ -202,7 +207,7 @@ public class DataAnalysisServiceTest {
         Mockito.when(taskInstanceMapper.countTaskInstanceStateByUser(any(), any(), any()))
                 .thenReturn(null);
         result = dataAnalysisService.countTaskStateByProject(user, 0, null, null);
-        assertThat(result).isEmpty();
+        assertThat(result.getData()).isNull();
     }
 
     @Test
@@ -211,21 +216,24 @@ public class DataAnalysisServiceTest {
         String startDate = "2020-02-11 16:02:18";
         String endDate = "2020-02-11 16:03:18";
         //checkProject false
-        Map<String, Object> result = dataAnalysisService.countProcessInstanceStateByProject(user, 2, startDate, endDate);
-        Assert.assertTrue(result.isEmpty());
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PROJECT_PERM));
+        Result<TaskCountDto> result = dataAnalysisService.countProcessInstanceStateByProject(user, 2, startDate, endDate);
+        Assert.assertNull(result.getData());
 
         //SUCCESS
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
         Mockito.when(processInstanceMapper.countInstanceStateByUser(DateUtils.getScheduleDate(startDate),
                 DateUtils.getScheduleDate(endDate), new Integer[]{1})).thenReturn(getTaskInstanceStateCounts());
         result = dataAnalysisService.countProcessInstanceStateByProject(user, 1, startDate, endDate);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        Assert.assertNotNull(result.getData());
     }
 
     @Test
     public void testCountDefinitionByUser() {
 
-        Map<String, Object> result = dataAnalysisService.countDefinitionByUser(user, 1);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Result<DefineUserDto> result = dataAnalysisService.countDefinitionByUser(user, 1);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
@@ -234,12 +242,15 @@ public class DataAnalysisServiceTest {
         String startDate = "2020-02-11 16:02:18";
         String endDate = "2020-02-11 16:03:18";
         //checkProject false
-        Map<String, Object> result = dataAnalysisService.countCommandState(user, 2, startDate, endDate);
-        Assert.assertTrue(result.isEmpty());
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PROJECT_PERM));
+        Result<List<CommandStateCount>> result = dataAnalysisService.countCommandState(user, 2, startDate, endDate);
+        Assert.assertTrue(CollectionUtils.isEmpty(result.getData()));
+
         List<CommandCount> commandCounts = new ArrayList<>(1);
         CommandCount commandCount = new CommandCount();
         commandCount.setCommandType(CommandType.START_PROCESS);
         commandCounts.add(commandCount);
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
         Mockito.when(commandMapper.countCommandState(0, DateUtils.getScheduleDate(startDate),
                 DateUtils.getScheduleDate(endDate), new Integer[]{1})).thenReturn(commandCounts);
 
@@ -247,37 +258,39 @@ public class DataAnalysisServiceTest {
                 DateUtils.getScheduleDate(endDate), new Integer[]{1})).thenReturn(commandCounts);
 
         result = dataAnalysisService.countCommandState(user, 1, startDate, endDate);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
         // when project check fail then return nothing
-        Map<String, Object> result1 = dataAnalysisService.countCommandState(user, 2, null, null);
-        Assert.assertTrue(result1.isEmpty());
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PROJECT_PERM));
+        result = dataAnalysisService.countCommandState(user, 2, null, null);
+        Assert.assertTrue(CollectionUtils.isEmpty(result.getData()));
 
         // when all date in illegal format then return error message
         String startDate2 = "illegalDateString";
         String endDate2 = "illegalDateString";
-        Map<String, Object> result2 = dataAnalysisService.countCommandState(user, 0, startDate2, endDate2);
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result2.get(Constants.STATUS));
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
+        result = dataAnalysisService.countCommandState(user, 0, startDate2, endDate2);
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
         // when one of date in illegal format then return error message
         String startDate3 = "2020-08-22 09:23:10";
         String endDate3 = "illegalDateString";
-        Map<String, Object> result3 = dataAnalysisService.countCommandState(user, 0, startDate3, endDate3);
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result3.get(Constants.STATUS));
+        result = dataAnalysisService.countCommandState(user, 0, startDate3, endDate3);
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
         // when one of date in illegal format then return error message
         String startDate4 = "illegalDateString";
         String endDate4 = "2020-08-22 09:23:10";
-        Map<String, Object> result4 = dataAnalysisService.countCommandState(user, 0, startDate4, endDate4);
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result4.get(Constants.STATUS));
+        result = dataAnalysisService.countCommandState(user, 0, startDate4, endDate4);
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
         // when no command found then return all count are 0
         Mockito.when(commandMapper.countCommandState(anyInt(), any(), any(), any())).thenReturn(Collections.emptyList());
         Mockito.when(errorCommandMapper.countCommandState(any(), any(), any())).thenReturn(Collections.emptyList());
-        Map<String, Object> result5 = dataAnalysisService.countCommandState(user, 0, startDate, null);
-        assertThat(result5).containsEntry(Constants.STATUS, Status.SUCCESS);
-        assertThat(result5.get(Constants.DATA_LIST)).asList().extracting("errorCount").allMatch(count -> count.equals(0));
-        assertThat(result5.get(Constants.DATA_LIST)).asList().extracting("normalCount").allMatch(count -> count.equals(0));
+        result = dataAnalysisService.countCommandState(user, 0, startDate, null);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        assertThat(result.getData()).asList().extracting("errorCount").allMatch(count -> count.equals(0));
+        assertThat(result.getData()).asList().extracting("normalCount").allMatch(count -> count.equals(0));
 
         // when command found then return combination result
         CommandCount normalCommandCount = new CommandCount();
@@ -289,25 +302,29 @@ public class DataAnalysisServiceTest {
         Mockito.when(commandMapper.countCommandState(anyInt(), any(), any(), any())).thenReturn(Collections.singletonList(normalCommandCount));
         Mockito.when(errorCommandMapper.countCommandState(any(), any(), any())).thenReturn(Collections.singletonList(errorCommandCount));
 
-        Map<String, Object> result6 = dataAnalysisService.countCommandState(user, 0, null, null);
+        result = dataAnalysisService.countCommandState(user, 0, null, null);
 
-        assertThat(result6).containsEntry(Constants.STATUS, Status.SUCCESS);
+        assertThat(result.getCode()).isEqualTo(Status.SUCCESS.getCode());
         CommandStateCount commandStateCount = new CommandStateCount();
         commandStateCount.setCommandState(CommandType.START_PROCESS);
         commandStateCount.setNormalCount(10);
         commandStateCount.setErrorCount(5);
-        assertThat(result6.get(Constants.DATA_LIST)).asList().containsOnlyOnce(commandStateCount);
+        assertThat(result.getData()).asList().containsOnlyOnce(commandStateCount);
     }
 
     @Test
     public void testCountQueueState() {
         // when project check fail then return nothing
-        Map<String, Object> result1 = dataAnalysisService.countQueueState(user, 2);
-        Assert.assertTrue(result1.isEmpty());
+        Mockito.when(projectMapper.selectById(Mockito.any())).thenReturn(new Project());
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PROJECT_PERM));
+        Result<Map<String, Integer>> result = dataAnalysisService.countQueueState(user, 2);
+        Assert.assertTrue(MapUtils.isEmpty(result.getData()));
 
         // when project check success when return all count are 0
-        Map<String, Object> result2 = dataAnalysisService.countQueueState(user, 1);
-        assertThat(result2.get(Constants.DATA_LIST)).extracting("taskQueue", "taskKill")
+        Mockito.when(projectMapper.selectById(Mockito.any())).thenReturn(new Project());
+        Mockito.when(projectService.hasProjectAndPerm(Mockito.any(), Mockito.any())).thenReturn(new CheckParamResult(Status.SUCCESS));
+        result = dataAnalysisService.countQueueState(user, 1);
+        assertThat(result.getData()).extracting("taskQueue", "taskKill")
                 .isNotEmpty()
                 .allMatch(count -> count.equals(0));
     }

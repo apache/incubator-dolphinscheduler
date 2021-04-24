@@ -17,10 +17,13 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.dao.entity.Project;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * project service
@@ -35,7 +38,7 @@ public interface ProjectService {
      * @param desc description
      * @return returns an error if it exists
      */
-    Map<String, Object> createProject(User loginUser, String name, String desc);
+    Result<Integer> createProject(User loginUser, String name, String desc);
 
     /**
      * query project details by id
@@ -43,7 +46,7 @@ public interface ProjectService {
      * @param projectId project id
      * @return project detail information
      */
-    Map<String, Object> queryById(Integer projectId);
+    Result<Project> queryById(Integer projectId);
 
     /**
      * check project and authorization
@@ -53,9 +56,9 @@ public interface ProjectService {
      * @param projectName project name
      * @return true if the login user have permission to see the project
      */
-    Map<String, Object> checkProjectAndAuth(User loginUser, Project project, String projectName);
+    CheckParamResult checkProjectAndAuth(User loginUser, Project project, String projectName);
 
-    boolean hasProjectAndPerm(User loginUser, Project project, Map<String, Object> result);
+    CheckParamResult hasProjectAndPerm(User loginUser, Project project);
 
     /**
      * admin can view all projects
@@ -66,7 +69,7 @@ public interface ProjectService {
      * @param pageNo page number
      * @return project list which the login user have permission to see
      */
-    Map<String, Object> queryProjectListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal);
+    Result<PageListVO<Project>> queryProjectListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal);
 
     /**
      * delete project by id
@@ -75,7 +78,7 @@ public interface ProjectService {
      * @param projectId project id
      * @return delete result code
      */
-    Map<String, Object> deleteProject(User loginUser, Integer projectId);
+    Result<Void> deleteProject(User loginUser, Integer projectId);
 
     /**
      * updateProcessInstance project
@@ -86,7 +89,7 @@ public interface ProjectService {
      * @param desc description
      * @return update result code
      */
-    Map<String, Object> update(User loginUser, Integer projectId, String projectName, String desc);
+    Result<Void> update(User loginUser, Integer projectId, String projectName, String desc);
 
     /**
      * query unauthorized project
@@ -95,7 +98,7 @@ public interface ProjectService {
      * @param userId user id
      * @return the projects which user have not permission to see
      */
-    Map<String, Object> queryUnauthorizedProject(User loginUser, Integer userId);
+    Result<List<Project>> queryUnauthorizedProject(User loginUser, Integer userId);
 
     /**
      * query authorized project
@@ -104,7 +107,7 @@ public interface ProjectService {
      * @param userId user id
      * @return projects which the user have permission to see, Except for items created by this user
      */
-    Map<String, Object> queryAuthorizedProject(User loginUser, Integer userId);
+    Result<List<Project>> queryAuthorizedProject(User loginUser, Integer userId);
 
     /**
      * query authorized project
@@ -112,20 +115,20 @@ public interface ProjectService {
      * @param loginUser login user
      * @return projects which the user have permission to see, Except for items created by this user
      */
-    Map<String, Object> queryProjectCreatedByUser(User loginUser);
+    Result<List<Project>> queryProjectCreatedByUser(User loginUser);
 
     /**
      * query all project list that have one or more process definitions.
      *
      * @return project list
      */
-    Map<String, Object> queryAllProjectList();
+    Result<List<Project>> queryAllProjectList();
 
     /**
      * query authorized and user create project list by user id
      * @param loginUser
      * @return
      */
-    Map<String, Object> queryProjectCreatedAndAuthorizedByUser(User loginUser);
+    Result<List<Project>> queryProjectCreatedAndAuthorizedByUser(User loginUser);
 
 }

@@ -21,6 +21,7 @@ import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.QueueServiceImpl;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
@@ -79,39 +80,40 @@ public class QueueServiceTest {
     public void testQueryList() {
 
         Mockito.when(queueMapper.selectList(null)).thenReturn(getQueueList());
-        Map<String, Object> result = queueService.queryList(getLoginUser());
+        Result<List<Queue>> result = queueService.queryList(getLoginUser());
         logger.info(result.toString());
-        List<Queue> queueList  = (List<Queue>) result.get(Constants.DATA_LIST);
+        List<Queue> queueList = result.getData();
         Assert.assertTrue(CollectionUtils.isNotEmpty(queueList));
 
     }
+
     @Test
     public void testQueryListPage() {
 
-        IPage<Queue> page = new Page<>(1,10);
+        IPage<Queue> page = new Page<>(1, 10);
         page.setTotal(1L);
         page.setRecords(getQueueList());
         Mockito.when(queueMapper.queryQueuePaging(Mockito.any(Page.class), Mockito.eq(queueName))).thenReturn(page);
-        Map<String, Object> result = queueService.queryList(getLoginUser(),queueName,1,10);
+        Result<PageListVO<Queue>> result = queueService.queryList(getLoginUser(), queueName, 1, 10);
         logger.info(result.toString());
-        PageInfo<Queue>  pageInfo = (PageInfo<Queue>) result.get(Constants.DATA_LIST);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(pageInfo.getLists()));
+        PageListVO<Queue> pageInfo = result.getData();
+        Assert.assertTrue(CollectionUtils.isNotEmpty(pageInfo.getTotalList()));
     }
     @Test
     public void testCreateQueue() {
 
         // queue is null
-        Map<String, Object> result = queueService.createQueue(getLoginUser(),null,queueName);
+        Result<Void> result = queueService.createQueue(getLoginUser(), null, queueName);
         logger.info(result.toString());
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR,result.get(Constants.STATUS));
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
         // queueName is null
         result = queueService.createQueue(getLoginUser(),queueName,null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR,result.get(Constants.STATUS));
+        Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
         // correct
         result = queueService.createQueue(getLoginUser(),queueName,queueName);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS,result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 
@@ -123,25 +125,25 @@ public class QueueServiceTest {
         Mockito.when(queueMapper.existQueue(null, "test")).thenReturn(true);
 
         // not exist
-        Map<String, Object> result = queueService.updateQueue(getLoginUser(),0,"queue",queueName);
+        Result<Void> result = queueService.updateQueue(getLoginUser(), 0, "queue", queueName);
         logger.info(result.toString());
-        Assert.assertEquals(Status.QUEUE_NOT_EXIST.getCode(),((Status)result.get(Constants.STATUS)).getCode());
+        Assert.assertEquals(Status.QUEUE_NOT_EXIST.getCode(), (int) result.getCode());
         //no need update
         result = queueService.updateQueue(getLoginUser(),1,queueName,queueName);
         logger.info(result.toString());
-        Assert.assertEquals(Status.NEED_NOT_UPDATE_QUEUE.getCode(),((Status)result.get(Constants.STATUS)).getCode());
+        Assert.assertEquals(Status.NEED_NOT_UPDATE_QUEUE.getCode(), (int) result.getCode());
         //queue exist
         result = queueService.updateQueue(getLoginUser(),1,"test",queueName);
         logger.info(result.toString());
-        Assert.assertEquals(Status.QUEUE_VALUE_EXIST.getCode(),((Status)result.get(Constants.STATUS)).getCode());
+        Assert.assertEquals(Status.QUEUE_VALUE_EXIST.getCode(), (int) result.getCode());
         // queueName exist
         result = queueService.updateQueue(getLoginUser(),1,"test1","test");
         logger.info(result.toString());
-        Assert.assertEquals(Status.QUEUE_NAME_EXIST.getCode(),((Status)result.get(Constants.STATUS)).getCode());
+        Assert.assertEquals(Status.QUEUE_NAME_EXIST.getCode(), (int) result.getCode());
         //success
         result = queueService.updateQueue(getLoginUser(),1,"test1","test1");
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS.getCode(),((Status)result.get(Constants.STATUS)).getCode());
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 

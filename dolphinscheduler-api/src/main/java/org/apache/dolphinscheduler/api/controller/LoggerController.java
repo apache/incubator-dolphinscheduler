@@ -102,7 +102,7 @@ public class LoggerController extends BaseController {
     @GetMapping(value = "/download-log")
     @ResponseBody
     @ApiException(DOWNLOAD_TASK_INSTANCE_LOG_FILE_ERROR)
-    public ResponseEntity downloadTaskLog(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public ResponseEntity<byte[]> downloadTaskLog(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                           @RequestParam(value = "taskInstanceId") int taskInstanceId) {
         byte[] logBytes = loggerService.getLogBytes(taskInstanceId);
         return ResponseEntity

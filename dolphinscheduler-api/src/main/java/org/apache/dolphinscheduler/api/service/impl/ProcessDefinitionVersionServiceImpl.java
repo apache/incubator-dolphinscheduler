@@ -17,12 +17,14 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.ProcessDefinitionService;
 import org.apache.dolphinscheduler.api.service.ProcessDefinitionVersionService;
 import org.apache.dolphinscheduler.api.service.ProjectService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinitionVersion;
 import org.apache.dolphinscheduler.dao.entity.Project;
@@ -30,9 +32,7 @@ import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.ProcessDefinitionVersionMapper;
 import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,6 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * process definition version service impl
@@ -117,15 +116,14 @@ public class ProcessDefinitionVersionServiceImpl extends BaseServiceImpl impleme
      * @return the pagination process definition versions info of the certain process definition
      */
     @Override
-    public Map<String, Object> queryProcessDefinitionVersions(User loginUser, String projectName, int pageNo, int pageSize, int processDefinitionId) {
+    public Result<PageListVO<ProcessDefinitionVersion>> queryProcessDefinitionVersions(User loginUser, String projectName, int pageNo, int pageSize, int processDefinitionId) {
 
         Project project = projectMapper.queryByName(projectName);
 
         // check project auth
-        Map<String, Object> checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
-        Status resultStatus = (Status) checkResult.get(Constants.STATUS);
-        if (resultStatus != Status.SUCCESS) {
-            return checkResult;
+        CheckParamResult checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         PageInfo<ProcessDefinitionVersion> pageInfo = new PageInfo<>(pageNo, pageSize);
@@ -134,10 +132,7 @@ public class ProcessDefinitionVersionServiceImpl extends BaseServiceImpl impleme
         List<ProcessDefinitionVersion> processDefinitionVersions = processDefinitionVersionsPaging.getRecords();
         pageInfo.setLists(processDefinitionVersions);
         pageInfo.setTotalCount((int) processDefinitionVersionsPaging.getTotal());
-        return ImmutableMap.of(
-                Constants.MSG, Status.SUCCESS.getMsg()
-                , Constants.STATUS, Status.SUCCESS
-                , Constants.DATA_LIST, pageInfo);
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -162,26 +157,22 @@ public class ProcessDefinitionVersionServiceImpl extends BaseServiceImpl impleme
      * @return delele result code
      */
     @Override
-    public Map<String, Object> deleteByProcessDefinitionIdAndVersion(User loginUser, String projectName, int processDefinitionId, long version) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> deleteByProcessDefinitionIdAndVersion(User loginUser, String projectName, int processDefinitionId, long version) {
         Project project = projectMapper.queryByName(projectName);
         // check project auth
-        Map<String, Object> checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
-        Status resultStatus = (Status) checkResult.get(Constants.STATUS);
-        if (resultStatus != Status.SUCCESS) {
-            return checkResult;
+        CheckParamResult checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         // check has associated process definition
         boolean hasAssociatedProcessDefinition = processDefinitionService.checkHasAssociatedProcessDefinition(processDefinitionId, version);
         if (hasAssociatedProcessDefinition) {
-            putMsg(result, Status.PROCESS_DEFINITION_VERSION_IS_USED);
-            return result;
+            return Result.error(Status.PROCESS_DEFINITION_VERSION_IS_USED);
         }
 
         processDefinitionVersionMapper.deleteByProcessDefinitionIdAndVersion(processDefinitionId, version);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
 

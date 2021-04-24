@@ -19,15 +19,13 @@ package org.apache.dolphinscheduler.api.service.impl;
 
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.UiPluginService;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.enums.PluginType;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.dao.entity.PluginDefine;
 import org.apache.dolphinscheduler.dao.mapper.PluginDefineMapper;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,37 +40,28 @@ public class UiPluginServiceImpl extends BaseServiceImpl implements UiPluginServ
     PluginDefineMapper pluginDefineMapper;
 
     @Override
-    public Map<String, Object> queryUiPluginsByType(PluginType pluginType) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<PluginDefine>> queryUiPluginsByType(PluginType pluginType) {
         if (!pluginType.getHasUi()) {
-            putMsg(result, Status.PLUGIN_NOT_A_UI_COMPONENT);
-            return result;
+            return Result.error(Status.PLUGIN_NOT_A_UI_COMPONENT);
         }
         List<PluginDefine> pluginDefines = pluginDefineMapper.queryByPluginType(pluginType.getDesc());
 
         if (CollectionUtils.isEmpty(pluginDefines)) {
-            putMsg(result, Status.QUERY_PLUGINS_RESULT_IS_NULL);
-            return result;
+            return Result.error(Status.QUERY_PLUGINS_RESULT_IS_NULL);
         }
         // pluginDefines=buildPluginParams(pluginDefines);
-        putMsg(result, Status.SUCCESS);
-        result.put(Constants.DATA_LIST, pluginDefines);
-        return result;
+        return Result.success(pluginDefines);
     }
 
     @Override
-    public Map<String, Object> queryUiPluginDetailById(int id) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<PluginDefine> queryUiPluginDetailById(int id) {
         PluginDefine pluginDefine = pluginDefineMapper.queryDetailById(id);
         if (null == pluginDefine) {
-            putMsg(result, Status.QUERY_PLUGIN_DETAIL_RESULT_IS_NULL);
-            return result;
+            return Result.error(Status.QUERY_PLUGIN_DETAIL_RESULT_IS_NULL);
         }
         // String params=pluginDefine.getPluginParams();
         // pluginDefine.setPluginParams(parseParams(params));
-        putMsg(result, Status.SUCCESS);
-        result.put(Constants.DATA_LIST, pluginDefine);
-        return result;
+        return Result.success(pluginDefine);
     }
 
 }

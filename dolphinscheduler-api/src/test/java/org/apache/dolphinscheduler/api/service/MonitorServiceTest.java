@@ -19,6 +19,7 @@ package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.MonitorServiceImpl;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.DbType;
 import org.apache.dolphinscheduler.common.model.Server;
@@ -58,10 +59,10 @@ public class MonitorServiceTest {
     public  void testQueryDatabaseState(){
 
         Mockito.when(monitorDBDao.queryDatabaseState()).thenReturn(getList());
-        Map<String,Object> result = monitorService.queryDatabaseState(null);
+        Result<List<MonitorRecord>> result = monitorService.queryDatabaseState(null);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS,result.get(Constants.STATUS));
-        List<MonitorRecord> monitorRecordList = (List<MonitorRecord>) result.get(Constants.DATA_LIST);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        List<MonitorRecord> monitorRecordList = result.getData();
         Assert.assertTrue(CollectionUtils.isNotEmpty(monitorRecordList));
     }
     @Test

@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.dto.resources.ResourceComponent;
 import org.apache.dolphinscheduler.api.dto.resources.visitor.ResourceTreeVisitor;
 import org.apache.dolphinscheduler.api.enums.Status;
@@ -25,6 +26,7 @@ import org.apache.dolphinscheduler.api.service.UsersService;
 import org.apache.dolphinscheduler.api.utils.CheckUtils;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.Flag;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
@@ -54,7 +56,6 @@ import org.apache.dolphinscheduler.dao.mapper.UserMapper;
 import org.apache.dolphinscheduler.dao.utils.ResourceProcessDefinitionUtils;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -124,31 +125,29 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> createUser(User loginUser,
-                                          String userName,
-                                          String userPassword,
-                                          String email,
-                                          int tenantId,
-                                          String phone,
-                                          String queue,
-                                          int state) throws IOException {
-        Map<String, Object> result = new HashMap<>();
-
+    public Result<Void> createUser(User loginUser,
+                                   String userName,
+                                   String userPassword,
+                                   String email,
+                                   int tenantId,
+                                   String phone,
+                                   String queue,
+                                   int state) throws IOException {
         //check all user params
         String msg = this.checkUserParams(userName, userPassword, email, phone);
-
+        CheckParamResult checkResult = new CheckParamResult();
         if (!StringUtils.isEmpty(msg)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, msg);
-            return result;
+            putMsg(checkResult, Status.REQUEST_PARAMS_NOT_VALID_ERROR, msg);
+            return Result.error(checkResult);
         }
         if (!isAdmin(loginUser)) {
-            putMsg(result, Status.USER_NO_OPERATION_PERM);
-            return result;
+            putMsg(checkResult, Status.USER_NO_OPERATION_PERM);
+            return Result.error(checkResult);
         }
 
         if (!checkTenantExists(tenantId)) {
-            putMsg(result, Status.TENANT_NOT_EXIST);
-            return result;
+            putMsg(checkResult, Status.TENANT_NOT_EXIST);
+            return Result.error(checkResult);
         }
 
         User user = createUser(userName, userPassword, email, tenantId, phone, queue, state);
@@ -164,8 +163,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
             HadoopUtils.getInstance().mkdir(userPath);
         }
 
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
 
     }
 
@@ -309,11 +307,10 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return user list page
      */
     @Override
-    public Map<String, Object> queryUserList(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<PageListVO<User>> queryUserList(User loginUser, String searchVal, Integer pageNo, Integer pageSize) {
 
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         Page<User> page = new Page<>(pageNo, pageSize);
@@ -323,10 +320,8 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
         PageInfo<User> pageInfo = new PageInfo<>(pageNo, pageSize);
         pageInfo.setTotalCount((int) scheduleList.getTotal());
         pageInfo.setLists(scheduleList.getRecords());
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -345,59 +340,51 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @throws Exception exception
      */
     @Override
-    public Map<String, Object> updateUser(User loginUser, int userId,
-                                          String userName,
-                                          String userPassword,
-                                          String email,
-                                          int tenantId,
-                                          String phone,
-                                          String queue,
-                                          int state) throws IOException {
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
+    public Result<Void> updateUser(User loginUser, int userId,
+                                   String userName,
+                                   String userPassword,
+                                   String email,
+                                   int tenantId,
+                                   String phone,
+                                   String queue,
+                                   int state) throws IOException {
 
-        if (check(result, !hasPerm(loginUser, userId), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!hasPerm(loginUser, userId)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            putMsg(result, Status.USER_NOT_EXIST, userId);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, userId);
         }
         if (StringUtils.isNotEmpty(userName)) {
 
             if (!CheckUtils.checkUserName(userName)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
-                return result;
+                return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
             }
 
             User tempUser = userMapper.queryByUserNameAccurately(userName);
             if (tempUser != null && tempUser.getId() != userId) {
-                putMsg(result, Status.USER_NAME_EXIST);
-                return result;
+                return Result.error(Status.USER_NAME_EXIST);
             }
             user.setUserName(userName);
         }
 
         if (StringUtils.isNotEmpty(userPassword)) {
             if (!CheckUtils.checkPassword(userPassword)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, userPassword);
-                return result;
+                return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, userPassword);
             }
             user.setUserPassword(EncryptionUtils.getMd5(userPassword));
         }
 
         if (StringUtils.isNotEmpty(email)) {
             if (!CheckUtils.checkEmail(email)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, email);
-                return result;
+                return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, email);
             }
             user.setEmail(email);
         }
 
         if (StringUtils.isNotEmpty(phone) && !CheckUtils.checkPhone(phone)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, phone);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, phone);
         }
         user.setPhone(phone);
         user.setQueue(queue);
@@ -464,8 +451,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
 
         // updateProcessInstance user
         userMapper.updateById(user);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -477,18 +463,15 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @throws Exception exception when operate hdfs
      */
     @Override
-    public Map<String, Object> deleteUserById(User loginUser, int id) throws IOException {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> deleteUserById(User loginUser, int id) throws IOException {
         //only admin can operate
         if (!isAdmin(loginUser)) {
-            putMsg(result, Status.USER_NO_OPERATION_PERM, id);
-            return result;
+            return Result.errorWithArgs(Status.USER_NO_OPERATION_PERM, id);
         }
         //check exist
         User tempUser = userMapper.selectById(id);
         if (tempUser == null) {
-            putMsg(result, Status.USER_NOT_EXIST, id);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, id);
         }
         // delete user
         User user = userMapper.queryTenantCodeByUserId(id);
@@ -503,9 +486,8 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
         }
 
         userMapper.deleteById(id);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -518,26 +500,23 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Map<String, Object> grantProject(User loginUser, int userId, String projectIds) {
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
+    public Result<Void> grantProject(User loginUser, int userId, String projectIds) {
 
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         //check exist
         User tempUser = userMapper.selectById(userId);
         if (tempUser == null) {
-            putMsg(result, Status.USER_NOT_EXIST, userId);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, userId);
         }
         //if the selected projectIds are empty, delete all items associated with the user
         projectUserMapper.deleteProjectRelation(0, userId);
 
-        if (check(result, StringUtils.isEmpty(projectIds), Status.SUCCESS)) {
-            return result;
+        if (StringUtils.isEmpty(projectIds)) {
+            return Result.success(null);
         }
 
         String[] projectIdArr = projectIds.split(",");
@@ -553,9 +532,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
             projectUserMapper.insert(projectUser);
         }
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -568,16 +545,14 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Map<String, Object> grantResources(User loginUser, int userId, String resourceIds) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> grantResources(User loginUser, int userId, String resourceIds) {
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            putMsg(result, Status.USER_NOT_EXIST, userId);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, userId);
         }
 
         Set<Integer> needAuthorizeResIds = new HashSet<>();
@@ -615,23 +590,21 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
                 for (Integer resId : resourceIdSet) {
                     logger.error("resource id:{} is used of process definition {}", resId, resourceProcessMap.get(resId));
                 }
-                putMsg(result, Status.RESOURCE_IS_USED);
-                return result;
+                return Result.error(Status.RESOURCE_IS_USED);
             }
 
         }
 
         resourceUserMapper.deleteResourceUser(userId, 0);
 
-        if (check(result, StringUtils.isEmpty(resourceIds), Status.SUCCESS)) {
-            return result;
+        if (StringUtils.isEmpty(resourceIds)) {
+            return Result.success(null);
         }
 
         for (int resourceIdValue : needAuthorizeResIds) {
             Resource resource = resourceMapper.selectById(resourceIdValue);
             if (resource == null) {
-                putMsg(result, Status.RESOURCE_NOT_EXIST);
-                return result;
+                return Result.error(Status.RESOURCE_NOT_EXIST);
             }
 
             Date now = new Date();
@@ -650,9 +623,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
 
         }
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -665,23 +636,21 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Map<String, Object> grantUDFFunction(User loginUser, int userId, String udfIds) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> grantUDFFunction(User loginUser, int userId, String udfIds) {
 
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            putMsg(result, Status.USER_NOT_EXIST, userId);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, userId);
         }
 
         udfUserMapper.deleteByUserId(userId);
 
-        if (check(result, StringUtils.isEmpty(udfIds), Status.SUCCESS)) {
-            return result;
+        if (StringUtils.isEmpty(udfIds)) {
+            return Result.success(null);
         }
 
         String[] resourcesIdArr = udfIds.split(",");
@@ -697,9 +666,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
             udfUserMapper.insert(udfUser);
         }
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -712,24 +679,21 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Map<String, Object> grantDataSource(User loginUser, int userId, String datasourceIds) {
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
+    public Result<Void> grantDataSource(User loginUser, int userId, String datasourceIds) {
 
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            putMsg(result, Status.USER_NOT_EXIST, userId);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, userId);
         }
 
         datasourceUserMapper.deleteByUserId(userId);
 
-        if (check(result, StringUtils.isEmpty(datasourceIds), Status.SUCCESS)) {
-            return result;
+        if (StringUtils.isEmpty(datasourceIds)) {
+            return Result.success(null);
         }
 
         String[] datasourceIdArr = datasourceIds.split(",");
@@ -746,9 +710,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
             datasourceUserMapper.insert(datasourceUser);
         }
 
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(null);
     }
 
     /**
@@ -758,9 +720,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return user info
      */
     @Override
-    public Map<String, Object> getUserInfo(User loginUser) {
-
-        Map<String, Object> result = new HashMap<>();
+    public Result<User> getUserInfo(User loginUser) {
 
         User user = null;
         if (loginUser.getUserType() == UserType.ADMIN_USER) {
@@ -781,10 +741,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
             }
         }
 
-        result.put(Constants.DATA_LIST, user);
-
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(user);
     }
 
     /**
@@ -794,18 +751,15 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return user list
      */
     @Override
-    public Map<String, Object> queryAllGeneralUsers(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<User>> queryAllGeneralUsers(User loginUser) {
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<User> userList = userMapper.queryAllGeneralUser();
-        result.put(Constants.DATA_LIST, userList);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(userList);
     }
 
     /**
@@ -815,18 +769,15 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return user list
      */
     @Override
-    public Map<String, Object> queryUserList(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<User>> queryUserList(User loginUser) {
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<User> userList = userMapper.selectList(null);
-        result.put(Constants.DATA_LIST, userList);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(userList);
     }
 
     /**
@@ -857,12 +808,11 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return unauthorize result code
      */
     @Override
-    public Map<String, Object> unauthorizedUser(User loginUser, Integer alertgroupId) {
+    public Result<List<User>> unauthorizedUser(User loginUser, Integer alertgroupId) {
 
-        Map<String, Object> result = new HashMap<>();
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<User> userList = userMapper.selectList(null);
@@ -880,10 +830,8 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
             }
             resultUsers = new ArrayList<>(userSet);
         }
-        result.put(Constants.DATA_LIST, resultUsers);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(resultUsers);
     }
 
     /**
@@ -894,17 +842,14 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return authorized result code
      */
     @Override
-    public Map<String, Object> authorizedUser(User loginUser, Integer alertgroupId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<User>> authorizedUser(User loginUser, Integer alertgroupId) {
         //only admin can operate
-        if (check(result, !isAdmin(loginUser), Status.USER_NO_OPERATION_PERM)) {
-            return result;
+        if (!isAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         List<User> userList = userMapper.queryUserListByAlertGroupId(alertgroupId);
-        result.put(Constants.DATA_LIST, userList);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(userList);
     }
 
     /**
@@ -987,25 +932,20 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      */
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
-    public Map<String, Object> registerUser(String userName, String userPassword, String repeatPassword, String email) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<User> registerUser(String userName, String userPassword, String repeatPassword, String email) {
 
         //check user params
         String msg = this.checkUserParams(userName, userPassword, email, "");
 
         if (!StringUtils.isEmpty(msg)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, msg);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, msg);
         }
 
         if (!userPassword.equals(repeatPassword)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, "two passwords are not same");
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, "two passwords are not same");
         }
         User user = createUser(userName, userPassword, email, 1, "", "", Flag.NO.ordinal());
-        putMsg(result, Status.SUCCESS);
-        result.put(Constants.DATA_LIST, user);
-        return result;
+        return Result.success(user);
     }
 
     /**
@@ -1016,30 +956,24 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return create result code
      */
     @Override
-    public Map<String, Object> activateUser(User loginUser, String userName) {
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.STATUS, false);
+    public Result<User> activateUser(User loginUser, String userName) {
 
         if (!isAdmin(loginUser)) {
-            putMsg(result, Status.USER_NO_OPERATION_PERM);
-            return result;
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         if (!CheckUtils.checkUserName(userName)) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
         }
 
         User user = userMapper.queryByUserNameAccurately(userName);
 
         if (user == null) {
-            putMsg(result, Status.USER_NOT_EXIST, userName);
-            return result;
+            return Result.errorWithArgs(Status.USER_NOT_EXIST, userName);
         }
 
         if (user.getState() != Flag.NO.ordinal()) {
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
-            return result;
+            return Result.errorWithArgs(Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
         }
 
         user.setState(Flag.YES.ordinal());
@@ -1047,9 +981,7 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
         user.setUpdateTime(now);
         userMapper.updateById(user);
         User responseUser = userMapper.queryByUserNameAccurately(userName);
-        putMsg(result, Status.SUCCESS);
-        result.put(Constants.DATA_LIST, responseUser);
-        return result;
+        return Result.success(responseUser);
     }
 
     /**
@@ -1060,12 +992,10 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
      * @return create result code
      */
     @Override
-    public Map<String, Object> batchActivateUser(User loginUser, List<String> userNames) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Map<String, Object>> batchActivateUser(User loginUser, List<String> userNames) {
 
         if (!isAdmin(loginUser)) {
-            putMsg(result, Status.USER_NO_OPERATION_PERM);
-            return result;
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         int totalSuccess = 0;
@@ -1075,14 +1005,12 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
         List<Map<String, String>> failedInfo = new ArrayList<>();
         Map<String, Object> failedRes = new HashMap<>();
         for (String userName : userNames) {
-            Map<String, Object> tmpResult = activateUser(loginUser, userName);
-            if (tmpResult.get(Constants.STATUS) != Status.SUCCESS) {
+            Result<User> tmpResult = activateUser(loginUser, userName);
+            if (tmpResult.getCode() != Status.SUCCESS.getCode()) {
                 totalFailed++;
                 Map<String, String> failedBody = new HashMap<>();
                 failedBody.put("userName", userName);
-                Status status = (Status) tmpResult.get(Constants.STATUS);
-                String errorMessage = MessageFormat.format(status.getMsg(), userName);
-                failedBody.put("msg", errorMessage);
+                failedBody.put("msg", tmpResult.getMsg());
                 failedInfo.add(failedBody);
             } else {
                 totalSuccess++;
@@ -1096,8 +1024,6 @@ public class UsersServiceImpl extends BaseServiceImpl implements UsersService {
         Map<String, Object> res = new HashMap<>();
         res.put("success", successRes);
         res.put("failed", failedRes);
-        putMsg(result, Status.SUCCESS);
-        result.put(Constants.DATA_LIST, res);
-        return result;
+        return Result.success(res);
     }
 }

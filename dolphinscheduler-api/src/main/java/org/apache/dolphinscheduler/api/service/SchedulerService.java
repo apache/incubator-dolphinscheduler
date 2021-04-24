@@ -17,13 +17,16 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.FailureStrategy;
 import org.apache.dolphinscheduler.common.enums.Priority;
 import org.apache.dolphinscheduler.common.enums.ReleaseState;
 import org.apache.dolphinscheduler.common.enums.WarningType;
+import org.apache.dolphinscheduler.dao.entity.Schedule;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * scheduler service
@@ -44,14 +47,14 @@ public interface SchedulerService {
      * @param workerGroup worker group
      * @return create result code
      */
-    Map<String, Object> insertSchedule(User loginUser, String projectName,
-                                       Integer processDefineId,
-                                       String schedule,
-                                       WarningType warningType,
-                                       int warningGroupId,
-                                       FailureStrategy failureStrategy,
-                                       Priority processInstancePriority,
-                                       String workerGroup);
+    Result<Schedule> insertSchedule(User loginUser, String projectName,
+                                    Integer processDefineId,
+                                    String schedule,
+                                    WarningType warningType,
+                                    int warningGroupId,
+                                    FailureStrategy failureStrategy,
+                                    Priority processInstancePriority,
+                                    String workerGroup);
 
     /**
      * updateProcessInstance schedule
@@ -68,7 +71,7 @@ public interface SchedulerService {
      * @param scheduleStatus schedule status
      * @return update result code
      */
-    Map<String, Object> updateSchedule(User loginUser,
+    Result<Void> updateSchedule(User loginUser,
                                        String projectName,
                                        Integer id,
                                        String scheduleExpression,
@@ -89,7 +92,7 @@ public interface SchedulerService {
      * @param scheduleStatus schedule status
      * @return publish result code
      */
-    Map<String, Object> setScheduleState(User loginUser,
+    Result<Void> setScheduleState(User loginUser,
                                          String projectName,
                                          Integer id,
                                          ReleaseState scheduleStatus);
@@ -105,7 +108,7 @@ public interface SchedulerService {
      * @param searchVal search value
      * @return schedule list page
      */
-    Map<String, Object> querySchedule(User loginUser, String projectName, Integer processDefineId, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<Schedule>> querySchedule(User loginUser, String projectName, Integer processDefineId, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * query schedule list
@@ -114,7 +117,7 @@ public interface SchedulerService {
      * @param projectName project name
      * @return schedule list
      */
-    Map<String, Object> queryScheduleList(User loginUser, String projectName);
+    Result<List<Schedule>> queryScheduleList(User loginUser, String projectName);
 
     /**
      * delete schedule
@@ -133,7 +136,7 @@ public interface SchedulerService {
      * @param scheduleId scheule id
      * @return delete result code
      */
-    Map<String, Object> deleteScheduleById(User loginUser, String projectName, Integer scheduleId);
+    Result<Void> deleteScheduleById(User loginUser, String projectName, Integer scheduleId);
 
     /**
      * preview schedule
@@ -143,5 +146,5 @@ public interface SchedulerService {
      * @param schedule schedule expression
      * @return the next five fire time
      */
-    Map<String, Object> previewSchedule(User loginUser, String projectName, String schedule);
+    Result<List<String>> previewSchedule(User loginUser, String projectName, String schedule);
 }

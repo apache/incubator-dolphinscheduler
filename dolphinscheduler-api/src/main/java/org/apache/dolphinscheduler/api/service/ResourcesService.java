@@ -17,13 +17,17 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.resources.ResourceComponent;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.ProgramType;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
+import org.apache.dolphinscheduler.dao.entity.Resource;
+import org.apache.dolphinscheduler.dao.entity.UdfFunc;
 import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -97,7 +101,7 @@ public interface ResourcesService {
      * @param pageSize page size
      * @return resource list page
      */
-    Map<String, Object> queryResourceListPaging(User loginUser, int directoryId, ResourceType type, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<Resource>> queryResourceListPaging(User loginUser, int directoryId, ResourceType type, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * query resource list
@@ -106,7 +110,7 @@ public interface ResourcesService {
      * @param type resource type
      * @return resource list
      */
-    Map<String, Object> queryResourceList(User loginUser, ResourceType type);
+    Result<List<ResourceComponent>> queryResourceList(User loginUser, ResourceType type);
 
     /**
      * query resource list by program type
@@ -115,7 +119,7 @@ public interface ResourcesService {
      * @param type resource type
      * @return resource list
      */
-    Map<String, Object> queryResourceByProgramType(User loginUser, ResourceType type, ProgramType programType);
+    Result<List<ResourceComponent>> queryResourceByProgramType(User loginUser, ResourceType type, ProgramType programType);
 
     /**
      * delete resource
@@ -193,7 +197,7 @@ public interface ResourcesService {
      * @param userId user id
      * @return unauthorized result code
      */
-    Map<String, Object> authorizeResourceTree(User loginUser, Integer userId);
+    Result<List<ResourceComponent>> authorizeResourceTree(User loginUser, Integer userId);
 
     /**
      * unauthorized file
@@ -202,7 +206,7 @@ public interface ResourcesService {
      * @param userId user id
      * @return unauthorized result code
      */
-    Map<String, Object> unauthorizedFile(User loginUser, Integer userId);
+    Result<List<ResourceComponent>> unauthorizedFile(User loginUser, Integer userId);
 
     /**
      * unauthorized udf function
@@ -211,7 +215,7 @@ public interface ResourcesService {
      * @param userId user id
      * @return unauthorized result code
      */
-    Map<String, Object> unauthorizedUDFFunction(User loginUser, Integer userId);
+    Result<List<UdfFunc>> unauthorizedUDFFunction(User loginUser, Integer userId);
 
     /**
      * authorized udf function
@@ -220,7 +224,7 @@ public interface ResourcesService {
      * @param userId user id
      * @return authorized result code
      */
-    Map<String, Object> authorizedUDFFunction(User loginUser, Integer userId);
+    Result<List<UdfFunc>> authorizedUDFFunction(User loginUser, Integer userId);
 
     /**
      * authorized file
@@ -229,6 +233,6 @@ public interface ResourcesService {
      * @param userId user id
      * @return authorized result
      */
-    Map<String, Object> authorizedFile(User loginUser, Integer userId);
+    Result<List<ResourceComponent>> authorizedFile(User loginUser, Integer userId);
 
 }

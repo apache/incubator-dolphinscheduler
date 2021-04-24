@@ -18,10 +18,13 @@
 package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.DbConnectType;
 import org.apache.dolphinscheduler.common.enums.DbType;
+import org.apache.dolphinscheduler.dao.entity.DataSource;
 import org.apache.dolphinscheduler.dao.entity.User;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,13 +36,13 @@ public interface DataSourceService {
      * create data source
      *
      * @param loginUser login user
-     * @param name      data source name
-     * @param desc      data source description
-     * @param type      data source type
+     * @param name data source name
+     * @param desc data source description
+     * @param type data source type
      * @param parameter datasource parameters
      * @return create result code
      */
-    Result<Object> createDataSource(User loginUser, String name, String desc, DbType type, String parameter);
+    Result<Void> createDataSource(User loginUser, String name, String desc, DbType type, String parameter);
 
     /**
      * updateProcessInstance datasource
@@ -52,7 +55,7 @@ public interface DataSourceService {
      * @param id        data source id
      * @return update result code
      */
-    Result<Object> updateDataSource(int id, User loginUser, String name, String desc, DbType type, String parameter);
+    Result<Void> updateDataSource(int id, User loginUser, String name, String desc, DbType type, String parameter);
 
     /**
      * updateProcessInstance datasource
@@ -60,27 +63,27 @@ public interface DataSourceService {
      * @param id datasource id
      * @return data source detail
      */
-    Map<String, Object> queryDataSource(int id);
+    Result<Map<String, Object>> queryDataSource(int id);
 
     /**
      * query datasource list by keyword
      *
      * @param loginUser login user
      * @param searchVal search value
-     * @param pageNo    page number
-     * @param pageSize  page size
+     * @param pageNo page number
+     * @param pageSize page size
      * @return data source list page
      */
-    Map<String, Object> queryDataSourceListPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<DataSource>> queryDataSourceListPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * query data resource list
      *
      * @param loginUser login user
-     * @param type      data source type
+     * @param type data source type
      * @return data source list page
      */
-    Map<String, Object> queryDataSourceList(User loginUser, Integer type);
+    Result<List<DataSource>> queryDataSourceList(User loginUser, Integer type);
 
     /**
      * verify datasource exists
@@ -97,7 +100,7 @@ public interface DataSourceService {
      * @param parameter data source parameters
      * @return true if connect successfully, otherwise false
      */
-    Result<Object> checkConnection(DbType type, String parameter);
+    Result<Void> checkConnection(DbType type, String parameter);
 
     /**
      * test connection
@@ -105,7 +108,7 @@ public interface DataSourceService {
      * @param id datasource id
      * @return connect result code
      */
-    Result<Object> connectionTest(int id);
+    Result<Void> connectionTest(int id);
 
     /**
      * build paramters
@@ -141,7 +144,7 @@ public interface DataSourceService {
      * @param userId    user id
      * @return unauthed data source result code
      */
-    Map<String, Object> unauthDatasource(User loginUser, Integer userId);
+    Result<List<DataSource>> unauthDatasource(User loginUser, Integer userId);
 
     /**
      * authorized datasource
@@ -150,5 +153,5 @@ public interface DataSourceService {
      * @param userId    user id
      * @return authorized result code
      */
-    Map<String, Object> authedDatasource(User loginUser, Integer userId);
+    Result<List<DataSource>> authedDatasource(User loginUser, Integer userId);
 }

@@ -19,9 +19,12 @@ package org.apache.dolphinscheduler.api.service.impl;
 
 import static org.apache.dolphinscheduler.api.utils.CheckUtils.checkDesc;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.ProjectService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
@@ -34,10 +37,8 @@ import org.apache.dolphinscheduler.dao.mapper.ProjectUserMapper;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,18 +71,17 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return returns an error if it exists
      */
     @Override
-    public Map<String, Object> createProject(User loginUser, String name, String desc) {
+    public Result<Integer> createProject(User loginUser, String name, String desc) {
 
-        Map<String, Object> result = new HashMap<>();
-        Map<String, Object> descCheck = checkDesc(desc);
-        if (descCheck.get(Constants.STATUS) != Status.SUCCESS) {
-            return descCheck;
+        CheckParamResult descCheckResult = checkDesc(desc);
+        if (!Status.SUCCESS.equals(descCheckResult.getStatus())) {
+            return Result.error(descCheckResult);
         }
 
         Project project = projectMapper.queryByName(name);
         if (project != null) {
-            putMsg(result, Status.PROJECT_ALREADY_EXISTS, name);
-            return result;
+            putMsg(descCheckResult, Status.PROJECT_ALREADY_EXISTS, name);
+            return Result.error(descCheckResult);
         }
 
         Date now = new Date();
@@ -97,12 +97,11 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
                 .build();
 
         if (projectMapper.insert(project) > 0) {
-            result.put(Constants.DATA_LIST, project.getId());
-            putMsg(result, Status.SUCCESS);
+            return Result.success(project.getId());
         } else {
-            putMsg(result, Status.CREATE_PROJECT_ERROR);
+            putMsg(descCheckResult, Status.CREATE_PROJECT_ERROR);
+            return Result.error(descCheckResult);
         }
-        return result;
     }
 
     /**
@@ -112,18 +111,15 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return project detail information
      */
     @Override
-    public Map<String, Object> queryById(Integer projectId) {
+    public Result<Project> queryById(Integer projectId) {
 
-        Map<String, Object> result = new HashMap<>();
         Project project = projectMapper.selectById(projectId);
 
         if (project != null) {
-            result.put(Constants.DATA_LIST, project);
-            putMsg(result, Status.SUCCESS);
+            return Result.success(project);
         } else {
-            putMsg(result, Status.PROJECT_NOT_FOUNT, projectId);
+            return Result.errorWithArgs(Status.PROJECT_NOT_FOUNT, projectId);
         }
-        return result;
     }
 
     /**
@@ -135,28 +131,28 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return true if the login user have permission to see the project
      */
     @Override
-    public Map<String, Object> checkProjectAndAuth(User loginUser, Project project, String projectName) {
-        Map<String, Object> result = new HashMap<>();
+    public CheckParamResult checkProjectAndAuth(User loginUser, Project project, String projectName) {
+        CheckParamResult checkParamResult = new CheckParamResult();
         if (project == null) {
-            putMsg(result, Status.PROJECT_NOT_FOUNT, projectName);
+            putMsg(checkParamResult, Status.PROJECT_NOT_FOUNT, projectName);
         } else if (!checkReadPermission(loginUser, project)) {
             // check read permission
-            putMsg(result, Status.USER_NO_OPERATION_PROJECT_PERM, loginUser.getUserName(), projectName);
+            putMsg(checkParamResult, Status.USER_NO_OPERATION_PROJECT_PERM, loginUser.getUserName(), projectName);
         } else {
-            putMsg(result, Status.SUCCESS);
+            putMsg(checkParamResult, Status.SUCCESS);
         }
-        return result;
+        return checkParamResult;
     }
 
     @Override
-    public boolean hasProjectAndPerm(User loginUser, Project project, Map<String, Object> result) {
-        boolean checkResult = false;
+    public CheckParamResult hasProjectAndPerm(User loginUser, Project project) {
+        CheckParamResult checkResult = new CheckParamResult();
         if (project == null) {
-            putMsg(result, Status.PROJECT_NOT_FOUNT, "");
+            putMsg(checkResult, Status.PROJECT_NOT_FOUNT, "");
         } else if (!checkReadPermission(loginUser, project)) {
-            putMsg(result, Status.USER_NO_OPERATION_PROJECT_PERM, loginUser.getUserName(), project.getName());
+            putMsg(checkResult, Status.USER_NO_OPERATION_PROJECT_PERM, loginUser.getUserName(), project.getName());
         } else {
-            checkResult = true;
+            checkResult = new CheckParamResult(Status.SUCCESS);
         }
         return checkResult;
     }
@@ -171,8 +167,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return project list which the login user have permission to see
      */
     @Override
-    public Map<String, Object> queryProjectListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<PageListVO<Project>> queryProjectListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal) {
         PageInfo<Project> pageInfo = new PageInfo<>(pageNo, pageSize);
 
         Page<Project> page = new Page<>(pageNo, pageSize);
@@ -188,11 +183,8 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
         }
         pageInfo.setTotalCount((int) projectIPage.getTotal());
         pageInfo.setLists(projectList);
-        result.put(Constants.COUNT, (int) projectIPage.getTotal());
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     /**
@@ -203,32 +195,32 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return delete result code
      */
     @Override
-    public Map<String, Object> deleteProject(User loginUser, Integer projectId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> deleteProject(User loginUser, Integer projectId) {
         Project project = projectMapper.selectById(projectId);
-        Map<String, Object> checkResult = getCheckResult(loginUser, project);
-        if (checkResult != null) {
-            return checkResult;
+        CheckParamResult checkResult = getCheckResult(loginUser, project);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         if (!hasPerm(loginUser, project.getUserId())) {
-            putMsg(result, Status.USER_NO_OPERATION_PERM);
-            return result;
+            putMsg(checkResult, Status.USER_NO_OPERATION_PERM);
+            return Result.error(checkResult);
         }
 
         List<ProcessDefinition> processDefinitionList = processDefinitionMapper.queryAllDefinitionList(projectId);
 
         if (!processDefinitionList.isEmpty()) {
-            putMsg(result, Status.DELETE_PROJECT_ERROR_DEFINES_NOT_NULL);
-            return result;
+            putMsg(checkResult, Status.DELETE_PROJECT_ERROR_DEFINES_NOT_NULL);
+            return Result.error(checkResult);
         }
         int delete = projectMapper.deleteById(projectId);
         if (delete > 0) {
-            putMsg(result, Status.SUCCESS);
+            putMsg(checkResult, Status.SUCCESS);
+            return Result.success(null);
         } else {
-            putMsg(result, Status.DELETE_PROJECT_ERROR);
+            putMsg(checkResult, Status.DELETE_PROJECT_ERROR);
+            return Result.error(checkResult);
         }
-        return result;
     }
 
     /**
@@ -238,14 +230,9 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @param project project
      * @return check result
      */
-    private Map<String, Object> getCheckResult(User loginUser, Project project) {
+    private CheckParamResult getCheckResult(User loginUser, Project project) {
         String projectName = project == null ? null : project.getName();
-        Map<String, Object> checkResult = checkProjectAndAuth(loginUser, project, projectName);
-        Status status = (Status) checkResult.get(Constants.STATUS);
-        if (status != Status.SUCCESS) {
-            return checkResult;
-        }
-        return null;
+        return checkProjectAndAuth(loginUser, project, projectName);
     }
 
     /**
@@ -258,23 +245,22 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return update result code
      */
     @Override
-    public Map<String, Object> update(User loginUser, Integer projectId, String projectName, String desc) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> update(User loginUser, Integer projectId, String projectName, String desc) {
 
-        Map<String, Object> descCheck = checkDesc(desc);
-        if (descCheck.get(Constants.STATUS) != Status.SUCCESS) {
-            return descCheck;
+        CheckParamResult checkParamResult = checkDesc(desc);
+        if (!Status.SUCCESS.equals(checkParamResult.getStatus())) {
+            return Result.error(checkParamResult);
         }
 
         Project project = projectMapper.selectById(projectId);
-        boolean hasProjectAndPerm = hasProjectAndPerm(loginUser, project, result);
-        if (!hasProjectAndPerm) {
-            return result;
+        CheckParamResult hasProjectAndPerm = hasProjectAndPerm(loginUser, project);
+        if (!Status.SUCCESS.equals(hasProjectAndPerm.getStatus())) {
+            return Result.error(hasProjectAndPerm);
         }
         Project tempProject = projectMapper.queryByName(projectName);
         if (tempProject != null && tempProject.getId() != projectId) {
-            putMsg(result, Status.PROJECT_ALREADY_EXISTS, projectName);
-            return result;
+            putMsg(hasProjectAndPerm, Status.PROJECT_ALREADY_EXISTS, projectName);
+            return Result.error(hasProjectAndPerm);
         }
         project.setName(projectName);
         project.setDescription(desc);
@@ -282,11 +268,11 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 
         int update = projectMapper.updateById(project);
         if (update > 0) {
-            putMsg(result, Status.SUCCESS);
+            return Result.success(null);
         } else {
-            putMsg(result, Status.UPDATE_PROJECT_ERROR);
+            putMsg(hasProjectAndPerm, Status.UPDATE_PROJECT_ERROR);
+            return Result.error(hasProjectAndPerm);
         }
-        return result;
     }
 
 
@@ -298,10 +284,9 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return the projects which user have not permission to see
      */
     @Override
-    public Map<String, Object> queryUnauthorizedProject(User loginUser, Integer userId) {
-        Map<String, Object> result = new HashMap<>();
-        if (loginUser.getId() != userId && isNotAdmin(loginUser, result)) {
-            return result;
+    public Result<List<Project>> queryUnauthorizedProject(User loginUser, Integer userId) {
+        if (loginUser.getId() != userId && isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
         /**
          * query all project list except specified userId
@@ -316,9 +301,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 
             resultList = getUnauthorizedProjects(projectSet, authedProjectList);
         }
-        result.put(Constants.DATA_LIST, resultList);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(resultList);
     }
 
     /**
@@ -349,18 +332,15 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return projects which the user have permission to see, Except for items created by this user
      */
     @Override
-    public Map<String, Object> queryAuthorizedProject(User loginUser, Integer userId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Project>> queryAuthorizedProject(User loginUser, Integer userId) {
 
-        if (loginUser.getId() != userId && isNotAdmin(loginUser, result)) {
-            return result;
+        if (loginUser.getId() != userId && isNotAdmin(loginUser)) {
+            return Result.error(Status.USER_NO_OPERATION_PERM);
         }
 
         List<Project> projects = projectMapper.queryAuthedProjectListByUserId(userId);
-        result.put(Constants.DATA_LIST, projects);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(projects);
     }
 
     /**
@@ -370,14 +350,11 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return projects which the user have permission to see, Except for items created by this user
      */
     @Override
-    public Map<String, Object> queryProjectCreatedByUser(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Project>> queryProjectCreatedByUser(User loginUser) {
 
         List<Project> projects = projectMapper.queryProjectCreatedByUser(loginUser.getId());
-        result.put(Constants.DATA_LIST, projects);
-        putMsg(result, Status.SUCCESS);
 
-        return result;
+        return Result.success(projects);
     }
 
     /**
@@ -387,8 +364,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return
      */
     @Override
-    public Map<String, Object> queryProjectCreatedAndAuthorizedByUser(User loginUser) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Project>> queryProjectCreatedAndAuthorizedByUser(User loginUser) {
 
         List<Project> projects = null;
         if (loginUser.getUserType() == UserType.ADMIN_USER) {
@@ -397,10 +373,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
             projects = projectMapper.queryProjectCreatedAndAuthorizedByUserId(loginUser.getId());
         }
 
-        result.put(Constants.DATA_LIST, projects);
-        putMsg(result, Status.SUCCESS);
-
-        return result;
+        return Result.success(projects);
     }
 
     /**
@@ -447,13 +420,10 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      * @return project list
      */
     @Override
-    public Map<String, Object> queryAllProjectList() {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<Project>> queryAllProjectList() {
         List<Project> projects = projectMapper.queryAllProject();
 
-        result.put(Constants.DATA_LIST, projects);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(projects);
     }
 
 }

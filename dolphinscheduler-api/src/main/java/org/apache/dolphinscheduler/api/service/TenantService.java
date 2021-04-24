@@ -18,9 +18,11 @@
 package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
+import org.apache.dolphinscheduler.dao.entity.Tenant;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * tenant service
@@ -37,10 +39,10 @@ public interface TenantService {
      * @return create result code
      * @throws Exception exception
      */
-    Map<String, Object> createTenant(User loginUser,
-                                     String tenantCode,
-                                     int queueId,
-                                     String desc) throws Exception;
+    Result<Void> createTenant(User loginUser,
+                              String tenantCode,
+                              int queueId,
+                              String desc) throws Exception;
 
     /**
      * query tenant list paging
@@ -51,7 +53,7 @@ public interface TenantService {
      * @param pageSize page size
      * @return tenant list page
      */
-    Map<String, Object> queryTenantList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<Tenant>> queryTenantList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * updateProcessInstance tenant
@@ -64,7 +66,7 @@ public interface TenantService {
      * @return update result code
      * @throws Exception exception
      */
-    Map<String, Object> updateTenant(User loginUser, int id, String tenantCode, int queueId,
+    Result<Void> updateTenant(User loginUser, int id, String tenantCode, int queueId,
             String desc) throws Exception;
 
     /**
@@ -75,7 +77,7 @@ public interface TenantService {
      * @return delete result code
      * @throws Exception exception
      */
-    Map<String, Object> deleteTenantById(User loginUser, int id) throws Exception;
+    Result<Void> deleteTenantById(User loginUser, int id) throws Exception;
 
     /**
      * query tenant list
@@ -83,7 +85,7 @@ public interface TenantService {
      * @param loginUser login user
      * @return tenant list
      */
-    Map<String, Object> queryTenantList(User loginUser);
+    Result<List<Tenant>> queryTenantList(User loginUser);
 
     /**
      * verify tenant code
@@ -91,5 +93,5 @@ public interface TenantService {
      * @param tenantCode tenant code
      * @return true if tenant code can user, otherwise return false
      */
-    Result verifyTenantCode(String tenantCode);
+    Result<Void> verifyTenantCode(String tenantCode);
 }

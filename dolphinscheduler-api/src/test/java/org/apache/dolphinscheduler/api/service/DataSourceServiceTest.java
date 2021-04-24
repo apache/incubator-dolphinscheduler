@@ -20,6 +20,7 @@ package org.apache.dolphinscheduler.api.service;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.DataSourceServiceImpl;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.DbConnectType;
 import org.apache.dolphinscheduler.common.enums.DbType;
@@ -162,8 +163,8 @@ public class DataSourceServiceTest {
         String searchVal = "";
         int pageNo = 1;
         int pageSize = 10;
-        Map<String, Object> success = dataSourceService.queryDataSourceListPaging(loginUser, searchVal, pageNo, pageSize);
-        Assert.assertEquals(Status.SUCCESS, success.get(Constants.STATUS));
+        Result<PageListVO<DataSource>> pageListVOResult = dataSourceService.queryDataSourceListPaging(loginUser, searchVal, pageNo, pageSize);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) pageListVOResult.getCode());
     }
 
     @Test
@@ -206,13 +207,13 @@ public class DataSourceServiceTest {
         int userId = -1;
 
         //user no operation perm
-        Map<String, Object> noOperationPerm = dataSourceService.unauthDatasource(loginUser, userId);
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, noOperationPerm.get(Constants.STATUS));
+        Result<List<DataSource>> result = dataSourceService.unauthDatasource(loginUser, userId);
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
 
         //success
         loginUser.setUserType(UserType.ADMIN_USER);
-        Map<String, Object> success = dataSourceService.unauthDatasource(loginUser, userId);
-        Assert.assertEquals(Status.SUCCESS, success.get(Constants.STATUS));
+        Result<List<DataSource>> success = dataSourceService.unauthDatasource(loginUser, userId);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) success.getCode());
     }
 
     @Test
@@ -221,21 +222,21 @@ public class DataSourceServiceTest {
         int userId = -1;
 
         //user no operation perm
-        Map<String, Object> noOperationPerm = dataSourceService.authedDatasource(loginUser, userId);
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, noOperationPerm.get(Constants.STATUS));
+        Result<List<DataSource>> noOperationPerm = dataSourceService.authedDatasource(loginUser, userId);
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) noOperationPerm.getCode());
 
         //success
         loginUser.setUserType(UserType.ADMIN_USER);
-        Map<String, Object> success = dataSourceService.authedDatasource(loginUser, userId);
-        Assert.assertEquals(Status.SUCCESS, success.get(Constants.STATUS));
+        Result<List<DataSource>> success = dataSourceService.authedDatasource(loginUser, userId);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) success.getCode());
     }
 
     @Test
     public void queryDataSourceListTest() {
         User loginUser = new User();
         loginUser.setUserType(UserType.GENERAL_USER);
-        Map<String, Object> map = dataSourceService.queryDataSourceList(loginUser, DbType.MYSQL.ordinal());
-        Assert.assertEquals(Status.SUCCESS, map.get(Constants.STATUS));
+        Result<List<DataSource>> result = dataSourceService.queryDataSourceList(loginUser, DbType.MYSQL.ordinal());
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
@@ -251,12 +252,12 @@ public class DataSourceServiceTest {
     @Test
     public void queryDataSourceTest() {
         PowerMockito.when(dataSourceMapper.selectById(Mockito.anyInt())).thenReturn(null);
-        Map<String, Object> result = dataSourceService.queryDataSource(Mockito.anyInt());
-        Assert.assertEquals(((Status) result.get(Constants.STATUS)).getCode(), Status.RESOURCE_NOT_EXIST.getCode());
+        Result<Map<String, Object>> result = dataSourceService.queryDataSource(Mockito.anyInt());
+        Assert.assertEquals(Status.RESOURCE_NOT_EXIST.getCode(), (int) result.getCode());
 
         PowerMockito.when(dataSourceMapper.selectById(Mockito.anyInt())).thenReturn(getOracleDataSource());
         result = dataSourceService.queryDataSource(Mockito.anyInt());
-        Assert.assertEquals(((Status) result.get(Constants.STATUS)).getCode(), Status.SUCCESS.getCode());
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     private List<DataSource> getDataSourceList() {

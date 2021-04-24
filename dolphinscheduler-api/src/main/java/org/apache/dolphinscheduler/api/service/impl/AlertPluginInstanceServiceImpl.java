@@ -20,8 +20,9 @@ package org.apache.dolphinscheduler.api.service.impl;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.AlertPluginInstanceService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.api.vo.AlertPluginInstanceVO;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.utils.BooleanUtils;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
@@ -35,7 +36,6 @@ import org.apache.dolphinscheduler.spi.params.PluginParamsTransfer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,28 +74,23 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
      * @param pluginInstanceParams plugin instance params
      */
     @Override
-    public Map<String, Object> create(User loginUser, int pluginDefineId, String instanceName, String pluginInstanceParams) {
+    public Result<Void> create(User loginUser, int pluginDefineId, String instanceName, String pluginInstanceParams) {
         AlertPluginInstance alertPluginInstance = new AlertPluginInstance();
         String paramsMapJson = parsePluginParamsMap(pluginInstanceParams);
         alertPluginInstance.setPluginInstanceParams(paramsMapJson);
         alertPluginInstance.setInstanceName(instanceName);
         alertPluginInstance.setPluginDefineId(pluginDefineId);
 
-        Map<String, Object> result = new HashMap<>();
-
         if (BooleanUtils.isTrue(alertPluginInstanceMapper.existInstanceName(alertPluginInstance.getInstanceName()))) {
-            putMsg(result, Status.PLUGIN_INSTANCE_ALREADY_EXIT);
-            return result;
+            return Result.error(Status.PLUGIN_INSTANCE_ALREADY_EXIT);
         }
 
         int i = alertPluginInstanceMapper.insert(alertPluginInstance);
 
         if (i > 0) {
-            putMsg(result, Status.SUCCESS);
-            return result;
+            return Result.success(null);
         }
-        putMsg(result, Status.SAVE_ERROR);
-        return result;
+        return Result.error(Status.SAVE_ERROR);
     }
 
     /**
@@ -107,22 +102,19 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
      * @param pluginInstanceParams plugin instance params
      */
     @Override
-    public Map<String, Object> update(User loginUser, int pluginInstanceId, String instanceName, String pluginInstanceParams) {
+    public Result<Void> update(User loginUser, int pluginInstanceId, String instanceName, String pluginInstanceParams) {
 
         AlertPluginInstance alertPluginInstance = new AlertPluginInstance();
         String paramsMapJson = parsePluginParamsMap(pluginInstanceParams);
         alertPluginInstance.setPluginInstanceParams(paramsMapJson);
         alertPluginInstance.setInstanceName(instanceName);
         alertPluginInstance.setId(pluginInstanceId);
-        Map<String, Object> result = new HashMap<>();
         int i = alertPluginInstanceMapper.updateById(alertPluginInstance);
 
         if (i > 0) {
-            putMsg(result, Status.SUCCESS);
-            return result;
+            return Result.success(null);
         }
-        putMsg(result, Status.SAVE_ERROR);
-        return result;
+        return Result.error(Status.SAVE_ERROR);
     }
 
     /**
@@ -133,21 +125,19 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
      * @return result
      */
     @Override
-    public Map<String, Object> delete(User loginUser, int id) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Void> delete(User loginUser, int id) {
         //check if there is an associated alert group
         boolean hasAssociatedAlertGroup = checkHasAssociatedAlertGroup(String.valueOf(id));
         if (hasAssociatedAlertGroup) {
-            putMsg(result, Status.DELETE_ALERT_PLUGIN_INSTANCE_ERROR_HAS_ALERT_GROUP_ASSOCIATED);
-            return result;
+            return Result.error(Status.DELETE_ALERT_PLUGIN_INSTANCE_ERROR_HAS_ALERT_GROUP_ASSOCIATED);
         }
 
         int i = alertPluginInstanceMapper.deleteById(id);
         if (i > 0) {
-            putMsg(result, Status.SUCCESS);
+            return Result.success(null);
         }
 
-        return result;
+        return new Result<>();
     }
 
     /**
@@ -158,28 +148,24 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
      * @return alert plugin
      */
     @Override
-    public Map<String, Object> get(User loginUser, int id) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<AlertPluginInstance> get(User loginUser, int id) {
         AlertPluginInstance alertPluginInstance = alertPluginInstanceMapper.selectById(id);
 
         if (null != alertPluginInstance) {
-            putMsg(result, Status.SUCCESS);
-            result.put(Constants.DATA_LIST, alertPluginInstance);
+            return Result.success(alertPluginInstance);
         }
 
-        return result;
+        return new Result<>();
     }
 
     @Override
-    public Map<String, Object> queryAll() {
-        Map<String, Object> result = new HashMap<>();
+    public Result<List<AlertPluginInstanceVO>> queryAll() {
         List<AlertPluginInstance> alertPluginInstances = alertPluginInstanceMapper.queryAllAlertPluginInstanceList();
         List<AlertPluginInstanceVO> alertPluginInstanceVOS = buildPluginInstanceVOList(alertPluginInstances);
         if (null != alertPluginInstances) {
-            putMsg(result, Status.SUCCESS);
-            result.put(Constants.DATA_LIST, alertPluginInstanceVOS);
+            return Result.success(alertPluginInstanceVOS);
         }
-        return result;
+        return new Result<>();
     }
 
     @Override
@@ -188,17 +174,14 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
     }
 
     @Override
-    public Map<String, Object> queryPluginPage(int pageIndex, int pageSize) {
+    public Result<PageListVO<AlertPluginInstanceVO>> queryPluginPage(int pageIndex, int pageSize) {
         IPage<AlertPluginInstance> pluginInstanceIPage = new Page<>(pageIndex, pageSize);
         pluginInstanceIPage = alertPluginInstanceMapper.selectPage(pluginInstanceIPage, null);
 
         PageInfo<AlertPluginInstanceVO> pageInfo = new PageInfo<>(pageIndex, pageSize);
         pageInfo.setTotalCount((int) pluginInstanceIPage.getTotal());
         pageInfo.setLists(buildPluginInstanceVOList(pluginInstanceIPage.getRecords()));
-        Map<String, Object> result = new HashMap<>();
-        result.put(Constants.DATA_LIST, pageInfo);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(new PageListVO<>(pageInfo));
     }
 
     private List<AlertPluginInstanceVO> buildPluginInstanceVOList(List<AlertPluginInstance> alertPluginInstances) {

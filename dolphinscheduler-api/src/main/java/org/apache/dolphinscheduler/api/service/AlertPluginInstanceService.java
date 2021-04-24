@@ -17,9 +17,13 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.AlertPluginInstanceVO;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
+import org.apache.dolphinscheduler.dao.entity.AlertPluginInstance;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * alert plugin instance service
@@ -35,7 +39,7 @@ public interface AlertPluginInstanceService {
      * @param pluginInstanceParams plugin instance params
      * @return result
      */
-    Map<String, Object> create(User loginUser,int pluginDefineId,String instanceName,String pluginInstanceParams);
+    Result<Void> create(User loginUser,int pluginDefineId,String instanceName,String pluginInstanceParams);
 
     /**
      * update
@@ -45,7 +49,7 @@ public interface AlertPluginInstanceService {
      * @param pluginInstanceParams plugin instance params
      * @return result
      */
-    Map<String, Object> update(User loginUser, int alertPluginInstanceId,String instanceName,String pluginInstanceParams);
+    Result<Void> update(User loginUser, int alertPluginInstanceId,String instanceName,String pluginInstanceParams);
 
     /**
      * delete alert plugin instance
@@ -54,7 +58,7 @@ public interface AlertPluginInstanceService {
      * @param id id
      * @return result
      */
-    Map<String, Object> delete(User loginUser, int id);
+    Result<Void> delete(User loginUser, int id);
 
     /**
      * get alert plugin instance
@@ -63,14 +67,14 @@ public interface AlertPluginInstanceService {
      * @param id get id
      * @return alert plugin
      */
-    Map<String, Object> get(User loginUser, int id);
+    Result<AlertPluginInstance> get(User loginUser, int id);
 
     /**
      * queryAll
      *
      * @return alert plugins
      */
-    Map<String, Object> queryAll();
+    Result<List<AlertPluginInstanceVO>> queryAll();
 
     /**
      * checkExistPluginInstanceName
@@ -81,9 +85,10 @@ public interface AlertPluginInstanceService {
 
     /**
      * queryPluginPage
+     *
      * @param pageIndex page index
-     * @param pageSize  page size
+     * @param pageSize page size
      * @return plugins
      */
-    Map<String, Object> queryPluginPage(int pageIndex,int pageSize);
+    Result<PageListVO<AlertPluginInstanceVO>> queryPluginPage(int pageIndex, int pageSize);
 }

@@ -17,6 +17,8 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
+import org.apache.dolphinscheduler.api.dto.CheckParamResultWithInfo;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.BaseService;
 import org.apache.dolphinscheduler.api.utils.Result;
@@ -58,13 +60,9 @@ public class BaseServiceImpl implements BaseService {
      * @return true if not administrator, otherwise false
      */
     @Override
-    public boolean isNotAdmin(User loginUser, Map<String, Object> result) {
+    public boolean isNotAdmin(User loginUser) {
         //only admin can operate
-        if (!isAdmin(loginUser)) {
-            putMsg(result, Status.USER_NO_OPERATION_PERM);
-            return true;
-        }
-        return false;
+        return !isAdmin(loginUser);
     }
 
     /**
@@ -75,12 +73,12 @@ public class BaseServiceImpl implements BaseService {
      * @param statusParams status message
      */
     @Override
-    public void putMsg(Map<String, Object> result, Status status, Object... statusParams) {
-        result.put(Constants.STATUS, status);
+    public void putMsg(CheckParamResult checkParamResult, Status status, Object... statusParams) {
+        checkParamResult.setStatus(status);
         if (statusParams != null && statusParams.length > 0) {
-            result.put(Constants.MSG, MessageFormat.format(status.getMsg(), statusParams));
+            checkParamResult.setMsg(MessageFormat.format(status.getMsg(), statusParams));
         } else {
-            result.put(Constants.MSG, status.getMsg());
+            checkParamResult.setMsg(status.getMsg());
         }
     }
 
@@ -151,33 +149,36 @@ public class BaseServiceImpl implements BaseService {
      *
      * @param startDateStr start date string
      * @param endDateStr end date string
-     * @return map<status,startDate,endDate>
+     * @return map<status, startDate, endDate>
      */
     @Override
-    public Map<String, Object> checkAndParseDateParameters(String startDateStr, String endDateStr) {
-        Map<String, Object> result = new HashMap<>();
+    public CheckParamResultWithInfo<Map<String, Date>> checkAndParseDateParameters(String startDateStr, String endDateStr) {
+        CheckParamResultWithInfo<Map<String, Date>> checkResult = new CheckParamResultWithInfo<>();
         Date start = null;
         if (StringUtils.isNotEmpty(startDateStr)) {
             start = DateUtils.getScheduleDate(startDateStr);
             if (Objects.isNull(start)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
-                return result;
+                putMsg(checkResult, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
+                return checkResult;
             }
         }
-        result.put(Constants.START_TIME, start);
 
         Date end = null;
         if (StringUtils.isNotEmpty(endDateStr)) {
             end = DateUtils.getScheduleDate(endDateStr);
             if (Objects.isNull(end)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
-                return result;
+                putMsg(checkResult, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
+                return checkResult;
             }
         }
-        result.put(Constants.END_TIME, end);
 
-        putMsg(result, Status.SUCCESS);
-        return result;
+        putMsg(checkResult, Status.SUCCESS);
+        // todo improve
+        Map<String, Date> timeParseMap = new HashMap<>();
+        timeParseMap.put(Constants.START_TIME, start);
+        timeParseMap.put(Constants.END_TIME, end);
+        checkResult.setInfo(timeParseMap);
+        return checkResult;
     }
 
 }

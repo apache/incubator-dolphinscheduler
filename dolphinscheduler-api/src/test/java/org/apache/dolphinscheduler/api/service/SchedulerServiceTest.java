@@ -17,10 +17,11 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.ProjectServiceImpl;
 import org.apache.dolphinscheduler.api.service.impl.SchedulerServiceImpl;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.enums.ReleaseState;
 import org.apache.dolphinscheduler.common.model.Server;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
@@ -33,9 +34,7 @@ import org.apache.dolphinscheduler.service.process.ProcessService;
 import org.apache.dolphinscheduler.service.quartz.QuartzExecutors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -96,7 +95,7 @@ public class SchedulerServiceTest {
         String projectName = "test";
         User loginUser = new User();
         loginUser.setId(1);
-        Map<String, Object> result = new HashMap<String, Object>();
+        Result<Void> result = null;
         Project project = getProject(projectName);
 
 
@@ -115,47 +114,48 @@ public class SchedulerServiceTest {
         Mockito.when(projectMapper.queryByName(projectName)).thenReturn(project);
 
         Mockito.when(processService.findProcessDefineById(1)).thenReturn(processDefinition);
-
+        Mockito.when(projectService.hasProjectAndPerm(loginUser, project)).thenReturn(new CheckParamResult(Status.USER_NO_OPERATION_PERM));
         //hash no auth
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.ONLINE);
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
 
-        Mockito.when(projectService.hasProjectAndPerm(loginUser, project, result)).thenReturn(true);
+        Mockito.when(projectService.hasProjectAndPerm(loginUser, project)).thenReturn(new CheckParamResult(Status.SUCCESS));
         //schedule not exists
         result = schedulerService.setScheduleState(loginUser, projectName, 2, ReleaseState.ONLINE);
-        Assert.assertEquals(Status.SCHEDULE_CRON_NOT_EXISTS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SCHEDULE_CRON_NOT_EXISTS.getCode(), (int) result.getCode());
 
         //SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.OFFLINE);
-        Assert.assertEquals(Status.SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SCHEDULE_CRON_REALEASE_NEED_NOT_CHANGE.getCode(), (int) result.getCode());
 
         //PROCESS_DEFINE_NOT_EXIST
         schedule.setProcessDefinitionId(2);
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.ONLINE);
-        Assert.assertEquals(Status.PROCESS_DEFINE_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.PROCESS_DEFINE_NOT_EXIST.getCode(), (int) result.getCode());
         schedule.setProcessDefinitionId(1);
 
         // PROCESS_DEFINE_NOT_RELEASE
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.ONLINE);
-        Assert.assertEquals(Status.PROCESS_DEFINE_NOT_RELEASE, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.PROCESS_DEFINE_NOT_RELEASE.getCode(), (int) result.getCode());
 
         processDefinition.setReleaseState(ReleaseState.ONLINE);
         Mockito.when(processService.findProcessDefineById(1)).thenReturn(processDefinition);
 
         //MASTER_NOT_EXISTS
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.ONLINE);
-        Assert.assertEquals(Status.MASTER_NOT_EXISTS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.MASTER_NOT_EXISTS.getCode(), (int) result.getCode());
 
         //set master
         Mockito.when(monitorService.getServerListFromZK(true)).thenReturn(masterServers);
 
         //SUCCESS
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.ONLINE);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
         //OFFLINE
         Mockito.when(quartzExecutors.deleteJob(null, null)).thenReturn(true);
         result = schedulerService.setScheduleState(loginUser, projectName, 1, ReleaseState.OFFLINE);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 

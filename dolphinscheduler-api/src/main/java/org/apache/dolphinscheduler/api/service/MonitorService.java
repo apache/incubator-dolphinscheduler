@@ -17,11 +17,15 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.model.Server;
+import org.apache.dolphinscheduler.common.model.WorkerServerModel;
+import org.apache.dolphinscheduler.dao.entity.MonitorRecord;
 import org.apache.dolphinscheduler.dao.entity.User;
+import org.apache.dolphinscheduler.dao.entity.ZookeeperRecord;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * monitor service
@@ -34,31 +38,31 @@ public interface MonitorService {
      * @param loginUser login user
      * @return data base state
      */
-    Map<String,Object> queryDatabaseState(User loginUser);
-    
+    Result<List<MonitorRecord>> queryDatabaseState(User loginUser);
+
     /**
      * query master list
      *
      * @param loginUser login user
      * @return master information list
      */
-    Map<String,Object> queryMaster(User loginUser);
-    
+    Result<List<Server>> queryMaster(User loginUser);
+
     /**
      * query zookeeper state
      *
      * @param loginUser login user
      * @return zookeeper information list
      */
-    Map<String,Object> queryZookeeperState(User loginUser);
-    
+    Result<List<ZookeeperRecord>> queryZookeeperState(User loginUser);
+
     /**
      * query worker list
      *
      * @param loginUser login user
      * @return worker information list
      */
-    Map<String,Object> queryWorker(User loginUser);
-    
+    Result<Collection<WorkerServerModel>> queryWorker(User loginUser);
+
     List<Server> getServerListFromZK(boolean isMaster);
 }

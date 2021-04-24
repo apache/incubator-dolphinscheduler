@@ -19,7 +19,8 @@ package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.AlertPluginInstanceServiceImpl;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.AlertPluginInstanceVO;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.dao.entity.AlertPluginInstance;
 import org.apache.dolphinscheduler.dao.entity.PluginDefine;
@@ -158,33 +159,33 @@ public class AlertPluginInstanceServiceTest {
     @Test
     public void testCreate() {
         Mockito.when(alertPluginInstanceMapper.existInstanceName("test")).thenReturn(true);
-        Map<String, Object> result = alertPluginInstanceService.create(user, 1, "test", uiParams);
-        Assert.assertEquals(Status.PLUGIN_INSTANCE_ALREADY_EXIT, result.get(Constants.STATUS));
+        Result<Void> result = alertPluginInstanceService.create(user, 1, "test", uiParams);
+        Assert.assertEquals(Status.PLUGIN_INSTANCE_ALREADY_EXIT.getCode(), (int) result.getCode());
         Mockito.when(alertPluginInstanceMapper.insert(Mockito.any())).thenReturn(1);
         result = alertPluginInstanceService.create(user, 1, "test1", uiParams);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
     public void testDelete() {
         List<String> ids = Arrays.asList("11,2,3", null, "98,1");
         Mockito.when(alertGroupMapper.queryInstanceIdsList()).thenReturn(ids);
-        Map<String, Object> result = alertPluginInstanceService.delete(user, 1);
-        Assert.assertEquals(Status.DELETE_ALERT_PLUGIN_INSTANCE_ERROR_HAS_ALERT_GROUP_ASSOCIATED, result.get(Constants.STATUS));
+        Result<Void> result = alertPluginInstanceService.delete(user, 1);
+        Assert.assertEquals(Status.DELETE_ALERT_PLUGIN_INSTANCE_ERROR_HAS_ALERT_GROUP_ASSOCIATED.getCode(), (int) result.getCode());
         Mockito.when(alertPluginInstanceMapper.deleteById(9)).thenReturn(1);
         result = alertPluginInstanceService.delete(user, 9);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 
     @Test
     public void testUpdate() {
         Mockito.when(alertPluginInstanceMapper.updateById(Mockito.any())).thenReturn(0);
-        Map<String, Object> result = alertPluginInstanceService.update(user, 1, "testUpdate", uiParams);
-        Assert.assertEquals(Status.SAVE_ERROR, result.get(Constants.STATUS));
+        Result<Void> result = alertPluginInstanceService.update(user, 1, "testUpdate", uiParams);
+        Assert.assertEquals(Status.SAVE_ERROR.getCode(), (int) result.getCode());
         Mockito.when(alertPluginInstanceMapper.updateById(Mockito.any())).thenReturn(1);
         result = alertPluginInstanceService.update(user, 1, "testUpdate", uiParams);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
@@ -200,8 +201,8 @@ public class AlertPluginInstanceServiceTest {
         List<AlertPluginInstance> pluginInstanceList = Collections.singletonList(alertPluginInstance);
         Mockito.when(alertPluginInstanceMapper.queryAllAlertPluginInstanceList()).thenReturn(pluginInstanceList);
         Mockito.when(pluginDefineMapper.queryAllPluginDefineList()).thenReturn(pluginDefines);
-        Map<String, Object> result = alertPluginInstanceService.queryAll();
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Result<List<AlertPluginInstanceVO>> result = alertPluginInstanceService.queryAll();
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
 }

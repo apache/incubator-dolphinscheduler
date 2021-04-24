@@ -30,13 +30,11 @@ import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.TaskInstanceService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
-import org.apache.dolphinscheduler.dao.entity.TaskInstance;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -64,18 +62,16 @@ public class TaskInstanceControllerTest extends AbstractControllerTest {
     @Test
     public void testQueryTaskListPaging() {
 
-        Map<String,Object> result = new HashMap<>();
         Integer pageNo = 1;
         Integer pageSize = 20;
-        PageInfo pageInfo = new PageInfo<TaskInstance>(pageNo, pageSize);
-        result.put(Constants.DATA_LIST, pageInfo);
-        result.put(Constants.STATUS, Status.SUCCESS);
+        PageInfo<Map<String, Object>> pageInfo = new PageInfo<>(pageNo, pageSize);
+        Result<PageListVO<Map<String, Object>>> result = Result.success(new PageListVO<>(pageInfo));
 
-        when(taskInstanceService.queryTaskListPaging(any(), eq(""),  eq(1), eq(""), eq(""), eq(""),any(), any(),
+        when(taskInstanceService.queryTaskListPaging(any(), eq(""), eq(1), eq(""), eq(""), eq(""), any(), any(),
                 eq(""), Mockito.any(), eq("192.168.xx.xx"), any(), any())).thenReturn(result);
-        Result taskResult = taskInstanceController.queryTaskListPaging(null, "", 1, "", "",
-                "", "", ExecutionStatus.SUCCESS,"192.168.xx.xx", "2020-01-01 00:00:00", "2020-01-02 00:00:00",pageNo, pageSize);
-        Assert.assertEquals(Integer.valueOf(Status.SUCCESS.getCode()), taskResult.getCode());
+        result = taskInstanceController.queryTaskListPaging(null, "", 1, "", "",
+                "", "", ExecutionStatus.SUCCESS, "192.168.xx.xx", "2020-01-01 00:00:00", "2020-01-02 00:00:00", pageNo, pageSize);
+        Assert.assertEquals(Integer.valueOf(Status.SUCCESS.getCode()), result.getCode());
     }
 
     @Ignore
@@ -84,9 +80,7 @@ public class TaskInstanceControllerTest extends AbstractControllerTest {
         MultiValueMap<String, String> paramsMap = new LinkedMultiValueMap<>();
         paramsMap.add("taskInstanceId", "104");
 
-        Map<String, Object> mockResult = new HashMap<>(5);
-        mockResult.put(Constants.STATUS, Status.SUCCESS);
-        mockResult.put(Constants.MSG, Status.SUCCESS.getMsg());
+        Result<Void> mockResult = Result.success(null);
         when(taskInstanceService.forceTaskSuccess(any(User.class), anyString(), anyInt())).thenReturn(mockResult);
 
         MvcResult mvcResult = mockMvc.perform(post("/projects/{projectName}/task-instance/force-success", "cxc_1113")

@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
-import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ProgramType;
 import org.apache.dolphinscheduler.common.enums.TaskType;
 import org.apache.dolphinscheduler.common.process.ResourceInfo;
@@ -38,8 +38,6 @@ import org.apache.dolphinscheduler.common.task.spark.SparkParameters;
 import org.apache.dolphinscheduler.common.task.sql.SqlParameters;
 import org.apache.dolphinscheduler.common.task.subprocess.SubProcessParameters;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
-
-import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
@@ -89,10 +87,10 @@ public class CheckUtilsTest {
     @Test
     public void testCheckDesc() {
 
-        Map<String, Object> objectMap = CheckUtils.checkDesc("I am desc");
-        Status status = (Status) objectMap.get(Constants.STATUS);
+        CheckParamResult checkResult = CheckUtils.checkDesc("I am desc");
+        Status status = checkResult.getStatus();
 
-        assertEquals(status.getCode(),Status.SUCCESS.getCode());
+        assertEquals(status.getCode(), Status.SUCCESS.getCode());
 
     }
 

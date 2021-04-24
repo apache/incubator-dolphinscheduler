@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.AccessTokenServiceImpl;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.utils.DateUtils;
@@ -73,29 +75,29 @@ public class AccessTokenServiceTest {
         when(accessTokenMapper.selectAccessTokenPage(any(Page.class), eq("zhangsan"), eq(0))).thenReturn(tokenPage);
 
         User user = new User();
-        Map<String, Object> result = accessTokenService.queryAccessTokenList(user, "zhangsan", 1, 10);
+        Result<PageListVO<AccessToken>> result = accessTokenService.queryAccessTokenList(user, "zhangsan", 1, 10);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        PageInfo<AccessToken> pageInfo = (PageInfo<AccessToken>) result.get(Constants.DATA_LIST);
-        Assert.assertTrue(pageInfo.getTotalCount() > 0);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        PageListVO<AccessToken> tokenPageListVO = result.getData();
+        Assert.assertTrue(tokenPageListVO.getTotal() > 0);
     }
 
     @Test
     public void testCreateToken() {
 
         when(accessTokenMapper.insert(any(AccessToken.class))).thenReturn(2);
-        Map<String, Object> result = accessTokenService.createToken(getLoginUser(), 1, getDate(), "AccessTokenServiceTest");
+        Result<Void> result = accessTokenService.createToken(getLoginUser(), 1, getDate(), "AccessTokenServiceTest");
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
     public void testGenerateToken() {
 
-        Map<String, Object> result = accessTokenService.generateToken(getLoginUser(), Integer.MAX_VALUE,getDate());
+        Result<String> result = accessTokenService.generateToken(getLoginUser(), Integer.MAX_VALUE, getDate());
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        String token = (String) result.get(Constants.DATA_LIST);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        String token = result.getData();
         Assert.assertNotNull(token);
     }
 
@@ -105,32 +107,32 @@ public class AccessTokenServiceTest {
         when(accessTokenMapper.selectById(1)).thenReturn(getEntity());
         User userLogin = new User();
         // not exist
-        Map<String, Object> result = accessTokenService.delAccessTokenById(userLogin, 0);
+        Result<Void> result = accessTokenService.delAccessTokenById(userLogin, 0);
         logger.info(result.toString());
-        Assert.assertEquals(Status.ACCESS_TOKEN_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.ACCESS_TOKEN_NOT_EXIST.getCode(), (int) result.getCode());
         // no operate
         result = accessTokenService.delAccessTokenById(userLogin, 1);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //success
         userLogin.setId(1);
         userLogin.setUserType(UserType.ADMIN_USER);
         result = accessTokenService.delAccessTokenById(userLogin, 1);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
     public void testUpdateToken() {
 
         when(accessTokenMapper.selectById(1)).thenReturn(getEntity());
-        Map<String, Object> result = accessTokenService.updateToken(getLoginUser(), 1,Integer.MAX_VALUE,getDate(),"token");
+        Result<Void> result = accessTokenService.updateToken(getLoginUser(), 1, Integer.MAX_VALUE, getDate(), "token");
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         // not exist
         result = accessTokenService.updateToken(getLoginUser(), 2,Integer.MAX_VALUE,getDate(),"token");
         logger.info(result.toString());
-        Assert.assertEquals(Status.ACCESS_TOKEN_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.ACCESS_TOKEN_NOT_EXIST.getCode(), (int) result.getCode());
 
     }
 

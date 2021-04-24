@@ -17,7 +17,10 @@
 
 package org.apache.dolphinscheduler.api.service;
 
-import java.util.Map;
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
+import org.apache.dolphinscheduler.dao.entity.TaskRecord;
+
 
 /**
  * task record service
@@ -39,8 +42,8 @@ public interface TaskRecordService {
      * @param isHistory is history
      * @return task record list
      */
-    Map<String,Object> queryTaskRecordListPaging(boolean isHistory, String taskName, String startDate,
-                                                 String taskDate, String sourceTable,
-                                                 String destTable, String endDate,
-                                                 String state, Integer pageNo, Integer pageSize);
+    Result<PageListVO<TaskRecord>> queryTaskRecordListPaging(boolean isHistory, String taskName, String startDate,
+                                                             String taskDate, String sourceTable,
+                                                             String destTable, String endDate,
+                                                             String state, Integer pageNo, Integer pageSize);
 }

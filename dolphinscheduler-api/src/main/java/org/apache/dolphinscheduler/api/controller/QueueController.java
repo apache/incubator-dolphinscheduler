@@ -22,15 +22,17 @@ import static org.apache.dolphinscheduler.api.enums.Status.QUERY_QUEUE_LIST_ERRO
 import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_QUEUE_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.VERIFY_QUEUE_ERROR;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.QueueService;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
+import org.apache.dolphinscheduler.dao.entity.Queue;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,10 +76,9 @@ public class QueueController extends BaseController {
     @GetMapping(value = "/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_QUEUE_LIST_ERROR)
-    public Result queryList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<Queue>> queryList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user {}, query queue list", loginUser.getUserName());
-        Map<String, Object> result = queueService.queryList(loginUser);
-        return returnDataList(result);
+        return queueService.queryList(loginUser);
     }
 
     /**
@@ -103,14 +104,13 @@ public class QueueController extends BaseController {
                                        @RequestParam(value = "searchVal", required = false) String searchVal,
                                        @RequestParam("pageSize") Integer pageSize) {
         logger.info("login user {}, query queue list,search value:{}", loginUser.getUserName(), searchVal);
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkResult = checkPageParams(pageNo, pageSize);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = queueService.queryList(loginUser, searchVal, pageNo, pageSize);
-        return returnDataListPaging(result);
+        return queueService.queryList(loginUser, searchVal, pageNo, pageSize);
     }
 
     /**
@@ -129,13 +129,12 @@ public class QueueController extends BaseController {
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(CREATE_QUEUE_ERROR)
-    public Result createQueue(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                              @RequestParam(value = "queue") String queue,
-                              @RequestParam(value = "queueName") String queueName) {
+    public Result<Void> createQueue(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                    @RequestParam(value = "queue") String queue,
+                                    @RequestParam(value = "queueName") String queueName) {
         logger.info("login user {}, create queue, queue: {}, queueName: {}",
                 loginUser.getUserName(), queue, queueName);
-        Map<String, Object> result = queueService.createQueue(loginUser, queue, queueName);
-        return returnDataList(result);
+        return queueService.createQueue(loginUser, queue, queueName);
     }
 
     /**
@@ -156,14 +155,13 @@ public class QueueController extends BaseController {
     @PostMapping(value = "/update")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(UPDATE_QUEUE_ERROR)
-    public Result updateQueue(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                              @RequestParam(value = "id") int id,
-                              @RequestParam(value = "queue") String queue,
-                              @RequestParam(value = "queueName") String queueName) {
+    public Result<Void> updateQueue(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                    @RequestParam(value = "id") int id,
+                                    @RequestParam(value = "queue") String queue,
+                                    @RequestParam(value = "queueName") String queueName) {
         logger.info("login user {}, update queue, id: {}, queue: {}, queueName: {}",
                 loginUser.getUserName(), id, queue, queueName);
-        Map<String, Object> result = queueService.updateQueue(loginUser, id, queue, queueName);
-        return returnDataList(result);
+        return queueService.updateQueue(loginUser, id, queue, queueName);
     }
 
     /**
@@ -183,9 +181,9 @@ public class QueueController extends BaseController {
     @PostMapping(value = "/verify-queue")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(VERIFY_QUEUE_ERROR)
-    public Result verifyQueue(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                              @RequestParam(value = "queue") String queue,
-                              @RequestParam(value = "queueName") String queueName
+    public Result<Void> verifyQueue(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                    @RequestParam(value = "queue") String queue,
+                                    @RequestParam(value = "queueName") String queueName
     ) {
 
         logger.info("login user {}, verfiy queue: {} queue name: {}",

@@ -27,17 +27,20 @@ import static org.apache.dolphinscheduler.api.enums.Status.QUERY_PROJECT_DETAILS
 import static org.apache.dolphinscheduler.api.enums.Status.QUERY_UNAUTHORIZED_PROJECT_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_PROJECT_ERROR;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.ProcessDefinitionService;
 import org.apache.dolphinscheduler.api.service.ProjectService;
 import org.apache.dolphinscheduler.api.utils.RegexUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
+import org.apache.dolphinscheduler.dao.entity.Project;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,13 +93,12 @@ public class ProjectController extends BaseController {
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(CREATE_PROJECT_ERROR)
-    public Result createProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                @RequestParam("projectName") String projectName,
-                                @RequestParam(value = "description", required = false) String description) {
+    public Result<Integer> createProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                         @RequestParam("projectName") String projectName,
+                                         @RequestParam(value = "description", required = false) String description) {
 
         logger.info("login user {}, create project name: {}, desc: {}", loginUser.getUserName(), projectName, description);
-        Map<String, Object> result = projectService.createProject(loginUser, projectName, description);
-        return returnDataList(result);
+        return projectService.createProject(loginUser, projectName, description);
     }
 
     /**
@@ -117,13 +119,12 @@ public class ProjectController extends BaseController {
     @PostMapping(value = "/update")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(UPDATE_PROJECT_ERROR)
-    public Result updateProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                @RequestParam("projectId") Integer projectId,
-                                @RequestParam("projectName") String projectName,
-                                @RequestParam(value = "description", required = false) String description) {
+    public Result<Void> updateProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                      @RequestParam("projectId") Integer projectId,
+                                      @RequestParam("projectName") String projectName,
+                                      @RequestParam(value = "description", required = false) String description) {
         logger.info("login user {} , updateProcessInstance project name: {}, desc: {}", loginUser.getUserName(), projectName, description);
-        Map<String, Object> result = projectService.update(loginUser, projectId, projectName, description);
-        return returnDataList(result);
+        return projectService.update(loginUser, projectId, projectName, description);
     }
 
     /**
@@ -140,12 +141,11 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/query-by-id")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_PROJECT_DETAILS_BY_ID_ERROR)
-    public Result queryProjectById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam("projectId") Integer projectId) {
+    public Result<Project> queryProjectById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                            @RequestParam("projectId") Integer projectId) {
         logger.info("login user {}, query project by id: {}", loginUser.getUserName(), projectId);
 
-        Map<String, Object> result = projectService.queryById(projectId);
-        return returnDataList(result);
+        return projectService.queryById(projectId);
     }
 
     /**
@@ -166,20 +166,19 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(LOGIN_USER_QUERY_PROJECT_LIST_PAGING_ERROR)
-    public Result queryProjectListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                         @RequestParam(value = "searchVal", required = false) String searchVal,
-                                         @RequestParam("pageSize") Integer pageSize,
-                                         @RequestParam("pageNo") Integer pageNo
+    public Result<PageListVO<Project>> queryProjectListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                              @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                              @RequestParam("pageSize") Integer pageSize,
+                                                              @RequestParam("pageNo") Integer pageNo
     ) {
 
         logger.info("login user {}, query project list paging", loginUser.getUserName());
-        Map<String, Object> result = checkPageParams(pageNo, pageSize);
-        if (result.get(Constants.STATUS) != Status.SUCCESS) {
-            return returnDataListPaging(result);
+        CheckParamResult checkParamResult = checkPageParams(pageNo, pageSize);
+        if (checkParamResult.getStatus() != Status.SUCCESS) {
+            return error(checkParamResult);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = projectService.queryProjectListPaging(loginUser, pageSize, pageNo, searchVal);
-        return returnDataListPaging(result);
+        return projectService.queryProjectListPaging(loginUser, pageSize, pageNo, searchVal);
     }
 
     /**
@@ -196,13 +195,12 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/delete")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(DELETE_PROJECT_ERROR)
-    public Result deleteProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                @RequestParam("projectId") Integer projectId
+    public Result<Void> deleteProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                      @RequestParam("projectId") Integer projectId
     ) {
 
         logger.info("login user {}, delete project: {}.", loginUser.getUserName(), projectId);
-        Map<String, Object> result = projectService.deleteProject(loginUser, projectId);
-        return returnDataList(result);
+        return projectService.deleteProject(loginUser, projectId);
     }
 
     /**
@@ -219,11 +217,10 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/unauth-project")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_UNAUTHORIZED_PROJECT_ERROR)
-    public Result queryUnauthorizedProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                           @RequestParam("userId") Integer userId) {
+    public Result<List<Project>> queryUnauthorizedProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                          @RequestParam("userId") Integer userId) {
         logger.info("login user {}, query unauthorized project by user id: {}.", loginUser.getUserName(), userId);
-        Map<String, Object> result = projectService.queryUnauthorizedProject(loginUser, userId);
-        return returnDataList(result);
+        return projectService.queryUnauthorizedProject(loginUser, userId);
     }
 
 
@@ -241,11 +238,10 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/authed-project")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_AUTHORIZED_PROJECT)
-    public Result queryAuthorizedProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                         @RequestParam("userId") Integer userId) {
+    public Result<List<Project>> queryAuthorizedProject(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                        @RequestParam("userId") Integer userId) {
         logger.info("login user {}, query authorized project by user id: {}.", loginUser.getUserName(), userId);
-        Map<String, Object> result = projectService.queryAuthorizedProject(loginUser, userId);
-        return returnDataList(result);
+        return projectService.queryAuthorizedProject(loginUser, userId);
     }
 
     /**
@@ -258,12 +254,11 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/created-and-authorized-project")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_AUTHORIZED_AND_USER_CREATED_PROJECT_ERROR)
-    public Result queryProjectCreatedAndAuthorizedByUser(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<Project>> queryProjectCreatedAndAuthorizedByUser(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user {}, query authorized and user created project by user id: {}.",
                 RegexUtils.escapeNRT(loginUser.getUserName()),
                 RegexUtils.escapeNRT(String.valueOf(loginUser.getId())));
-        Map<String, Object> result = projectService.queryProjectCreatedAndAuthorizedByUser(loginUser);
-        return returnDataList(result);
+        return projectService.queryProjectCreatedAndAuthorizedByUser(loginUser);
     }
 
     /**
@@ -275,19 +270,18 @@ public class ProjectController extends BaseController {
      * @return import result code
      */
 
-    @ApiOperation(value = "importProcessDefinition", notes= "EXPORT_PROCESS_DEFINITION_NOTES")
+    @ApiOperation(value = "importProcessDefinition", notes = "EXPORT_PROCESS_DEFINITION_NOTES")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "file", value = "RESOURCE_FILE", required = true, dataType = "MultipartFile")
     })
     @PostMapping(value = "/import-definition")
     @ApiException(IMPORT_PROCESS_DEFINE_ERROR)
-    public Result importProcessDefinition(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                          @RequestParam("file") MultipartFile file,
-                                          @RequestParam("projectName") String projectName) {
+    public Result<Void> importProcessDefinition(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                @RequestParam("file") MultipartFile file,
+                                                @RequestParam("projectName") String projectName) {
         logger.info("import process definition by id, login user:{}, project: {}",
                 loginUser.getUserName(), projectName);
-        Map<String, Object> result = processDefinitionService.importProcessDefinition(loginUser, file, projectName);
-        return returnDataList(result);
+        return processDefinitionService.importProcessDefinition(loginUser, file, projectName);
     }
 
     /**
@@ -300,10 +294,9 @@ public class ProjectController extends BaseController {
     @GetMapping(value = "/query-project-list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(LOGIN_USER_QUERY_PROJECT_LIST_PAGING_ERROR)
-    public Result queryAllProjectList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<Project>> queryAllProjectList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user {}, query all project list", loginUser.getUserName());
-        Map<String, Object> result = projectService.queryAllProjectList();
-        return returnDataList(result);
+        return projectService.queryAllProjectList();
     }
 
 

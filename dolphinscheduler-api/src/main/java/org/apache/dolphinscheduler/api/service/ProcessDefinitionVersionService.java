@@ -17,11 +17,12 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.ProcessDefinitionVersion;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
 
 /**
  * process definition version service
@@ -46,8 +47,8 @@ public interface ProcessDefinitionVersionService {
      * @param processDefinitionId process definition id
      * @return the pagination process definition versions info of the certain process definition
      */
-    Map<String, Object> queryProcessDefinitionVersions(User loginUser, String projectName,
-                                                       int pageNo, int pageSize, int processDefinitionId);
+    Result<PageListVO<ProcessDefinitionVersion>> queryProcessDefinitionVersions(User loginUser, String projectName,
+                                                                                int pageNo, int pageSize, int processDefinitionId);
 
     /**
      * query one certain process definition version by version number and process definition id
@@ -68,6 +69,6 @@ public interface ProcessDefinitionVersionService {
      * @param version version number
      * @return delele result code
      */
-    Map<String, Object> deleteByProcessDefinitionIdAndVersion(User loginUser, String projectName,
-                                                              int processDefinitionId, long version);
+    Result<Void> deleteByProcessDefinitionIdAndVersion(User loginUser, String projectName,
+                                                       int processDefinitionId, long version);
 }

@@ -17,9 +17,12 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
+import org.apache.dolphinscheduler.dao.entity.AlertGroup;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * alert group service
@@ -31,7 +34,7 @@ public interface AlertGroupService {
      *
      * @return alert group list
      */
-    Map<String, Object> queryAlertgroup();
+    Result<List<AlertGroup>> queryAlertgroup();
 
     /**
      * paging query alarm group list
@@ -42,7 +45,7 @@ public interface AlertGroupService {
      * @param pageSize page size
      * @return alert group list page
      */
-    Map<String, Object> listPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<AlertGroup>> listPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * create alert group
@@ -53,7 +56,7 @@ public interface AlertGroupService {
      * @param alertInstanceIds alertInstanceIds
      * @return create result code
      */
-    Map<String, Object> createAlertgroup(User loginUser, String groupName, String desc, String alertInstanceIds);
+    Result<Void> createAlertgroup(User loginUser, String groupName, String desc, String alertInstanceIds);
 
     /**
      * updateProcessInstance alert group
@@ -65,7 +68,7 @@ public interface AlertGroupService {
      * @param alertInstanceIds alertInstanceIds
      * @return update result code
      */
-    Map<String, Object> updateAlertgroup(User loginUser, int id, String groupName, String desc, String alertInstanceIds);
+    Result<Void> updateAlertgroup(User loginUser, int id, String groupName, String desc, String alertInstanceIds);
 
     /**
      * delete alert group by id
@@ -74,7 +77,7 @@ public interface AlertGroupService {
      * @param id alert group id
      * @return delete result code
      */
-    Map<String, Object> delAlertgroupById(User loginUser, int id);
+    Result<Void> delAlertgroupById(User loginUser, int id);
 
     /**
      * verify group name exists

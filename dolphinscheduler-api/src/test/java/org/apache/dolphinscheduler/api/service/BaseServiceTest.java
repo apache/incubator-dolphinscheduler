@@ -17,16 +17,13 @@
 
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.BaseServiceImpl;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.utils.HadoopUtils;
 import org.apache.dolphinscheduler.dao.entity.User;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -76,28 +73,29 @@ public class BaseServiceTest {
     }
 
 
-
     @Test
-    public void testPutMsg(){
+    public void testPutMsg() {
 
-        Map<String, Object> result = new HashMap<>();
+        CheckParamResult result = new CheckParamResult();
         baseService.putMsg(result, Status.SUCCESS);
-        Assert.assertEquals(Status.SUCCESS,result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS, result.getStatus());
         //has params
-        baseService.putMsg(result, Status.PROJECT_NOT_FOUNT,"test");
+        baseService.putMsg(result, Status.PROJECT_NOT_FOUNT, "test");
 
     }
+
     @Test
-    public void testPutMsgTwo(){
+    public void testPutMsgTwo() {
 
         Result result = new Result();
         baseService.putMsg(result, Status.SUCCESS);
-        Assert.assertEquals(Status.SUCCESS.getMsg(),result.getMsg());
+        Assert.assertEquals(Status.SUCCESS.getMsg(), result.getMsg());
         //has params
-        baseService.putMsg(result,Status.PROJECT_NOT_FOUNT,"test");
+        baseService.putMsg(result, Status.PROJECT_NOT_FOUNT, "test");
     }
+
     @Test
-    public void testCreateTenantDirIfNotExists(){
+    public void testCreateTenantDirIfNotExists() {
 
         PowerMockito.mockStatic(HadoopUtils.class);
         PowerMockito.when(HadoopUtils.getInstance()).thenReturn(hadoopUtils);
@@ -106,7 +104,7 @@ public class BaseServiceTest {
             baseService.createTenantDirIfNotExists("test");
         } catch (Exception e) {
             Assert.assertTrue(false);
-            logger.error("CreateTenantDirIfNotExists error ",e);
+            logger.error("CreateTenantDirIfNotExists error ", e);
             e.printStackTrace();
         }
 

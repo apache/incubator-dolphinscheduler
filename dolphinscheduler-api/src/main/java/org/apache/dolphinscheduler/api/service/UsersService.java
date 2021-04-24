@@ -18,6 +18,7 @@
 package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.dao.entity.User;
 
@@ -43,8 +44,8 @@ public interface UsersService {
      * @return create result code
      * @throws Exception exception
      */
-    Map<String, Object> createUser(User loginUser, String userName, String userPassword, String email,
-                                   int tenantId, String phone, String queue, int state) throws IOException;
+    Result<Void> createUser(User loginUser, String userName, String userPassword, String email,
+                            int tenantId, String phone, String queue, int state) throws IOException;
 
     User createUser(String userName, String userPassword, String email,
                     int tenantId, String phone, String queue, int state);
@@ -112,7 +113,7 @@ public interface UsersService {
      * @param pageSize page size
      * @return user list page
      */
-    Map<String, Object> queryUserList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<User>> queryUserList(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * updateProcessInstance user
@@ -129,7 +130,7 @@ public interface UsersService {
      * @return update result code
      * @throws Exception exception
      */
-    Map<String, Object> updateUser(User loginUser, int userId, String userName, String userPassword, String email,
+    Result<Void> updateUser(User loginUser, int userId, String userName, String userPassword, String email,
                                    int tenantId, String phone, String queue, int state) throws IOException;
 
     /**
@@ -140,7 +141,7 @@ public interface UsersService {
      * @return delete result code
      * @throws Exception exception when operate hdfs
      */
-    Map<String, Object> deleteUserById(User loginUser, int id) throws IOException;
+    Result<Void> deleteUserById(User loginUser, int id) throws IOException;
 
     /**
      * grant project
@@ -150,7 +151,7 @@ public interface UsersService {
      * @param projectIds project id array
      * @return grant result code
      */
-    Map<String, Object> grantProject(User loginUser, int userId, String projectIds);
+    Result<Void> grantProject(User loginUser, int userId, String projectIds);
 
 
     /**
@@ -161,7 +162,7 @@ public interface UsersService {
      * @param resourceIds resource id array
      * @return grant result code
      */
-    Map<String, Object> grantResources(User loginUser, int userId, String resourceIds);
+    Result<Void> grantResources(User loginUser, int userId, String resourceIds);
 
 
     /**
@@ -172,7 +173,7 @@ public interface UsersService {
      * @param udfIds udf id array
      * @return grant result code
      */
-    Map<String, Object> grantUDFFunction(User loginUser, int userId, String udfIds);
+    Result<Void> grantUDFFunction(User loginUser, int userId, String udfIds);
 
 
     /**
@@ -183,7 +184,7 @@ public interface UsersService {
      * @param datasourceIds data source id array
      * @return grant result code
      */
-    Map<String, Object> grantDataSource(User loginUser, int userId, String datasourceIds);
+    Result<Void> grantDataSource(User loginUser, int userId, String datasourceIds);
 
     /**
      * query user info
@@ -191,7 +192,7 @@ public interface UsersService {
      * @param loginUser login user
      * @return user info
      */
-    Map<String, Object> getUserInfo(User loginUser);
+    Result<User> getUserInfo(User loginUser);
 
     /**
      * query user list
@@ -199,7 +200,7 @@ public interface UsersService {
      * @param loginUser login user
      * @return user list
      */
-    Map<String, Object> queryAllGeneralUsers(User loginUser);
+    Result<List<User>> queryAllGeneralUsers(User loginUser);
 
 
     /**
@@ -208,7 +209,7 @@ public interface UsersService {
      * @param loginUser login user
      * @return user list
      */
-    Map<String, Object> queryUserList(User loginUser);
+    Result<List<User>> queryUserList(User loginUser);
 
     /**
      * verify user name exists
@@ -226,7 +227,7 @@ public interface UsersService {
      * @param alertgroupId alert group id
      * @return unauthorize result code
      */
-    Map<String, Object> unauthorizedUser(User loginUser, Integer alertgroupId);
+    Result<List<User>> unauthorizedUser(User loginUser, Integer alertgroupId);
 
 
     /**
@@ -236,7 +237,7 @@ public interface UsersService {
      * @param alertgroupId alert group id
      * @return authorized result code
      */
-    Map<String, Object> authorizedUser(User loginUser, Integer alertgroupId);
+    Result<List<User>> authorizedUser(User loginUser, Integer alertgroupId);
 
     /**
      * register user, default state is 0, default tenant_id is 1, no phone, no queue
@@ -248,7 +249,7 @@ public interface UsersService {
      * @return register result code
      * @throws Exception exception
      */
-    Map<String, Object> registerUser(String userName, String userPassword, String repeatPassword, String email);
+    Result<User> registerUser(String userName, String userPassword, String repeatPassword, String email);
 
     /**
      * activate user, only system admin have permission, change user state code 0 to 1
@@ -257,7 +258,7 @@ public interface UsersService {
      * @param userName user name
      * @return create result code
      */
-    Map<String, Object> activateUser(User loginUser, String userName);
+    Result<User> activateUser(User loginUser, String userName);
 
     /**
      * activate user, only system admin have permission, change users state code 0 to 1
@@ -266,5 +267,5 @@ public interface UsersService {
      * @param userNames user name
      * @return create result code
      */
-    Map<String, Object> batchActivateUser(User loginUser, List<String> userNames);
+    Result<Map<String, Object>> batchActivateUser(User loginUser, List<String> userNames);
 }

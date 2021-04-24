@@ -22,15 +22,15 @@ import static org.apache.dolphinscheduler.common.Constants.HTTP_HEADER_UNKNOWN;
 import static org.apache.dolphinscheduler.common.Constants.HTTP_X_FORWARDED_FOR;
 import static org.apache.dolphinscheduler.common.Constants.HTTP_X_REAL_IP;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
-import org.apache.dolphinscheduler.dao.entity.Resource;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,8 +47,7 @@ public class BaseController {
      * @param pageSize page size
      * @return check result code
      */
-    public Map<String, Object> checkPageParams(int pageNo, int pageSize) {
-        Map<String, Object> result = new HashMap<>(4);
+    public CheckParamResult checkPageParams(int pageNo, int pageSize) {
         Status resultEnum = Status.SUCCESS;
         String msg = Status.SUCCESS.getMsg();
         if (pageNo <= 0) {
@@ -58,9 +57,7 @@ public class BaseController {
             resultEnum = Status.REQUEST_PARAMS_NOT_VALID_ERROR;
             msg = MessageFormat.format(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getMsg(), Constants.PAGE_SIZE);
         }
-        result.put(Constants.STATUS, resultEnum);
-        result.put(Constants.MSG, msg);
-        return result;
+        return new CheckParamResult(resultEnum, msg);
     }
 
     /**
@@ -110,21 +107,12 @@ public class BaseController {
 
     /**
      * return data list with paging
-     * @param result result code
-     * @return result code
+     * @param pageInfo pageInfo
+     * @return result
      */
-    public Result returnDataListPaging(Map<String, Object> result) {
-        Status status = (Status) result.get(Constants.STATUS);
-        if (status == Status.SUCCESS) {
-            result.put(Constants.MSG, Status.SUCCESS.getMsg());
-            PageInfo<Resource> pageInfo = (PageInfo<Resource>) result.get(Constants.DATA_LIST);
-            return success(pageInfo.getLists(), pageInfo.getCurrentPage(), pageInfo.getTotalCount(),
-                    pageInfo.getTotalPage());
-        } else {
-            Integer code = status.getCode();
-            String msg = (String) result.get(Constants.MSG);
-            return error(code, msg);
-        }
+    public <T> Result<PageListVO<T>> returnDataListPaging(PageInfo<T> pageInfo) {
+        PageListVO<T> pageListVO = new PageListVO<>(pageInfo);
+        return Result.success(pageListVO);
     }
 
     /**
@@ -188,41 +176,23 @@ public class BaseController {
     }
 
     /**
-     * return data with paging
-     *
-     * @param totalList success object list
-     * @param currentPage current page
-     * @param total total
-     * @param totalPage  total page
-     * @return success result code
-     */
-    public Result success(Object totalList, Integer currentPage,
-                                                  Integer total, Integer totalPage) {
-        Result result = new Result();
-        result.setCode(Status.SUCCESS.getCode());
-        result.setMsg(Status.SUCCESS.getMsg());
-
-        Map<String, Object> map = new HashMap<>(8);
-        map.put(Constants.TOTAL_LIST, totalList);
-        map.put(Constants.CURRENT_PAGE, currentPage);
-        map.put(Constants.TOTAL_PAGE, totalPage);
-        map.put(Constants.TOTAL, total);
-        result.setData(map);
-        return result;
-    }
-
-    /**
      * error handle
      *
      * @param code result code
      * @param msg result message
      * @return error result code
      */
-    public Result error(Integer code, String msg) {
-        Result result = new Result();
+    public <T> Result<T> error(Integer code, String msg) {
+        Result<T> result = new Result<>();
         result.setCode(code);
         result.setMsg(msg);
         return result;
+    }
+
+    public <T> Result<T> error(CheckParamResult result) {
+        int errorCode = result.getStatus().getCode();
+        String errorMsg = result.getMsg();
+        return error(errorCode, errorMsg);
     }
 
     /**

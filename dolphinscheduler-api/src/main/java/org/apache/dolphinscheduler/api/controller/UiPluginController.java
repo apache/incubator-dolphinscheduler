@@ -24,9 +24,10 @@ import org.apache.dolphinscheduler.api.service.UiPluginService;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.PluginType;
+import org.apache.dolphinscheduler.dao.entity.PluginDefine;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,12 +69,11 @@ public class UiPluginController extends BaseController {
     @PostMapping(value = "/queryUiPluginsByType")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(QUERY_PLUGINS_ERROR)
-    public Result queryUiPluginsByType(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                       @RequestParam(value = "pluginType") PluginType pluginType) {
+    public Result<List<PluginDefine>> queryUiPluginsByType(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                           @RequestParam(value = "pluginType") PluginType pluginType) {
 
         logger.info("query plugins by type , pluginType: {}", pluginType);
-        Map<String, Object> result = uiPluginService.queryUiPluginsByType(pluginType);
-        return returnDataList(result);
+        return uiPluginService.queryUiPluginsByType(pluginType);
     }
 
     @ApiOperation(value = "queryUiPluginDetailById", notes = "QUERY_UI_PLUGIN_DETAIL_BY_ID")
@@ -83,11 +83,10 @@ public class UiPluginController extends BaseController {
     @PostMapping(value = "/queryUiPluginDetailById")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(QUERY_PLUGINS_ERROR)
-    public Result queryUiPluginDetailById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+    public Result<PluginDefine> queryUiPluginDetailById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                           @RequestParam("pluginId") Integer pluginId) {
 
         logger.info("query plugin detail by id , pluginId: {}", pluginId);
-        Map<String, Object> result = uiPluginService.queryUiPluginDetailById(pluginId);
-        return returnDataList(result);
+        return uiPluginService.queryUiPluginDetailById(pluginId);
     }
 }

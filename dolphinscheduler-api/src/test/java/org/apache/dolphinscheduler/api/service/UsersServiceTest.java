@@ -23,8 +23,8 @@ import static org.mockito.Mockito.when;
 
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.impl.UsersServiceImpl;
-import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
 import org.apache.dolphinscheduler.common.enums.UserType;
@@ -128,41 +128,41 @@ public class UsersServiceTest {
         int state = 1;
         try {
             //userName error
-            Map<String, Object> result = usersService.createUser(user, userName, userPassword, email, tenantId, phone, queueName, state);
+            Result<Void> result = usersService.createUser(user, userName, userPassword, email, tenantId, phone, queueName, state);
             logger.info(result.toString());
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             userName = "userTest0001";
             userPassword = "userTest000111111111111111";
             //password error
             result = usersService.createUser(user, userName, userPassword, email, tenantId, phone, queueName, state);
             logger.info(result.toString());
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             userPassword = "userTest0001";
             email = "1q.com";
             //email error
             result = usersService.createUser(user, userName, userPassword, email, tenantId, phone, queueName, state);
             logger.info(result.toString());
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             email = "122222@qq.com";
             phone = "2233";
             //phone error
             result = usersService.createUser(user, userName, userPassword, email, tenantId, phone, queueName, state);
             logger.info(result.toString());
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             phone = "13456432345";
             //tenantId not exists
             result = usersService.createUser(user, userName, userPassword, email, tenantId, phone, queueName, state);
             logger.info(result.toString());
-            Assert.assertEquals(Status.TENANT_NOT_EXIST, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.TENANT_NOT_EXIST.getCode(), (int) result.getCode());
             //success
             Mockito.when(tenantMapper.queryById(1)).thenReturn(getTenant());
             result = usersService.createUser(user, userName, userPassword, email, 1, phone, queueName, state);
             logger.info(result.toString());
-            Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
         } catch (Exception e) {
             logger.error(Status.CREATE_USER_ERROR.getMsg(), e);
@@ -221,15 +221,15 @@ public class UsersServiceTest {
         User user = new User();
 
         //no operate
-        Map<String, Object> result = usersService.queryUserList(user);
+        Result<List<User>> result = usersService.queryUserList(user);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
 
         //success
         user.setUserType(UserType.ADMIN_USER);
         when(userMapper.selectList(null)).thenReturn(getUserList());
         result = usersService.queryUserList(user);
-        List<User> userList = (List<User>) result.get(Constants.DATA_LIST);
+        List<User> userList = result.getData();
         Assert.assertTrue(userList.size() > 0);
     }
 
@@ -241,16 +241,16 @@ public class UsersServiceTest {
         when(userMapper.queryUserPaging(any(Page.class), eq("userTest"))).thenReturn(page);
 
         //no operate
-        Map<String, Object> result = usersService.queryUserList(user, "userTest", 1, 10);
-        logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Result<PageListVO<User>> pageListResult = usersService.queryUserList(user, "userTest", 1, 10);
+        logger.info(pageListResult.toString());
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) pageListResult.getCode());
 
         //success
         user.setUserType(UserType.ADMIN_USER);
-        result = usersService.queryUserList(user, "userTest", 1, 10);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        PageInfo<User> pageInfo = (PageInfo<User>) result.get(Constants.DATA_LIST);
-        Assert.assertTrue(pageInfo.getLists().size() > 0);
+        pageListResult = usersService.queryUserList(user, "userTest", 1, 10);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) pageListResult.getCode());
+        PageListVO<User> userPageListVO = pageListResult.getData();
+        Assert.assertTrue(userPageListVO.getTotalList().size() > 0);
     }
 
     @Test
@@ -259,15 +259,15 @@ public class UsersServiceTest {
         String userPassword = "userTest0001";
         try {
             //user not exist
-            Map<String, Object> result = usersService.updateUser(getLoginUser(), 0,userName,userPassword,"3443@qq.com",1,"13457864543","queue", 1);
-            Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+            Result<Void> result = usersService.updateUser(getLoginUser(), 0, userName, userPassword, "3443@qq.com", 1, "13457864543", "queue", 1);
+            Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
             logger.info(result.toString());
 
             //success
             when(userMapper.selectById(1)).thenReturn(getUser());
-            result = usersService.updateUser(getLoginUser(), 1,userName,userPassword,"32222s@qq.com",1,"13457864543","queue", 1);
+            result = usersService.updateUser(getLoginUser(), 1, userName, userPassword, "32222s@qq.com", 1, "13457864543", "queue", 1);
             logger.info(result.toString());
-            Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         } catch (Exception e) {
             logger.error("update user error", e);
             Assert.assertTrue(false);
@@ -282,20 +282,20 @@ public class UsersServiceTest {
             when(userMapper.selectById(1)).thenReturn(getUser());
 
             //no operate
-            Map<String, Object> result = usersService.deleteUserById(loginUser, 3);
+            Result<Void> result = usersService.deleteUserById(loginUser, 3);
             logger.info(result.toString());
-            Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
 
             // user not exist
             loginUser.setUserType(UserType.ADMIN_USER);
             result = usersService.deleteUserById(loginUser, 3);
             logger.info(result.toString());
-            Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
 
             //success
             result = usersService.deleteUserById(loginUser, 1);
             logger.info(result.toString());
-            Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         } catch (Exception e) {
             logger.error("delete user error", e);
             Assert.assertTrue(false);
@@ -309,19 +309,19 @@ public class UsersServiceTest {
         when(userMapper.selectById(1)).thenReturn(getUser());
         User loginUser = new User();
         String projectIds = "100000,120000";
-        Map<String, Object> result = usersService.grantProject(loginUser, 1, projectIds);
+        Result<Void> result = usersService.grantProject(loginUser, 1, projectIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //user not exist
         loginUser.setUserType(UserType.ADMIN_USER);
         result = usersService.grantProject(loginUser, 2, projectIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
         //success
         when(projectUserMapper.deleteProjectRelation(Mockito.anyInt(), Mockito.anyInt())).thenReturn(1);
         result = usersService.grantProject(loginUser, 1, projectIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
@@ -329,20 +329,20 @@ public class UsersServiceTest {
         String resourceIds = "100000,120000";
         when(userMapper.selectById(1)).thenReturn(getUser());
         User loginUser = new User();
-        Map<String, Object> result = usersService.grantResources(loginUser, 1, resourceIds);
+        Result<Void> result = usersService.grantResources(loginUser, 1, resourceIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //user not exist
         loginUser.setUserType(UserType.ADMIN_USER);
         result = usersService.grantResources(loginUser, 2, resourceIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
         //success
         when(resourceMapper.selectById(Mockito.anyInt())).thenReturn(getResource());
         when(resourceUserMapper.deleteResourceUser(1, 0)).thenReturn(1);
         result = usersService.grantResources(loginUser, 1, resourceIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 
@@ -352,19 +352,19 @@ public class UsersServiceTest {
         String udfIds = "100000,120000";
         when(userMapper.selectById(1)).thenReturn(getUser());
         User loginUser = new User();
-        Map<String, Object> result = usersService.grantUDFFunction(loginUser, 1, udfIds);
+        Result<Void> result = usersService.grantUDFFunction(loginUser, 1, udfIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //user not exist
         loginUser.setUserType(UserType.ADMIN_USER);
         result = usersService.grantUDFFunction(loginUser, 2, udfIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
         //success
         when(udfUserMapper.deleteByUserId(1)).thenReturn(1);
         result = usersService.grantUDFFunction(loginUser, 1, udfIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
     @Test
@@ -372,19 +372,19 @@ public class UsersServiceTest {
         String datasourceIds = "100000,120000";
         when(userMapper.selectById(1)).thenReturn(getUser());
         User loginUser = new User();
-        Map<String, Object> result = usersService.grantDataSource(loginUser, 1, datasourceIds);
+        Result<Void> result = usersService.grantDataSource(loginUser, 1, datasourceIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //user not exist
         loginUser.setUserType(UserType.ADMIN_USER);
         result = usersService.grantDataSource(loginUser, 2, datasourceIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
         //success
         when(datasourceUserMapper.deleteByUserId(Mockito.anyInt())).thenReturn(1);
         result = usersService.grantDataSource(loginUser, 1, datasourceIds);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
     }
 
@@ -401,10 +401,10 @@ public class UsersServiceTest {
         loginUser.setUserName("admin");
         loginUser.setUserType(UserType.ADMIN_USER);
         // get admin user
-        Map<String, Object> result = usersService.getUserInfo(loginUser);
+        Result<User> result = usersService.getUserInfo(loginUser);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        User tempUser = (User) result.get(Constants.DATA_LIST);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        User tempUser = result.getData();
         //check userName
         Assert.assertEquals("admin", tempUser.getUserName());
 
@@ -415,8 +415,8 @@ public class UsersServiceTest {
         when(alertGroupMapper.queryByUserId(1)).thenReturn(getAlertGroups());
         result = usersService.getUserInfo(loginUser);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        tempUser = (User) result.get(Constants.DATA_LIST);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        tempUser = result.getData();
         //check userName
         Assert.assertEquals("userTest0001", tempUser.getUserName());
     }
@@ -426,16 +426,16 @@ public class UsersServiceTest {
     public void testQueryAllGeneralUsers() {
         User loginUser = new User();
         //no operate
-        Map<String, Object> result = usersService.queryAllGeneralUsers(loginUser);
+        Result<List<User>> result = usersService.queryAllGeneralUsers(loginUser);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //success
         loginUser.setUserType(UserType.ADMIN_USER);
         when(userMapper.queryAllGeneralUser()).thenReturn(getUserList());
         result = usersService.queryAllGeneralUsers(loginUser);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        List<User> userList = (List<User>) result.get(Constants.DATA_LIST);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        List<User> userList = result.getData();
         Assert.assertTrue(CollectionUtils.isNotEmpty(userList));
     }
 
@@ -458,14 +458,14 @@ public class UsersServiceTest {
         when(userMapper.selectList(null)).thenReturn(getUserList());
         when(userMapper.queryUserListByAlertGroupId(2)).thenReturn(getUserList());
         //no operate
-        Map<String, Object> result = usersService.unauthorizedUser(loginUser, 2);
+        Result<List<User>> result = usersService.unauthorizedUser(loginUser, 2);
         logger.info(result.toString());
         loginUser.setUserType(UserType.ADMIN_USER);
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //success
         result = usersService.unauthorizedUser(loginUser, 2);
         logger.info(result.toString());
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
 
@@ -474,14 +474,14 @@ public class UsersServiceTest {
         User loginUser = new User();
         when(userMapper.queryUserListByAlertGroupId(2)).thenReturn(getUserList());
         //no operate
-        Map<String, Object> result = usersService.authorizedUser(loginUser, 2);
+        Result<List<User>> result = usersService.authorizedUser(loginUser, 2);
         logger.info(result.toString());
-        Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+        Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
         //success
         loginUser.setUserType(UserType.ADMIN_USER);
         result = usersService.authorizedUser(loginUser, 2);
-        Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
-        List<User> userList = (List<User>) result.get(Constants.DATA_LIST);
+        Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
+        List<User> userList = result.getData();
         logger.info(result.toString());
         Assert.assertTrue(CollectionUtils.isNotEmpty(userList));
     }
@@ -494,31 +494,31 @@ public class UsersServiceTest {
         String email = "123@qq.com";
         try {
             //userName error
-            Map<String, Object> result = usersService.registerUser(userName, userPassword, repeatPassword, email);
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Result<User> result = usersService.registerUser(userName, userPassword, repeatPassword, email);
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             userName = "userTest0002";
             userPassword = "userTest000111111111111111";
             //password error
             result = usersService.registerUser(userName, userPassword, repeatPassword, email);
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             userPassword = "userTest0002";
             email = "1q.com";
             //email error
             result = usersService.registerUser(userName, userPassword, repeatPassword, email);
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             //repeatPassword error
             email = "7400@qq.com";
             repeatPassword = "userPassword";
             result = usersService.registerUser(userName, userPassword, repeatPassword, email);
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             //success
             repeatPassword = "userTest0002";
             result = usersService.registerUser(userName, userPassword, repeatPassword, email);
-            Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
 
         } catch (Exception e) {
             Assert.assertTrue(false);
@@ -533,29 +533,29 @@ public class UsersServiceTest {
         String userName = "userTest0002~";
         try {
             //not admin
-            Map<String, Object> result = usersService.activateUser(user, userName);
-            Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+            Result<User> result = usersService.activateUser(user, userName);
+            Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
 
             //userName error
             user.setUserType(UserType.ADMIN_USER);
             result = usersService.activateUser(user, userName);
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) result.getCode());
 
             //user not exist
             userName = "userTest10013";
             result = usersService.activateUser(user, userName);
-            Assert.assertEquals(Status.USER_NOT_EXIST, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.USER_NOT_EXIST.getCode(), (int) result.getCode());
 
             //user state error
             userName = "userTest0001";
             when(userMapper.queryByUserNameAccurately(userName)).thenReturn(getUser());
             result = usersService.activateUser(user, userName);
-            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), (int) (result.getCode()));
 
             //success
             when(userMapper.queryByUserNameAccurately(userName)).thenReturn(getDisabledUser());
             result = usersService.activateUser(user, userName);
-            Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         } catch (Exception e) {
             Assert.assertTrue(false);
         }
@@ -573,15 +573,15 @@ public class UsersServiceTest {
 
         try {
             //not admin
-            Map<String, Object> result = usersService.batchActivateUser(user, userNames);
-            Assert.assertEquals(Status.USER_NO_OPERATION_PERM, result.get(Constants.STATUS));
+            Result<Map<String, Object>> result = usersService.batchActivateUser(user, userNames);
+            Assert.assertEquals(Status.USER_NO_OPERATION_PERM.getCode(), (int) result.getCode());
 
             //batch activate user names
             user.setUserType(UserType.ADMIN_USER);
             when(userMapper.queryByUserNameAccurately("userTest0001")).thenReturn(getUser());
             when(userMapper.queryByUserNameAccurately("userTest0002")).thenReturn(getDisabledUser());
             result = usersService.batchActivateUser(user, userNames);
-            Map<String, Object> responseData = (Map<String, Object>) result.get(Constants.DATA_LIST);
+            Map<String, Object> responseData = result.getData();
             Map<String, Object> successData = (Map<String, Object>) responseData.get("success");
             int totalSuccess = (Integer) successData.get("sum");
 
@@ -590,7 +590,7 @@ public class UsersServiceTest {
 
             Assert.assertEquals(1, totalSuccess);
             Assert.assertEquals(3, totalFailed);
-            Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+            Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
         } catch (Exception e) {
             Assert.assertTrue(false);
         }

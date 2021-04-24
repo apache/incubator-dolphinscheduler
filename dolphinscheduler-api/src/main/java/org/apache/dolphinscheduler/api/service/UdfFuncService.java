@@ -18,10 +18,12 @@
 package org.apache.dolphinscheduler.api.service;
 
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.api.vo.PageListVO;
 import org.apache.dolphinscheduler.common.enums.UdfType;
+import org.apache.dolphinscheduler.dao.entity.UdfFunc;
 import org.apache.dolphinscheduler.dao.entity.User;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * udf func service
@@ -56,7 +58,7 @@ public interface UdfFuncService {
      * @param id  udf function id
      * @return udf function detail
      */
-    Map<String, Object> queryUdfFuncDetail(int id);
+    Result<UdfFunc> queryUdfFuncDetail(int id);
 
     /**
      * updateProcessInstance udf function
@@ -71,7 +73,7 @@ public interface UdfFuncService {
      * @param className class name
      * @return update result code
      */
-    Map<String, Object> updateUdfFunc(int udfFuncId,
+    Result<Void> updateUdfFunc(int udfFuncId,
                                       String funcName,
                                       String className,
                                       String argTypes,
@@ -89,7 +91,7 @@ public interface UdfFuncService {
      * @param searchVal search value
      * @return udf function list page
      */
-    Map<String, Object> queryUdfFuncListPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
+    Result<PageListVO<UdfFunc>> queryUdfFuncListPaging(User loginUser, String searchVal, Integer pageNo, Integer pageSize);
 
     /**
      * query udf list
@@ -98,7 +100,7 @@ public interface UdfFuncService {
      * @param type  udf type
      * @return udf func list
      */
-    Map<String, Object> queryUdfFuncList(User loginUser, Integer type);
+    Result<List<UdfFunc>> queryUdfFuncList(User loginUser, Integer type);
 
     /**
      * delete udf function
@@ -106,7 +108,7 @@ public interface UdfFuncService {
      * @param id udf function id
      * @return delete result code
      */
-    Result<Object> delete(int id);
+    Result<Void> delete(int id);
 
     /**
      * verify udf function by name
@@ -114,6 +116,6 @@ public interface UdfFuncService {
      * @param name name
      * @return true if the name can user, otherwise return false
      */
-    Result<Object> verifyUdfFuncByName(String name);
+    Result<Void> verifyUdfFuncByName(String name);
 
 }

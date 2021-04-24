@@ -17,12 +17,14 @@
 
 package org.apache.dolphinscheduler.api.service.impl;
 
+import org.apache.dolphinscheduler.api.dto.CheckParamResult;
 import org.apache.dolphinscheduler.api.dto.CommandStateCount;
 import org.apache.dolphinscheduler.api.dto.DefineUserDto;
 import org.apache.dolphinscheduler.api.dto.TaskCountDto;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.DataAnalysisService;
 import org.apache.dolphinscheduler.api.service.ProjectService;
+import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.CommandType;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
@@ -95,7 +97,7 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
      * @return task state count data
      */
     @Override
-    public Map<String, Object> countTaskStateByProject(User loginUser, int projectId, String startDate, String endDate) {
+    public Result<TaskCountDto> countTaskStateByProject(User loginUser, int projectId, String startDate, String endDate) {
 
         return countStateByProject(
                 loginUser,
@@ -115,26 +117,24 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
      * @return process instance state count data
      */
     @Override
-    public Map<String, Object> countProcessInstanceStateByProject(User loginUser, int projectId, String startDate, String endDate) {
-        Map<String, Object> result =  this.countStateByProject(
+    public Result<TaskCountDto> countProcessInstanceStateByProject(User loginUser, int projectId, String startDate, String endDate) {
+        Result<TaskCountDto> result = this.countStateByProject(
                 loginUser,
                 projectId,
                 startDate,
-                endDate,
-            (start, end, projectIds) -> this.processInstanceMapper.countInstanceStateByUser(start, end, projectIds));
+                endDate, (start, end, projectIds) -> this.processInstanceMapper.countInstanceStateByUser(start, end, projectIds));
         // process state count needs to remove state of forced success
-        if (result.containsKey(Constants.STATUS) && result.get(Constants.STATUS).equals(Status.SUCCESS)) {
-            ((TaskCountDto)result.get(Constants.DATA_LIST)).removeStateFromCountList(ExecutionStatus.FORCED_SUCCESS);
+        if (null != result.getData()) {
+            result.getData().removeStateFromCountList(ExecutionStatus.FORCED_SUCCESS);
         }
         return result;
     }
 
-    private Map<String, Object> countStateByProject(User loginUser, int projectId, String startDate, String endDate
+    private Result<TaskCountDto> countStateByProject(User loginUser, int projectId, String startDate, String endDate
             , TriFunction<Date, Date, Integer[], List<ExecuteStatusCount>> instanceStateCounter) {
-        Map<String, Object> result = new HashMap<>();
-        boolean checkProject = checkProject(loginUser, projectId, result);
-        if (!checkProject) {
-            return result;
+        CheckParamResult checkResult = checkProject(loginUser, projectId);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         Date start = null;
@@ -143,8 +143,8 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
             start = DateUtils.getScheduleDate(startDate);
             end = DateUtils.getScheduleDate(endDate);
             if (Objects.isNull(start) || Objects.isNull(end)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
-                return result;
+                putMsg(checkResult, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
+                return Result.error(checkResult);
             }
         }
 
@@ -154,10 +154,9 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
 
         if (processInstanceStateCounts != null) {
             TaskCountDto taskCountResult = new TaskCountDto(processInstanceStateCounts);
-            result.put(Constants.DATA_LIST, taskCountResult);
-            putMsg(result, Status.SUCCESS);
+            return Result.success(taskCountResult);
         }
-        return result;
+        return Result.success(null);
     }
 
 
@@ -169,17 +168,14 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
      * @return definition count data
      */
     @Override
-    public Map<String, Object> countDefinitionByUser(User loginUser, int projectId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<DefineUserDto> countDefinitionByUser(User loginUser, int projectId) {
 
         Integer[] projectIdArray = getProjectIdsArrays(loginUser, projectId);
         List<DefinitionGroupByUser> defineGroupByUsers = processDefinitionMapper.countDefinitionGroupByUser(
                 loginUser.getId(), projectIdArray, isAdmin(loginUser));
 
         DefineUserDto dto = new DefineUserDto(defineGroupByUsers);
-        result.put(Constants.DATA_LIST, dto);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(dto);
     }
 
 
@@ -193,12 +189,11 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
      * @return command state count data
      */
     @Override
-    public Map<String, Object> countCommandState(User loginUser, int projectId, String startDate, String endDate) {
+    public Result<List<CommandStateCount>> countCommandState(User loginUser, int projectId, String startDate, String endDate) {
 
-        Map<String, Object> result = new HashMap<>();
-        boolean checkProject = checkProject(loginUser, projectId, result);
-        if (!checkProject) {
-            return result;
+        CheckParamResult checkResult = checkProject(loginUser, projectId);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
         /**
@@ -209,16 +204,16 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
         if (StringUtils.isNotEmpty(startDate)) {
             start = DateUtils.getScheduleDate(startDate);
             if (Objects.isNull(start)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
-                return result;
+                putMsg(checkResult, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
+                return Result.error(checkResult);
             }
         }
         Date end = null;
         if (StringUtils.isNotEmpty(endDate)) {
             end = DateUtils.getScheduleDate(endDate);
             if (Objects.isNull(end)) {
-                putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
-                return result;
+                putMsg(checkResult, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.START_END_DATE);
+                return Result.error(checkResult);
             }
         }
 
@@ -240,9 +235,7 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
                         commandType)
                 ).collect(Collectors.toList());
 
-        result.put(Constants.DATA_LIST, list);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(list);
     }
 
     private Integer[] getProjectIdsArrays(User loginUser, int projectId) {
@@ -266,29 +259,26 @@ public class DataAnalysisServiceImpl extends BaseServiceImpl implements DataAnal
      * @return queue state count data
      */
     @Override
-    public Map<String, Object> countQueueState(User loginUser, int projectId) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Map<String, Integer>> countQueueState(User loginUser, int projectId) {
 
-        boolean checkProject = checkProject(loginUser, projectId, result);
-        if (!checkProject) {
-            return result;
+        CheckParamResult checkResult = checkProject(loginUser, projectId);
+        if (!Status.SUCCESS.equals(checkResult.getStatus())) {
+            return Result.error(checkResult);
         }
 
-        //TODO need to add detail data info 
+        //TODO need to add detail data info, and use a specific class to replace the map
         Map<String, Integer> dataMap = new HashMap<>();
         dataMap.put("taskQueue", 0);
         dataMap.put("taskKill", 0);
-        result.put(Constants.DATA_LIST, dataMap);
-        putMsg(result, Status.SUCCESS);
-        return result;
+        return Result.success(dataMap);
     }
 
-    private boolean checkProject(User loginUser, int projectId, Map<String, Object> result) {
+    private CheckParamResult checkProject(User loginUser, int projectId) {
         if (projectId != 0) {
             Project project = projectMapper.selectById(projectId);
-            return projectService.hasProjectAndPerm(loginUser, project, result);
+            return projectService.hasProjectAndPerm(loginUser, project);
         }
-        return true;
+        return new CheckParamResult(Status.SUCCESS);
     }
 
 }

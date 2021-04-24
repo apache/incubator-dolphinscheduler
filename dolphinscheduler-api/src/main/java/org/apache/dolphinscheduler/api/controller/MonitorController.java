@@ -26,9 +26,14 @@ import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.MonitorService;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.common.model.Server;
+import org.apache.dolphinscheduler.common.model.WorkerServerModel;
+import org.apache.dolphinscheduler.dao.entity.MonitorRecord;
 import org.apache.dolphinscheduler.dao.entity.User;
+import org.apache.dolphinscheduler.dao.entity.ZookeeperRecord;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,11 +72,10 @@ public class MonitorController extends BaseController {
     @GetMapping(value = "/master/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(LIST_MASTERS_ERROR)
-    public Result listMaster(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<Server>> listMaster(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user: {}, query all master", loginUser.getUserName());
         logger.info("list master, user:{}", loginUser.getUserName());
-        Map<String, Object> result = monitorService.queryMaster(loginUser);
-        return returnDataList(result);
+        return monitorService.queryMaster(loginUser);
     }
 
     /**
@@ -84,10 +88,9 @@ public class MonitorController extends BaseController {
     @GetMapping(value = "/worker/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(LIST_WORKERS_ERROR)
-    public Result listWorker(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<Collection<WorkerServerModel>> listWorker(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user: {}, query all workers", loginUser.getUserName());
-        Map<String, Object> result = monitorService.queryWorker(loginUser);
-        return returnDataList(result);
+        return monitorService.queryWorker(loginUser);
     }
 
     /**
@@ -100,10 +103,9 @@ public class MonitorController extends BaseController {
     @GetMapping(value = "/database")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATABASE_STATE_ERROR)
-    public Result queryDatabaseState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<MonitorRecord>> queryDatabaseState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user: {}, query database state", loginUser.getUserName());
-        Map<String, Object> result = monitorService.queryDatabaseState(loginUser);
-        return returnDataList(result);
+        return monitorService.queryDatabaseState(loginUser);
     }
 
     /**
@@ -116,10 +118,9 @@ public class MonitorController extends BaseController {
     @GetMapping(value = "/zookeeper/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_ZOOKEEPER_STATE_ERROR)
-    public Result queryZookeeperState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    public Result<List<ZookeeperRecord>> queryZookeeperState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
         logger.info("login user: {}, query zookeeper state", loginUser.getUserName());
-        Map<String, Object> result = monitorService.queryZookeeperState(loginUser);
-        return returnDataList(result);
+        return monitorService.queryZookeeperState(loginUser);
     }
 
 }
