@@ -29,6 +29,7 @@ import static org.apache.dolphinscheduler.api.enums.Status.QUERY_DATAIL_OF_PROCE
 import static org.apache.dolphinscheduler.api.enums.Status.QUERY_PROCESS_DEFINITION_LIST;
 import static org.apache.dolphinscheduler.api.enums.Status.QUERY_PROCESS_DEFINITION_LIST_PAGING_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.QUERY_PROCESS_DEFINITION_VERSIONS_ERROR;
+import static org.apache.dolphinscheduler.api.enums.Status.QUERY_TASK_DEPENDENCIES_BY_TASK_NAME_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.RELEASE_PROCESS_DEFINITION_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.SWITCH_PROCESS_DEFINITION_VERSION_ERROR;
 import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_PROCESS_DEFINITION_ERROR;
@@ -757,4 +758,47 @@ public class ProcessDefinitionController extends BaseController {
         return returnDataList(result);
     }
 
+    /**
+     * query upstream task dependencies by task name
+     * @param loginUser login user
+     * @param projectName project name
+     * @param processId process id
+     * @param taskName task name
+     * @return task dependencies list
+     */
+    @ApiOperation(value = "queryUpstreamTaskDependencies", notes = "QUERY_TASK_DEPENDENCIES_BY_TASK_NAME_NOTES")
+    @GetMapping(value = "/upstream-task-dependencies")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiException(QUERY_TASK_DEPENDENCIES_BY_TASK_NAME_ERROR)
+    public Result queryUpstreamTaskDependencies(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+                                                @RequestParam("processId") Integer processId,
+                                                @RequestParam("taskName") String taskName) {
+        logger.info("query upstream task dependencies, login user:{}, project name:{}, process id:{}, task name:{}",
+                loginUser.getUserName(), projectName, processId, taskName);
+        Map<String, Object> result = processDefinitionService.queryUpstreamTaskDependencies(processId, taskName);
+        return returnDataList(result);
+    }
+
+    /**
+     * query downstream task dependencies by task name
+     * @param loginUser login user
+     * @param projectName project name
+     * @param processId process id
+     * @param taskName task name
+     * @return task dependencies list
+     */
+    @ApiOperation(value = "queryDownstreamTaskDependencies", notes = "QUERY_TASK_DEPENDENCIES_BY_TASK_NAME_NOTES")
+    @GetMapping(value = "/downstream-task-dependencies")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiException(QUERY_TASK_DEPENDENCIES_BY_TASK_NAME_ERROR)
+    public Result queryDownstreamTaskDependencies(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                                  @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+                                                  @RequestParam("processId") Integer processId,
+                                                  @RequestParam("taskName") String taskName) {
+        logger.info("query downstream task dependencies, login user:{}, project name:{}, process id:{}, task name:{}",
+                loginUser.getUserName(), projectName, processId, taskName);
+        Map<String, Object> result = processDefinitionService.queryDownstreamTaskDependencies(processId, taskName);
+        return returnDataList(result);
+    }
 }

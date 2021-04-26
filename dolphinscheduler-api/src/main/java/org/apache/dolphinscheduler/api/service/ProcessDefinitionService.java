@@ -276,6 +276,24 @@ public interface ProcessDefinitionService {
             , int processDefinitionId, long version);
 
     /**
+     * query upstream task dependencies by task name
+     *
+     * @param processId process id
+     * @param taskName task name
+     * @return task dependencies list
+     */
+    Map<String, Object> queryUpstreamTaskDependencies(Integer processId, String taskName);
+
+    /**
+     * query downstream task dependencies by task name
+     *
+     * @param processId process id
+     * @param taskName task name
+     * @return task dependencies list
+     */
+    Map<String, Object> queryDownstreamTaskDependencies(Integer processId, String taskName);
+  
+    /**
      * check has associated process definition
      *
      * @param processDefinitionId process definition id

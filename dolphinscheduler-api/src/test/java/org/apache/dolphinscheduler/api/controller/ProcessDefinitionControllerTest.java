@@ -428,4 +428,34 @@ public class ProcessDefinitionControllerTest {
         Assert.assertEquals(Status.SUCCESS.getCode(), (int) result.getCode());
     }
 
+    @Test
+    public void testQueryUpstreamTaskDependencies() throws Exception {
+        String projectName = "test";
+        int processId = 1;
+        String taskName = "shell-1";
+
+        Map<String, Object> result = new HashMap<>();
+        putMsg(result, Status.SUCCESS);
+
+        Mockito.when(processDefinitionService.queryUpstreamTaskDependencies(processId, taskName)).thenReturn(result);
+        Result response = processDefinitionController.queryUpstreamTaskDependencies(user, projectName, processId, taskName);
+
+        Assert.assertEquals(Status.SUCCESS.getCode(), response.getCode().intValue());
+    }
+
+    @Test
+    public void testQueryDownstreamTaskDependencies() throws Exception {
+        String projectName = "test";
+        int processId = 1;
+        String taskName = "shell-1";
+
+        Map<String, Object> result = new HashMap<>();
+        putMsg(result, Status.SUCCESS);
+
+        Mockito.when(processDefinitionService.queryDownstreamTaskDependencies(processId, taskName)).thenReturn(result);
+        Result response = processDefinitionController.queryDownstreamTaskDependencies(user, projectName, processId, taskName);
+
+        Assert.assertEquals(Status.SUCCESS.getCode(), response.getCode().intValue());
+    }
+
 }

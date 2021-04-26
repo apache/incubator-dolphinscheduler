@@ -56,4 +56,12 @@ public class DependentParameters extends AbstractParameters {
     public void setRelation(DependentRelation relation) {
         this.relation = relation;
     }
+
+    @Override
+    public String toString() {
+        return "DependParams{"
+                + "relation=" + relation
+                + ", dependTaskList=" + dependTaskList
+                + '}';
+    }
 }

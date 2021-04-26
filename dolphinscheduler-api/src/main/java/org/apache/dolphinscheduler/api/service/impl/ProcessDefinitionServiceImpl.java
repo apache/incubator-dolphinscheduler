@@ -43,11 +43,14 @@ import org.apache.dolphinscheduler.common.enums.TaskType;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.enums.WarningType;
 import org.apache.dolphinscheduler.common.graph.DAG;
+import org.apache.dolphinscheduler.common.model.DependentItem;
+import org.apache.dolphinscheduler.common.model.DependentTaskModel;
 import org.apache.dolphinscheduler.common.model.TaskNode;
 import org.apache.dolphinscheduler.common.model.TaskNodeRelation;
 import org.apache.dolphinscheduler.common.process.ProcessDag;
 import org.apache.dolphinscheduler.common.process.Property;
 import org.apache.dolphinscheduler.common.process.ResourceInfo;
+import org.apache.dolphinscheduler.common.task.dependent.DependentParameters;
 import org.apache.dolphinscheduler.common.task.AbstractParameters;
 import org.apache.dolphinscheduler.common.thread.Stopper;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
@@ -1798,6 +1801,96 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
         }
     }
 
+    private List<String> depList = new ArrayList<>();
+
+    public Map<String, Object> queryUpstreamTaskDependencies(Integer processId, String taskName) {
+        ProcessDefinition processDefinition = processDefineMapper.selectById(processId);
+        Map<String, Object> result = new HashMap<>();
+        if (processDefinition == null) {
+            logger.info("Upstream dependencies process define not exists");
+            putMsg(result, Status.PROCESS_DEFINE_NOT_EXIST, processId);
+            return result;
+        }
+        String processDefinitionJson = processDefinition.getProcessDefinitionJson();
+        ProcessData processData = JSONUtils.parseObject(processDefinitionJson, ProcessData.class);
+        //process data check
+        if (processData == null) {
+            logger.error("Upstream dependencies process data is null");
+            putMsg(result, Status.DATA_IS_NOT_VALID, processDefinitionJson);
+            return result;
+        }
+        List<TaskNode> taskNodeList = processData.getTasks();
+        for (TaskNode taskNode : taskNodeList) {
+            List<String> taskItems = new ArrayList<>();
+            //get task node with the given task name
+            if (taskNode.getName().equals(taskName)) {
+                String preTasksField = taskNode.getPreTasks();
+                //parse preTasks field
+                taskItems = JSONUtils.toList(preTasksField, String.class);
+                //add preTasks to depList
+                depList.add(preTasksField);
+            }
+            for (String taskItem : taskItems) {
+                for (TaskNode taskNode1 : taskNodeList) {
+                    //find task node if ID is in the preTasks
+                    if (taskNode1.getName().equals(taskItem)) {
+                        upStreamOp(taskNode1);
+                    }
+                }
+            }
+        }
+
+        result.put(Constants.DATA_LIST, depList);
+        putMsg(result, Status.SUCCESS);
+        depList.clear();
+
+        return result;
+    }
+
+    public Map<String, Object> queryDownstreamTaskDependencies(Integer processId, String taskName) {
+        Map<String, Object> result = new HashMap<>();
+        ProcessDefinition processDefinition = processDefineMapper.selectById(processId);
+        if (processDefinition == null) {
+            putMsg(result, Status.PROCESS_DEFINE_NOT_EXIST, processId);
+            logger.info("Downstream dependencies process define not exist");
+            return result;
+        }
+        String processDefinitionJson = processDefinition.getProcessDefinitionJson();
+        ProcessData processData = JSONUtils.parseObject(processDefinitionJson, ProcessData.class);
+        if (null == processData) {
+            putMsg(result, Status.DATA_IS_NOT_VALID, processDefinitionJson);
+            logger.error("Downstream dependencies process data is null");
+            return result;
+        }
+        List<TaskNode> taskNodeList = processData.getTasks();
+
+        for (TaskNode taskNode : taskNodeList) {
+            if (taskNode.getType().equals("DEPENDENT")) {
+                String dependenceField = taskNode.getDependence();
+                //parse dependence field if task node is dependent
+                DependentParameters dependParam = JSONUtils.parseObject(dependenceField, DependentParameters.class);
+                List<DependentTaskModel> dependentTaskList = dependParam.getDependTaskList();
+                downStreamOp(dependentTaskList, taskNode, taskName);
+            } else {
+                List<String> taskItems;
+                String preTaskField = taskNode.getPreTasks();
+                //parse preTaskField if task node is not dependent
+                taskItems = JSONUtils.toList(preTaskField, String.class);
+                for (String  taskItem : taskItems) {
+                    if (taskItem.equals(taskName)) {
+                        //add the task item to depList if it is same as taskName
+                        depList.add(taskNode.getName());
+                    }
+                }
+            }
+        }
+        result.put(Constants.DATA_LIST, depList);
+        depList.clear();
+        putMsg(result, Status.SUCCESS);
+
+        return result;
+    }
+      
     /**
      * check has associated process definition
      *
@@ -1811,5 +1904,35 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
         return Objects.nonNull(hasAssociatedDefinitionId);
     }
 
-}
+    private void upStreamOp(TaskNode taskNode) {
+        if (taskNode.getType().equals("DEPENDENT")) {
+            String dependenceField = taskNode.getDependence();
+            //parse dependence field if task node is dependent
+            DependentParameters dependParam = JSONUtils.parseObject(dependenceField, DependentParameters.class);
+            List<DependentTaskModel> dependentTaskList = dependParam.getDependTaskList();
+            for (DependentTaskModel dependentTask : dependentTaskList) {
+                List<DependentItem> dependentItemList = dependentTask.getDependItemList();
+                for (DependentItem dependentItem : dependentItemList) {
+                    //add depTasks to depList
+                    depList.add(dependentItem.getDepTasks());
+                }
+            }
+        } else {
+            //add preTasks to depList if task node is not dependent
+            depList.add(taskNode.getPreTasks());
+        }
+    }
 
+    private void downStreamOp(List<DependentTaskModel> dependentTaskList, TaskNode taskNode, String taskName) {
+        for (DependentTaskModel dependentTask : dependentTaskList) {
+            List<DependentItem> dependentItemList = dependentTask.getDependItemList();
+            for (DependentItem dependentItem : dependentItemList) {
+                String depTasksField = dependentItem.getDepTasks();
+                if (depTasksField.contains(taskName)) {
+                    //add the dependent item to depList if it is same as taskName
+                    depList.add(taskNode.getName());
+                }
+            }
+        }
+    }
+}
