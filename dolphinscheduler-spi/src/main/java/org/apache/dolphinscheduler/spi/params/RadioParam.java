@@ -43,7 +43,7 @@ public class RadioParam extends PluginParams {
     }
 
     public static Builder newBuilder(String name, String title) {
-        return new RadioParam.Builder(name, title);
+        return new Builder(name, title);
     }
 
     public static class Builder extends PluginParams.Builder {

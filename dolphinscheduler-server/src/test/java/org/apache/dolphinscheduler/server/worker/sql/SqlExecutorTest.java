@@ -125,7 +125,7 @@ public class SqlExecutorTest {
 //        AbstractTask task = TaskManager.newTask(taskInstance.getTaskType(), taskProps, taskLogger);
         AbstractTask task = null;
 
-                logger.info("task info : {}", task);
+        logger.info("task info : {}", task);
 
         // job init
         task.init();

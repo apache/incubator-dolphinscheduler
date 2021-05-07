@@ -35,7 +35,7 @@ public class InputParam extends PluginParams {
     }
 
     public static Builder newBuilder(String name, String title) {
-        return new InputParam.Builder(name, title);
+        return new Builder(name, title);
     }
 
     public static class Builder extends PluginParams.Builder {

@@ -59,7 +59,7 @@ public class Validate {
     }
 
     public static Builder newBuilder() {
-        return new Validate.Builder();
+        return new Builder();
     }
 
     @JsonPOJOBuilder(buildMethodName = "build", withPrefix = "set")
