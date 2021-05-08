@@ -40,6 +40,7 @@ import org.apache.dolphinscheduler.dao.entity.Schedule;
 import org.apache.dolphinscheduler.dao.entity.Tenant;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.ProcessDefinitionMapper;
+import org.apache.dolphinscheduler.dao.mapper.ProcessInstanceMapper;
 import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.apache.dolphinscheduler.service.process.ProcessService;
 
@@ -73,7 +74,13 @@ public class ExecutorService2Test {
     private ProcessService processService;
 
     @Mock
+    private ProcessInstanceMapper processInstanceMapper;
+
+    @Mock
     private ProcessDefinitionMapper processDefinitionMapper;
+
+    @Mock
+    private ProcessDefinitionMapper processDefineMapper;
 
     @Mock
     private ProjectMapper projectMapper;
@@ -139,6 +146,27 @@ public class ExecutorService2Test {
         Mockito.when(processService.findProcessDefineById(processDefinitionId)).thenReturn(processDefinition);
     }
 
+    @Test
+    public void startCheckByProcessDefinedIdV2() {
+        ProcessDefinition processDefinition = new ProcessDefinition();
+        processDefinition.setId(123);
+        processDefinition.setName("test");
+        processDefinition.setVersion(1);
+        processDefinition.setProcessDefinitionJson("{\"globalParams\":[{\"prop\":\"startParam1\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"\"}],\"tasks\":[{\"conditionResult\":"
+                + "{\"failedNode\":[\"\"],\"successNode\":[\"\"]},\"delayTime\":\"0\",\"dependence\":{}"
+                + ",\"description\":\"\",\"id\":\"tasks-3011\",\"maxRetryTimes\":\"0\",\"name\":\"tsssss\""
+                + ",\"params\":{\"localParams\":[],\"rawScript\":\"echo \\\"123123\\\"\",\"resourceList\":[]}"
+                + ",\"preTasks\":[],\"retryInterval\":\"1\",\"runFlag\":\"NORMAL\",\"taskInstancePriority\":\"MEDIUM\""
+                + ",\"timeout\":{\"enable\":false,\"interval\":null,\"strategy\":\"\"},\"type\":\"SHELL\""
+                + ",\"waitStartTimeout\":{},\"workerGroup\":\"default\"}],\"tenantId\":4,\"timeout\":0}");
+        processDefinition.setGlobalParams("[{\"prop\":\"startParam1\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"\"}]");
+        ProcessInstance processInstance = new ProcessInstance();
+        processInstance.setId(222);
+        Mockito.when(processDefineMapper.selectById(123)).thenReturn(processDefinition);
+        Map<String, Object> map = executorService.startCheckByProcessDefinedId(1234);
+        Assert.assertNotNull(map);
+    }
+
     /**
      * not complement
      */
@@ -154,6 +182,23 @@ public class ExecutorService2Test {
                 Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
         Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
         verify(processService, times(1)).createCommand(any(Command.class));
+
+        Map<String, Object> result1 = executorService.execProcessInstanceRandomNode(loginUser, projectName,
+                processDefinitionId, cronTime, CommandType.START_PROCESS,
+                null, null,
+                null, null, 0,
+                RunMode.RUN_MODE_SERIAL,
+                Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
+        Assert.assertEquals(Status.PROCESS_INSTANCE_NOT_EXIST, result1.get(Constants.STATUS));
+
+        Mockito.when(processInstanceMapper.selectById(processInstanceId)).thenReturn(processInstance);
+        Map<String, Object> result2 = executorService.execProcessInstanceRandomNode(loginUser, projectName,
+                processDefinitionId, cronTime, CommandType.START_PROCESS,
+                null, null,
+                null, null, 0,
+                RunMode.RUN_MODE_SERIAL,
+                Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
+        Assert.assertEquals(Status.SUCCESS, result2.get(Constants.STATUS));
 
     }
 
@@ -174,7 +219,6 @@ public class ExecutorService2Test {
         verify(processService, times(1)).createCommand(any(Command.class));
 
     }
-
 
     /**
      * date error
@@ -264,9 +308,23 @@ public class ExecutorService2Test {
     @Test
     public void testExecuteRepeatRunning() throws Exception {
         Mockito.when(processService.verifyIsNeedCreateCommand(any(Command.class))).thenReturn(true);
-        
+
         Map<String, Object> result = executorService.execute(loginUser, projectName, processInstanceId, ExecuteType.REPEAT_RUNNING);
         Assert.assertEquals(Status.SUCCESS, result.get(Constants.STATUS));
+    }
+
+    @Test
+    public void testRandomNode() {
+        processInstance.setState(ExecutionStatus.RUNNING_EXECUTION);
+        Mockito.when(processInstanceMapper.selectById(processInstanceId)).thenReturn(processInstance);
+        Map<String, Object> result3 = executorService.execProcessInstanceRandomNode(loginUser, projectName,
+                processDefinitionId, cronTime, CommandType.START_PROCESS,
+                null, null,
+                null, null, 0,
+                RunMode.RUN_MODE_SERIAL,
+                Priority.LOW, Constants.DEFAULT_WORKER_GROUP, 110, null);
+        Assert.assertEquals(Status.PROCESS_INSTANCE_STATE_OPERATION_ERROR, result3.get(Constants.STATUS));
+
     }
 
     private List<Server> getMasterServersList() {

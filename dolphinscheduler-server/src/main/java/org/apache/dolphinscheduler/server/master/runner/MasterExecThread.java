@@ -416,6 +416,17 @@ public class MasterExecThread implements Runnable {
                 errorTaskList.put(task.getName(), task);
             }
         }
+        removeCompleteList4RandomNode(completeTaskList,dag.getAllNode());    }
+
+    public void removeCompleteList4RandomNode(Map<String, TaskInstance> completeTaskList, Set<String> dagNode) {
+        if (CommandType.START_RANDOM_TASK_PROCESS == this.processInstance.getCommandType()) {
+            for (String nodeName : dagNode) {
+                TaskInstance taskInstance = completeTaskList.get(nodeName);
+                taskInstance.setFlag(Flag.NO);
+                processService.updateTaskInstance(taskInstance);
+                completeTaskList.remove(nodeName);
+            }
+        }
     }
 
     /**
@@ -516,11 +527,15 @@ public class MasterExecThread implements Runnable {
             } else {
                 taskInstance.setWorkerGroup(taskWorkerGroup);
             }
-            //get process global
-            setProcessGlobal(taskNode, taskInstance);
             // delay execution time
             taskInstance.setDelayTime(taskNode.getDelayTime());
+        } else {
+            if (CommandType.START_RANDOM_TASK_PROCESS == processInstance.getCommandType()) {
+                taskInstance.setRetryTimes(taskInstance.getRetryTimes() + 1);
+            }
         }
+        //get process global
+        setProcessGlobal(taskNode, taskInstance);
         return taskInstance;
     }
 

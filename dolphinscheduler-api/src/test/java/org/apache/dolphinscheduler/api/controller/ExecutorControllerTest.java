@@ -45,6 +45,22 @@ public class ExecutorControllerTest extends AbstractControllerTest {
 
     private static Logger logger = LoggerFactory.getLogger(ExecutorControllerTest.class);
 
+    @Test
+    public void testStartProcessInstanceRandomNode() throws Exception {
+        MultiValueMap<String, String> paramsMap = new LinkedMultiValueMap<>();
+        paramsMap.add("processInstanceId", "1");
+        paramsMap.add("failureStrategy", "CONTINUE");
+        paramsMap.add("warningType", "NONE");
+        MvcResult mvcResult = mockMvc.perform(post("/projects/test/executors/start-process-instance-random-node")
+                .header(SESSION_ID, sessionId)
+                .params(paramsMap))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn();
+        Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
+        Assert.assertNotNull(result);
+    }
+
     @Ignore
     @Test
     public void testStartProcessInstance() throws Exception {
@@ -65,11 +81,11 @@ public class ExecutorControllerTest extends AbstractControllerTest {
         paramsMap.add("timeout", "");
 
         MvcResult mvcResult = mockMvc.perform(post("/projects/{projectName}/executors/start-process-instance", "cxc_1113")
-            .header("sessionId", sessionId)
-            .params(paramsMap))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-            .andReturn();
+                .header("sessionId", sessionId)
+                .params(paramsMap))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn();
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
         Assert.assertEquals(Status.SUCCESS.getCode(), result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -83,11 +99,11 @@ public class ExecutorControllerTest extends AbstractControllerTest {
         paramsMap.add("executeType", String.valueOf(ExecuteType.NONE));
 
         MvcResult mvcResult = mockMvc.perform(post("/projects/{projectName}/executors/execute", "cxc_1113")
-            .header("sessionId", sessionId)
-            .params(paramsMap))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-            .andReturn();
+                .header("sessionId", sessionId)
+                .params(paramsMap))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn();
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
         Assert.assertEquals(Status.SUCCESS.getCode(), result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -97,11 +113,11 @@ public class ExecutorControllerTest extends AbstractControllerTest {
     public void testStartCheckProcessDefinition() throws Exception {
 
         MvcResult mvcResult = mockMvc.perform(post("/projects/{projectName}/executors/start-check", "cxc_1113")
-            .header(SESSION_ID, sessionId)
-            .param("processDefinitionId", "40"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-            .andReturn();
+                .header(SESSION_ID, sessionId)
+                .param("processDefinitionId", "40"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andReturn();
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
         Assert.assertEquals(Status.SUCCESS.getCode(), result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());

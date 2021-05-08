@@ -803,6 +803,16 @@ public class ProcessService {
                 processInstance.setRunTimes(runTime + 1);
                 initComplementDataParam(processDefinition, processInstance, cmdParam);
                 break;
+            case START_RANDOM_TASK_PROCESS:
+                processInstance.setCommandParam(JSONUtils.toJsonString(cmdParam));
+                processInstance.setRunTimes(runTime + 1);
+                setGlobalParamIfCommanded(processDefinition, cmdParam);
+                processInstance.setGlobalParams(ParameterUtils.curingGlobalParams(
+                        processDefinition.getGlobalParamMap(),
+                        processDefinition.getGlobalParamList(),
+                        CommandType.START_RANDOM_TASK_PROCESS,
+                        processInstance.getScheduleTime()));
+                break;
             case SCHEDULER:
                 break;
             default:

@@ -45,9 +45,11 @@ import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -182,7 +184,38 @@ public class MasterExecThreadTest {
     }
 
     @Test
-    public void testGetStartTaskInstanceList() {
+    public void testGetMasterExecThread() {
+        try {
+            MasterExecThread masterExecThread1 = new MasterExecThread(processInstance, processService, null, null, config);
+            Assert.assertNotNull(masterExecThread1);
+        } catch (Exception e) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testRemoveCompleteList4RandomNode() {
+        try {
+            Map<String, TaskInstance> completeTaskList = new HashMap<>();
+            TaskInstance taskInstance = new TaskInstance();
+            taskInstance.setId(0);
+            taskInstance.setName("test");
+            taskInstance.setMaxRetryTimes(0);
+            taskInstance.setRetryInterval(0);
+            taskInstance.setState(ExecutionStatus.FAILURE);
+            completeTaskList.put("test",taskInstance);
+            Set<String> allNode = new HashSet<>();
+            allNode.add("test");
+            Mockito.when(processInstance.getCommandType()).thenReturn(CommandType.START_RANDOM_TASK_PROCESS);
+            Mockito.when(processService.updateTaskInstance(taskInstance)).thenReturn(true);
+            masterExecThread.removeCompleteList4RandomNode(completeTaskList,allNode);
+        } catch (Exception e) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testMasterExecThread() {
         try {
             TaskInstance taskInstance1 = new TaskInstance();
             taskInstance1.setId(1);

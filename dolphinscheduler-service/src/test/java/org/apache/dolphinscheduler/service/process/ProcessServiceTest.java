@@ -21,9 +21,12 @@ import static org.apache.dolphinscheduler.common.Constants.CMD_PARAM_RECOVER_PRO
 import static org.apache.dolphinscheduler.common.Constants.CMD_PARAM_START_PARAMS;
 import static org.apache.dolphinscheduler.common.Constants.CMD_PARAM_SUB_PROCESS_DEFINE_ID;
 
+import static org.mockito.Mockito.when;
+
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.CommandType;
 import org.apache.dolphinscheduler.common.enums.Flag;
+import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.enums.WarningType;
 import org.apache.dolphinscheduler.common.model.TaskNode;
 import org.apache.dolphinscheduler.common.task.conditions.ConditionsParameters;
@@ -35,12 +38,14 @@ import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.ProcessInstance;
 import org.apache.dolphinscheduler.dao.entity.ProcessInstanceMap;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
+import org.apache.dolphinscheduler.dao.entity.Tenant;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.CommandMapper;
 import org.apache.dolphinscheduler.dao.mapper.ErrorCommandMapper;
 import org.apache.dolphinscheduler.dao.mapper.ProcessDefinitionMapper;
 import org.apache.dolphinscheduler.dao.mapper.ProcessInstanceMapper;
 import org.apache.dolphinscheduler.dao.mapper.TaskInstanceMapper;
+import org.apache.dolphinscheduler.dao.mapper.TenantMapper;
 import org.apache.dolphinscheduler.dao.mapper.UserMapper;
 import org.apache.dolphinscheduler.service.quartz.cron.CronUtilsTest;
 
@@ -73,10 +78,11 @@ public class ProcessServiceTest {
     @InjectMocks
     private ProcessService processService;
 
+    @Mock
+    TenantMapper tenantMapper;
 
     @Mock
     private CommandMapper commandMapper;
-
 
     @Mock
     private ErrorCommandMapper errorCommandMapper;
@@ -281,6 +287,14 @@ public class ProcessServiceTest {
         command5.setCommandType(CommandType.START_PROCESS);
         ProcessInstance processInstance1 = processService.handleCommand(logger, host, validThreadNum, command5);
         Assert.assertTrue(processInstance1.getGlobalParams().contains("\"testStartParam1\""));
+
+        Command command6 = new Command();
+        command6.setProcessDefinitionId(123);
+        HashMap<String, String> commandParams4Random = new HashMap<>();
+        commandParams4Random.put(Constants.CMD_PARAM_RECOVERY_START_NODE_STRING, "1");
+        command6.setCommandParam(JSONUtils.toJsonString(commandParams4Random));
+        command6.setCommandType(CommandType.START_RANDOM_TASK_PROCESS);
+        Assert.assertNotNull(processService.handleCommand(logger, host, validThreadNum, command6));
     }
 
     @Test
@@ -475,6 +489,25 @@ public class ProcessServiceTest {
         int exeMethodResult = processService.createCommand(command);
         Assert.assertEquals(mockResult, exeMethodResult);
         Mockito.verify(commandMapper, Mockito.times(1)).insert(command);
+    }
+
+    @Test
+    public void testTenantForProcess() {
+        User user = getAdminUser();
+        user.setTenantId(2);
+        when(tenantMapper.queryById(1)).thenReturn(null);
+        when(userMapper.selectById(1)).thenReturn(user);
+        when(tenantMapper.queryById(2)).thenReturn(new Tenant());
+        Tenant tenant = processService.getTenantForProcess(1,1);
+        Assert.assertNotNull(tenant);
+    }
+
+    private User getAdminUser() {
+        User loginUser = new User();
+        loginUser.setId(-1);
+        loginUser.setUserName("admin");
+        loginUser.setUserType(UserType.GENERAL_USER);
+        return loginUser;
     }
 
 }

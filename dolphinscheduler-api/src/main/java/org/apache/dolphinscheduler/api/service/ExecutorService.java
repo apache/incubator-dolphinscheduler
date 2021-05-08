@@ -63,6 +63,33 @@ public interface ExecutorService {
                                             Map<String, String> startParams);
 
     /**
+     * execute process instance random node
+     *
+     * @param loginUser
+     * @param projectName
+     * @param processInstanceId
+     * @param cronTime
+     * @param commandType
+     * @param failureStrategy
+     * @param startNodeIdList
+     * @param taskDependType
+     * @param warningType
+     * @param warningGroupId
+     * @param runMode
+     * @param processInstancePriority
+     * @param workerGroup
+     * @param timeout
+     * @param startParams
+     * @return
+     */
+    Map<String, Object> execProcessInstanceRandomNode(User loginUser, String projectName,
+                                            int processInstanceId, String cronTime, CommandType commandType,
+                                            FailureStrategy failureStrategy, String startNodeList,
+                                            TaskDependType taskDependType, WarningType warningType, int warningGroupId,
+                                            RunMode runMode,
+                                            Priority processInstancePriority, String workerGroup, Integer timeout,
+                                            Map<String, String> startParams);
+    /**
      * check whether the process definition can be executed
      *
      * @param processDefinition process definition

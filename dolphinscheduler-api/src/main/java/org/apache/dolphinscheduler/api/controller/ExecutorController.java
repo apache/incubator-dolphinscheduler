@@ -133,6 +133,66 @@ public class ExecutorController extends BaseController {
         return returnDataList(result);
     }
 
+    /**
+     * execute process instance
+     *
+     * @param loginUser login user
+     * @param projectName project name
+     * @param scheduleTime schedule time
+     * @param failureStrategy failure strategy
+     * @param taskDependType task depend type
+     * @param warningType warning type
+     * @param warningGroupId warning group id
+     * @param runMode run mode
+     * @param processInstancePriority process instance priority
+     * @param workerGroup worker group
+     * @param timeout timeout
+     * @return start process result code
+     */
+    @ApiOperation(value = "startProcessInstanceRandomNode", notes = "RUN_PROCESS_INSTANCE_RANDOM_NOTES")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "processInstanceId", value = "PROCESS_INSTANCE_ID", required = true, dataType = "Int", example = "100"),
+            @ApiImplicitParam(name = "scheduleTime", value = "SCHEDULE_TIME", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "failureStrategy", value = "FAILURE_STRATEGY", required = true, dataType = "FailureStrategy"),
+            @ApiImplicitParam(name = "startNodeList", value = "START_NODE_LIST", dataType = "String"),
+            @ApiImplicitParam(name = "taskDependType", value = "TASK_DEPEND_TYPE", dataType = "TaskDependType"),
+            @ApiImplicitParam(name = "execType", value = "COMMAND_TYPE", dataType = "CommandType"),
+            @ApiImplicitParam(name = "warningType", value = "WARNING_TYPE", required = true, dataType = "WarningType"),
+            @ApiImplicitParam(name = "warningGroupId", value = "WARNING_GROUP_ID", required = true, dataType = "Int", example = "100"),
+            @ApiImplicitParam(name = "runMode", value = "RUN_MODE", dataType = "RunMode"),
+            @ApiImplicitParam(name = "processInstancePriority", value = "PROCESS_INSTANCE_PRIORITY", required = true, dataType = "Priority"),
+            @ApiImplicitParam(name = "workerGroup", value = "WORKER_GROUP", dataType = "String", example = "default"),
+            @ApiImplicitParam(name = "timeout", value = "TIMEOUT", dataType = "Int", example = "100"),
+    })
+    @PostMapping(value = "start-process-instance-random-node")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiException(START_PROCESS_INSTANCE_ERROR)
+    public Result<Map<String, Object>> startProcessInstanceRandomNode(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                       @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+                                       @RequestParam(value = "processInstanceId") int processInstanceId,
+                                       @RequestParam(value = "scheduleTime", required = false) String scheduleTime,
+                                       @RequestParam(value = "failureStrategy", required = true) FailureStrategy failureStrategy,
+                                       @RequestParam(value = "startNodeList", required = false) String startNodeList,
+                                       @RequestParam(value = "taskDependType", required = false) TaskDependType taskDependType,
+                                       @RequestParam(value = "warningType", required = true) WarningType warningType,
+                                       @RequestParam(value = "warningGroupId", required = false) int warningGroupId,
+                                       @RequestParam(value = "runMode", required = false) RunMode runMode,
+                                       @RequestParam(value = "processInstancePriority", required = false) Priority processInstancePriority,
+                                       @RequestParam(value = "workerGroup", required = false, defaultValue = "default") String workerGroup,
+                                       @RequestParam(value = "timeout", required = false) Integer timeout,
+                                       @RequestParam(value = "startParams", required = false) String startParams) {
+        if (timeout == null) {
+            timeout = Constants.MAX_TASK_TIMEOUT;
+        }
+        Map<String, String> startParamMap = null;
+        if (startParams != null) {
+            startParamMap = JSONUtils.toMap(startParams);
+        }
+        Map<String, Object> result = execService.execProcessInstanceRandomNode(loginUser, projectName, processInstanceId, scheduleTime, CommandType.START_RANDOM_TASK_PROCESS, failureStrategy,
+                startNodeList, taskDependType, warningType,
+                warningGroupId, runMode, processInstancePriority, workerGroup, timeout, startParamMap);
+        return returnDataList(result);
+    }
 
     /**
      * do action to process instance：pause, stop, repeat, recover from pause, recover from stop

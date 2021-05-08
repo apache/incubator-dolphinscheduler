@@ -17,12 +17,22 @@
 package org.apache.dolphinscheduler.common.graph;
 
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * analysis of DAG
@@ -423,6 +433,14 @@ public class DAG<Node, NodeInfo, EdgeInfo> {
       return true;
   }
 
+    public Set<Node> getAllNode() {
+        lock.readLock().lock();
+        try {
+            return nodesMap.keySet();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
 
   /**
    * Get all neighbor nodes of the node

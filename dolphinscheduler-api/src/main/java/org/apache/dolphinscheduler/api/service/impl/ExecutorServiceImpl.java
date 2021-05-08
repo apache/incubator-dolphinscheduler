@@ -162,7 +162,7 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
          */
         int create = this.createCommand(commandType, processDefinitionId,
                 taskDependType, failureStrategy, startNodeList, cronTime, warningType, loginUser.getId(),
-                warningGroupId, runMode, processInstancePriority, workerGroup, startParams);
+                warningGroupId, runMode, processInstancePriority, workerGroup, startParams,0,null);
 
         if (create > 0) {
             processDefinition.setWarningGroupId(warningGroupId);
@@ -173,6 +173,56 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
         }
         return result;
     }
+
+    @Override
+    public Map<String, Object> execProcessInstanceRandomNode(User loginUser, String projectName,
+                                                   int processInstanceId, String cronTime, CommandType commandType,
+                                                   FailureStrategy failureStrategy, String startIdList,
+                                                   TaskDependType taskDependType, WarningType warningType, int warningGroupId,
+                                                   RunMode runMode,
+                                                   Priority processInstancePriority, String workerGroup, Integer timeout,
+                                                   Map<String, String> startParams) {
+        Map<String, Object> result = new HashMap<>();
+        // timeout is invalid
+        if (timeout <= 0 || timeout > MAX_TASK_TIMEOUT) {
+            putMsg(result, Status.TASK_TIMEOUT_PARAMS_ERROR);
+            return result;
+        }
+        Project project = projectMapper.queryByName(projectName);
+        Map<String, Object> checkResultAndAuth = checkResultAndAuth(loginUser, projectName, project);
+        if (checkResultAndAuth != null) {
+            return checkResultAndAuth;
+        }
+
+        // check process define release state
+        ProcessInstance processInstance = processInstanceMapper.selectById(processInstanceId);
+        if (processInstance == null) {
+            putMsg(result, Status.PROCESS_INSTANCE_NOT_EXIST, processInstanceId);
+            return result;
+        }
+        if (ExecutionStatus.RUNNING_EXECUTION == processInstance.getState()) {
+            putMsg(result, Status.PROCESS_INSTANCE_STATE_OPERATION_ERROR, processInstance.getName(), processInstance.getState().toString(), ExecuteType.START_PROCESS_RANDOM_TASK.toString());
+            return result;
+        }
+
+        // check master exists
+        if (!checkMasterExists(result)) {
+            return result;
+        }
+
+        /**
+         * create command
+         */
+        int create = this.createCommand(commandType, processInstance.getProcessDefinitionId(),
+                taskDependType, failureStrategy, null, cronTime, warningType, loginUser.getId(),
+                warningGroupId, runMode, processInstancePriority, workerGroup, startParams, processInstanceId, startIdList);
+
+        if (create > 0) {
+            putMsg(result, Status.SUCCESS);
+        }
+        return result;
+    }
+
 
     /**
      * check whether master exists
@@ -488,7 +538,7 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
                               String startNodeList, String schedule, WarningType warningType,
                               int executorId, int warningGroupId,
                               RunMode runMode, Priority processInstancePriority, String workerGroup,
-                              Map<String, String> startParams) {
+                              Map<String, String> startParams,int processInstanceId,String startIdList) {
 
         /**
          * instantiate command schedule instance
@@ -502,6 +552,12 @@ public class ExecutorServiceImpl extends BaseServiceImpl implements ExecutorServ
             command.setCommandType(commandType);
         }
         command.setProcessDefinitionId(processDefineId);
+        if (processInstanceId != 0) {
+            cmdParam.put(CMD_PARAM_RECOVER_PROCESS_ID_STRING, String.valueOf(processInstanceId));
+        }
+        if (StringUtils.isNotEmpty(startIdList)) {
+            cmdParam.put(Constants.CMD_PARAM_RECOVERY_START_NODE_STRING, startIdList);
+        }
         if (nodeDep != null) {
             command.setTaskDependType(nodeDep);
         }
