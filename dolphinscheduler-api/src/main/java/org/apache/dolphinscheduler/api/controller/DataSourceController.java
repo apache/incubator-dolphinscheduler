@@ -32,6 +32,7 @@ import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.DataSourceService;
+import org.apache.dolphinscheduler.api.utils.AuthUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.datasource.BaseDataSourceParamDTO;
@@ -40,7 +41,6 @@ import org.apache.dolphinscheduler.common.datasource.DatasourceUtil;
 import org.apache.dolphinscheduler.common.enums.DbType;
 import org.apache.dolphinscheduler.common.utils.CommonUtils;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
@@ -48,7 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,7 +59,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * data source controller
@@ -76,7 +74,6 @@ public class DataSourceController extends BaseController {
     /**
      * create data source
      *
-     * @param loginUser login user
      * @param dataSourceParam datasource param
      * @return create result code
      */
@@ -84,18 +81,16 @@ public class DataSourceController extends BaseController {
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(CREATE_DATASOURCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result createDataSource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @ApiParam(name = "DATA_SOURCE_PARAM", required = true)
+    @AccessLogAnnotation()
+    public Result createDataSource(@ApiParam(name = "DATA_SOURCE_PARAM", required = true)
                                    @RequestBody BaseDataSourceParamDTO dataSourceParam) {
-        return dataSourceService.createDataSource(loginUser, dataSourceParam);
+        return dataSourceService.createDataSource(AuthUtils.getLoginUser(), dataSourceParam);
     }
 
 
     /**
      * updateProcessInstance data source
      *
-     * @param loginUser login user
      * @param dataSourceParam datasource param
      * @return update result code
      */
@@ -106,17 +101,15 @@ public class DataSourceController extends BaseController {
     @PostMapping(value = "/update")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(UPDATE_DATASOURCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result updateDataSource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestBody BaseDataSourceParamDTO dataSourceParam) {
-        return dataSourceService.updateDataSource(dataSourceParam.getId(), loginUser, dataSourceParam);
+    @AccessLogAnnotation()
+    public Result updateDataSource(@RequestBody BaseDataSourceParamDTO dataSourceParam) {
+        return dataSourceService.updateDataSource(dataSourceParam.getId(), AuthUtils.getLoginUser(), dataSourceParam);
     }
 
     /**
      * query data source detail
      *
-     * @param loginUser login user
-     * @param id        datasource id
+     * @param id datasource id
      * @return data source detail
      */
     @ApiOperation(value = "queryDataSource", notes = "QUERY_DATA_SOURCE_NOTES")
@@ -127,9 +120,8 @@ public class DataSourceController extends BaseController {
     @PostMapping(value = "/update-ui")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATASOURCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryDataSource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                  @RequestParam("id") int id) {
+    @AccessLogAnnotation()
+    public Result queryDataSource(@RequestParam("id") int id) {
 
         Map<String, Object> result = dataSourceService.queryDataSource(id);
         return returnDataList(result);
@@ -138,8 +130,7 @@ public class DataSourceController extends BaseController {
     /**
      * query datasouce by type
      *
-     * @param loginUser login user
-     * @param type      data source type
+     * @param type data source type
      * @return data source list page
      */
     @ApiOperation(value = "queryDataSourceList", notes = "QUERY_DATA_SOURCE_LIST_BY_TYPE_NOTES")
@@ -149,20 +140,18 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATASOURCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryDataSourceList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                      @RequestParam("type") DbType type) {
-        Map<String, Object> result = dataSourceService.queryDataSourceList(loginUser, type.ordinal());
+    @AccessLogAnnotation()
+    public Result queryDataSourceList(@RequestParam("type") DbType type) {
+        Map<String, Object> result = dataSourceService.queryDataSourceList(AuthUtils.getLoginUser(), type.ordinal());
         return returnDataList(result);
     }
 
     /**
      * query datasource with paging
      *
-     * @param loginUser login user
      * @param searchVal search value
-     * @param pageNo    page number
-     * @param pageSize  page size
+     * @param pageNo page number
+     * @param pageSize page size
      * @return data source list page
      */
     @ApiOperation(value = "queryDataSourceListPaging", notes = "QUERY_DATA_SOURCE_LIST_PAGING_NOTES")
@@ -174,9 +163,8 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATASOURCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryDataSourceListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                            @RequestParam(value = "searchVal", required = false) String searchVal,
+    @AccessLogAnnotation()
+    public Result queryDataSourceListPaging(@RequestParam(value = "searchVal", required = false) String searchVal,
                                             @RequestParam("pageNo") Integer pageNo,
                                             @RequestParam("pageSize") Integer pageSize) {
         Map<String, Object> result = checkPageParams(pageNo, pageSize);
@@ -184,15 +172,14 @@ public class DataSourceController extends BaseController {
             return returnDataListPaging(result);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = dataSourceService.queryDataSourceListPaging(loginUser, searchVal, pageNo, pageSize);
+        result = dataSourceService.queryDataSourceListPaging(AuthUtils.getLoginUser(), searchVal, pageNo, pageSize);
         return returnDataListPaging(result);
     }
 
     /**
      * connect datasource
      *
-     * @param loginUser login user
-     * @param dataSourceParam  datasource param
+     * @param dataSourceParam datasource param
      * @return connect result code
      */
     @ApiOperation(value = "connectDataSource", notes = "CONNECT_DATA_SOURCE_NOTES")
@@ -202,9 +189,8 @@ public class DataSourceController extends BaseController {
     @PostMapping(value = "/connect")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(CONNECT_DATASOURCE_FAILURE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result connectDataSource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                    @RequestBody BaseDataSourceParamDTO dataSourceParam) {
+    @AccessLogAnnotation()
+    public Result connectDataSource(@RequestBody BaseDataSourceParamDTO dataSourceParam) {
         DatasourceUtil.checkDatasourceParam(dataSourceParam);
         ConnectionParam connectionParams = DatasourceUtil.buildConnectionParams(dataSourceParam);
         return dataSourceService.checkConnection(dataSourceParam.getType(), connectionParams);
@@ -213,8 +199,7 @@ public class DataSourceController extends BaseController {
     /**
      * connection test
      *
-     * @param loginUser login user
-     * @param id        data source id
+     * @param id data source id
      * @return connect result code
      */
     @ApiOperation(value = "connectionTest", notes = "CONNECT_DATA_SOURCE_TEST_NOTES")
@@ -224,17 +209,15 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/connect-by-id")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(CONNECTION_TEST_FAILURE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result connectionTest(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                 @RequestParam("id") int id) {
+    @AccessLogAnnotation()
+    public Result connectionTest(@RequestParam("id") int id) {
         return dataSourceService.connectionTest(id);
     }
 
     /**
      * delete datasource by id
      *
-     * @param loginUser login user
-     * @param id        datasource id
+     * @param id datasource id
      * @return delete result
      */
     @ApiOperation(value = "delete", notes = "DELETE_DATA_SOURCE_NOTES")
@@ -244,17 +227,15 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/delete")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(DELETE_DATA_SOURCE_FAILURE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result delete(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                         @RequestParam("id") int id) {
-        return dataSourceService.delete(loginUser, id);
+    @AccessLogAnnotation()
+    public Result delete(@RequestParam("id") int id) {
+        return dataSourceService.delete(AuthUtils.getLoginUser(), id);
     }
 
     /**
      * verify datasource name
      *
-     * @param loginUser login user
-     * @param name      data source name
+     * @param name data source name
      * @return true if data source name not exists.otherwise return false
      */
     @ApiOperation(value = "verifyDataSourceName", notes = "VERIFY_DATA_SOURCE_NOTES")
@@ -264,9 +245,8 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/verify-name")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(VERIFY_DATASOURCE_NAME_FAILURE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result verifyDataSourceName(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                       @RequestParam(value = "name") String name
+    @AccessLogAnnotation()
+    public Result verifyDataSourceName(@RequestParam(value = "name") String name
     ) {
         return dataSourceService.verifyDataSourceName(name);
     }
@@ -275,8 +255,7 @@ public class DataSourceController extends BaseController {
     /**
      * unauthorized datasource
      *
-     * @param loginUser login user
-     * @param userId    user id
+     * @param userId user id
      * @return unauthed data source result code
      */
     @ApiOperation(value = "unauthDatasource", notes = "UNAUTHORIZED_DATA_SOURCE_NOTES")
@@ -286,11 +265,10 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/unauth-datasource")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(UNAUTHORIZED_DATASOURCE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result unauthDatasource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam("userId") Integer userId) {
+    @AccessLogAnnotation()
+    public Result unauthDatasource(@RequestParam("userId") Integer userId) {
 
-        Map<String, Object> result = dataSourceService.unauthDatasource(loginUser, userId);
+        Map<String, Object> result = dataSourceService.unauthDatasource(AuthUtils.getLoginUser(), userId);
         return returnDataList(result);
     }
 
@@ -298,8 +276,7 @@ public class DataSourceController extends BaseController {
     /**
      * authorized datasource
      *
-     * @param loginUser login user
-     * @param userId    user id
+     * @param userId user id
      * @return authorized result code
      */
     @ApiOperation(value = "authedDatasource", notes = "AUTHORIZED_DATA_SOURCE_NOTES")
@@ -309,26 +286,24 @@ public class DataSourceController extends BaseController {
     @GetMapping(value = "/authed-datasource")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(AUTHORIZED_DATA_SOURCE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result authedDatasource(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam("userId") Integer userId) {
+    @AccessLogAnnotation()
+    public Result authedDatasource(@RequestParam("userId") Integer userId) {
 
-        Map<String, Object> result = dataSourceService.authedDatasource(loginUser, userId);
+        Map<String, Object> result = dataSourceService.authedDatasource(AuthUtils.getLoginUser(), userId);
         return returnDataList(result);
     }
 
     /**
      * get user info
      *
-     * @param loginUser login user
      * @return user info data
      */
     @ApiOperation(value = "getKerberosStartupState", notes = "GET_USER_INFO_NOTES")
     @GetMapping(value = "/kerberos-startup-state")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(KERBEROS_STARTUP_STATE)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result getKerberosStartupState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+    @AccessLogAnnotation()
+    public Result getKerberosStartupState() {
         // if upload resource is HDFS and kerberos startup is true , else false
         return success(Status.SUCCESS.getMsg(), CommonUtils.getKerberosStartupState());
     }

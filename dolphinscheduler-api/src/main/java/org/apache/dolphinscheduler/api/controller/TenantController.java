@@ -28,10 +28,10 @@ import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.TenantService;
+import org.apache.dolphinscheduler.api.utils.AuthUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -49,7 +48,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * tenant controller
@@ -65,7 +63,6 @@ public class TenantController extends BaseController {
     /**
      * create tenant
      *
-     * @param loginUser login user
      * @param tenantCode tenant code
      * @param queueId queue id
      * @param description description
@@ -81,20 +78,18 @@ public class TenantController extends BaseController {
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(CREATE_TENANT_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result createTenant(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                               @RequestParam(value = "tenantCode") String tenantCode,
+    @AccessLogAnnotation()
+    public Result createTenant(@RequestParam(value = "tenantCode") String tenantCode,
                                @RequestParam(value = "queueId") int queueId,
                                @RequestParam(value = "description", required = false) String description) throws Exception {
 
-        Map<String, Object> result = tenantService.createTenant(loginUser, tenantCode, queueId, description);
+        Map<String, Object> result = tenantService.createTenant(AuthUtils.getLoginUser(), tenantCode, queueId, description);
         return returnDataList(result);
     }
 
     /**
      * query tenant list paging
      *
-     * @param loginUser login user
      * @param searchVal search value
      * @param pageNo page number
      * @param pageSize page size
@@ -109,9 +104,8 @@ public class TenantController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_TENANT_LIST_PAGING_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryTenantlistPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                        @RequestParam(value = "searchVal", required = false) String searchVal,
+    @AccessLogAnnotation()
+    public Result queryTenantlistPaging(@RequestParam(value = "searchVal", required = false) String searchVal,
                                         @RequestParam("pageNo") Integer pageNo,
                                         @RequestParam("pageSize") Integer pageSize) {
         Map<String, Object> result = checkPageParams(pageNo, pageSize);
@@ -119,7 +113,7 @@ public class TenantController extends BaseController {
             return returnDataListPaging(result);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = tenantService.queryTenantList(loginUser, searchVal, pageNo, pageSize);
+        result = tenantService.queryTenantList(AuthUtils.getLoginUser(), searchVal, pageNo, pageSize);
         return returnDataListPaging(result);
     }
 
@@ -127,16 +121,15 @@ public class TenantController extends BaseController {
     /**
      * tenant list
      *
-     * @param loginUser login user
      * @return tenant list
      */
     @ApiOperation(value = "queryTenantlist", notes = "QUERY_TENANT_LIST_NOTES")
     @GetMapping(value = "/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_TENANT_LIST_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryTenantlist(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
-        Map<String, Object> result = tenantService.queryTenantList(loginUser);
+    @AccessLogAnnotation()
+    public Result queryTenantlist() {
+        Map<String, Object> result = tenantService.queryTenantList(AuthUtils.getLoginUser());
         return returnDataList(result);
     }
 
@@ -144,7 +137,6 @@ public class TenantController extends BaseController {
     /**
      * udpate tenant
      *
-     * @param loginUser login user
      * @param id tennat id
      * @param tenantCode tennat code
      * @param queueId queue id
@@ -162,21 +154,19 @@ public class TenantController extends BaseController {
     @PostMapping(value = "/update")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(UPDATE_TENANT_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result updateTenant(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                               @RequestParam(value = "id") int id,
+    @AccessLogAnnotation()
+    public Result updateTenant(@RequestParam(value = "id") int id,
                                @RequestParam(value = "tenantCode") String tenantCode,
                                @RequestParam(value = "queueId") int queueId,
                                @RequestParam(value = "description", required = false) String description) throws Exception {
 
-        Map<String, Object> result = tenantService.updateTenant(loginUser, id, tenantCode, queueId, description);
+        Map<String, Object> result = tenantService.updateTenant(AuthUtils.getLoginUser(), id, tenantCode, queueId, description);
         return returnDataList(result);
     }
 
     /**
      * delete tenant by id
      *
-     * @param loginUser login user
      * @param id tenant id
      * @return delete result code
      */
@@ -188,17 +178,15 @@ public class TenantController extends BaseController {
     @PostMapping(value = "/delete")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(DELETE_TENANT_BY_ID_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result deleteTenantById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam(value = "id") int id) throws Exception {
-        Map<String, Object> result = tenantService.deleteTenantById(loginUser, id);
+    @AccessLogAnnotation()
+    public Result deleteTenantById(@RequestParam(value = "id") int id) throws Exception {
+        Map<String, Object> result = tenantService.deleteTenantById(AuthUtils.getLoginUser(), id);
         return returnDataList(result);
     }
 
     /**
      * verify tenant code
      *
-     * @param loginUser login user
      * @param tenantCode tenant code
      * @return true if tenant code can user, otherwise return false
      */
@@ -209,9 +197,8 @@ public class TenantController extends BaseController {
     @GetMapping(value = "/verify-tenant-code")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(VERIFY_OS_TENANT_CODE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result verifyTenantCode(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                   @RequestParam(value = "tenantCode") String tenantCode) {
+    @AccessLogAnnotation()
+    public Result verifyTenantCode(@RequestParam(value = "tenantCode") String tenantCode) {
         return tenantService.verifyTenantCode(tenantCode);
     }
 

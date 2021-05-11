@@ -23,16 +23,13 @@ import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.UiPluginService;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.PluginType;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -42,7 +39,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * ui plugin controller
@@ -60,14 +56,13 @@ public class UiPluginController extends BaseController {
 
     @ApiOperation(value = "queryUiPluginsByType", notes = "QUERY_UI_PLUGINS_BY_TYPE")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "pluginType", value = "pluginType", required = true, dataType = "PluginType"),
+            @ApiImplicitParam(name = "pluginType", value = "pluginType", required = true, dataType = "PluginType"),
     })
     @PostMapping(value = "/queryUiPluginsByType")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(QUERY_PLUGINS_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryUiPluginsByType(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                       @RequestParam(value = "pluginType") PluginType pluginType) {
+    @AccessLogAnnotation()
+    public Result queryUiPluginsByType(@RequestParam(value = "pluginType") PluginType pluginType) {
 
         Map<String, Object> result = uiPluginService.queryUiPluginsByType(pluginType);
         return returnDataList(result);
@@ -75,14 +70,13 @@ public class UiPluginController extends BaseController {
 
     @ApiOperation(value = "queryUiPluginDetailById", notes = "QUERY_UI_PLUGIN_DETAIL_BY_ID")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "PluginType"),
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "PluginType"),
     })
     @PostMapping(value = "/queryUiPluginDetailById")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(QUERY_PLUGINS_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryUiPluginDetailById(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                          @RequestParam("pluginId") Integer pluginId) {
+    @AccessLogAnnotation()
+    public Result queryUiPluginDetailById(@RequestParam("pluginId") Integer pluginId) {
 
         Map<String, Object> result = uiPluginService.queryUiPluginDetailById(pluginId);
         return returnDataList(result);

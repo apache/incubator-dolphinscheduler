@@ -36,7 +36,7 @@ public class ApiExceptionHandlerTest {
     public void exceptionHandler() throws NoSuchMethodException {
         ApiExceptionHandler handler = new ApiExceptionHandler();
         AccessTokenController controller = new AccessTokenController();
-        Method method = controller.getClass().getMethod("createToken", User.class, int.class, String.class, String.class);
+        Method method = controller.getClass().getMethod("createToken",int.class, String.class, String.class);
         HandlerMethod hm = new HandlerMethod(controller, method);
         Result result = handler.exceptionHandler(new RuntimeException("test exception"), hm);
         Assert.assertEquals(Status.CREATE_ACCESS_TOKEN_ERROR.getCode(),result.getCode().intValue());
@@ -46,7 +46,7 @@ public class ApiExceptionHandlerTest {
     public void exceptionHandlerRuntime() throws NoSuchMethodException {
         ApiExceptionHandler handler = new ApiExceptionHandler();
         ProcessDefinitionController controller = new ProcessDefinitionController();
-        Method method = controller.getClass().getMethod("batchExportProcessDefinitionByIds", User.class, String.class, String.class, HttpServletResponse.class);
+        Method method = controller.getClass().getMethod("batchExportProcessDefinitionByIds", String.class, String.class, HttpServletResponse.class);
         HandlerMethod hm = new HandlerMethod(controller, method);
         Result result = handler.exceptionHandler(new RuntimeException("test exception"), hm);
         Assert.assertEquals(Status.INTERNAL_SERVER_ERROR_ARGS.getCode(),result.getCode().intValue());

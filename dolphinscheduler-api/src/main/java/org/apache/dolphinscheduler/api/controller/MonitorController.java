@@ -25,23 +25,20 @@ import static org.apache.dolphinscheduler.api.enums.Status.QUERY_ZOOKEEPER_STATE
 import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.MonitorService;
+import org.apache.dolphinscheduler.api.utils.AuthUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.Constants;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * monitor controller
@@ -57,64 +54,64 @@ public class MonitorController extends BaseController {
     /**
      * master list
      *
-     * @param loginUser login user
+     
      * @return master list
      */
     @ApiOperation(value = "listMaster", notes = "MASTER_LIST_NOTES")
     @GetMapping(value = "/master/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(LIST_MASTERS_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result listMaster(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
-        Map<String, Object> result = monitorService.queryMaster(loginUser);
+    @AccessLogAnnotation()
+    public Result listMaster() {
+        Map<String, Object> result = monitorService.queryMaster(AuthUtils.getLoginUser());
         return returnDataList(result);
     }
 
     /**
      * worker list
      *
-     * @param loginUser login user
+     
      * @return worker information list
      */
     @ApiOperation(value = "listWorker", notes = "WORKER_LIST_NOTES")
     @GetMapping(value = "/worker/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(LIST_WORKERS_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result listWorker(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
-        Map<String, Object> result = monitorService.queryWorker(loginUser);
+    @AccessLogAnnotation()
+    public Result listWorker() {
+        Map<String, Object> result = monitorService.queryWorker(AuthUtils.getLoginUser());
         return returnDataList(result);
     }
 
     /**
      * query database state
      *
-     * @param loginUser login user
+     
      * @return data base state
      */
     @ApiOperation(value = "queryDatabaseState", notes = "QUERY_DATABASE_STATE_NOTES")
     @GetMapping(value = "/database")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_DATABASE_STATE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryDatabaseState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
-        Map<String, Object> result = monitorService.queryDatabaseState(loginUser);
+    @AccessLogAnnotation()
+    public Result queryDatabaseState() {
+        Map<String, Object> result = monitorService.queryDatabaseState(AuthUtils.getLoginUser());
         return returnDataList(result);
     }
 
     /**
      * query zookeeper state
      *
-     * @param loginUser login user
+     
      * @return zookeeper information list
      */
     @ApiOperation(value = "queryZookeeperState", notes = "QUERY_ZOOKEEPER_STATE_NOTES")
     @GetMapping(value = "/zookeeper/list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_ZOOKEEPER_STATE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryZookeeperState(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
-        Map<String, Object> result = monitorService.queryZookeeperState(loginUser);
+    @AccessLogAnnotation()
+    public Result queryZookeeperState() {
+        Map<String, Object> result = monitorService.queryZookeeperState(AuthUtils.getLoginUser());
         return returnDataList(result);
     }
 

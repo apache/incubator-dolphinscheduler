@@ -25,6 +25,7 @@ import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.enums.ExecuteType;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.ExecutorService;
+import org.apache.dolphinscheduler.api.utils.AuthUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.CommandType;
@@ -34,7 +35,6 @@ import org.apache.dolphinscheduler.common.enums.RunMode;
 import org.apache.dolphinscheduler.common.enums.TaskDependType;
 import org.apache.dolphinscheduler.common.enums.WarningType;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
@@ -42,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -53,7 +52,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * executor controller
@@ -69,7 +67,6 @@ public class ExecutorController extends BaseController {
     /**
      * execute process instance
      *
-     * @param loginUser login user
      * @param projectName project name
      * @param processDefinitionId process definition id
      * @param scheduleTime schedule time
@@ -103,9 +100,8 @@ public class ExecutorController extends BaseController {
     @PostMapping(value = "start-process-instance")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(START_PROCESS_INSTANCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result startProcessInstance(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                       @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+    @AccessLogAnnotation()
+    public Result startProcessInstance(@ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                                        @RequestParam(value = "processDefinitionId") int processDefinitionId,
                                        @RequestParam(value = "scheduleTime", required = false) String scheduleTime,
                                        @RequestParam(value = "failureStrategy", required = true) FailureStrategy failureStrategy,
@@ -127,7 +123,7 @@ public class ExecutorController extends BaseController {
         if (startParams != null) {
             startParamMap = JSONUtils.toMap(startParams);
         }
-        Map<String, Object> result = execService.execProcessInstance(loginUser, projectName, processDefinitionId, scheduleTime, execType, failureStrategy,
+        Map<String, Object> result = execService.execProcessInstance(AuthUtils.getLoginUser(), projectName, processDefinitionId, scheduleTime, execType, failureStrategy,
                 startNodeList, taskDependType, warningType,
                 warningGroupId, runMode, processInstancePriority, workerGroup, timeout, startParamMap);
         return returnDataList(result);
@@ -137,7 +133,6 @@ public class ExecutorController extends BaseController {
     /**
      * do action to process instance：pause, stop, repeat, recover from pause, recover from stop
      *
-     * @param loginUser login user
      * @param projectName project name
      * @param processInstanceId process instance id
      * @param executeType execute type
@@ -151,20 +146,18 @@ public class ExecutorController extends BaseController {
     @PostMapping(value = "/execute")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(EXECUTE_PROCESS_INSTANCE_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result execute(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                          @ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
+    @AccessLogAnnotation()
+    public Result execute(@ApiParam(name = "projectName", value = "PROJECT_NAME", required = true) @PathVariable String projectName,
                           @RequestParam("processInstanceId") Integer processInstanceId,
                           @RequestParam("executeType") ExecuteType executeType
     ) {
-        Map<String, Object> result = execService.execute(loginUser, projectName, processInstanceId, executeType);
+        Map<String, Object> result = execService.execute(AuthUtils.getLoginUser(), projectName, processInstanceId, executeType);
         return returnDataList(result);
     }
 
     /**
      * check process definition and all of the son process definitions is on line.
      *
-     * @param loginUser login user
      * @param processDefinitionId process definition id
      * @return check result code
      */
@@ -175,9 +168,8 @@ public class ExecutorController extends BaseController {
     @PostMapping(value = "/start-check")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(CHECK_PROCESS_DEFINITION_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result startCheckProcessDefinition(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                              @RequestParam(value = "processDefinitionId") int processDefinitionId) {
+    @AccessLogAnnotation()
+    public Result startCheckProcessDefinition(@RequestParam(value = "processDefinitionId") int processDefinitionId) {
         Map<String, Object> result = execService.startCheckByProcessDefinedId(processDefinitionId);
         return returnDataList(result);
     }

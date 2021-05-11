@@ -27,10 +27,10 @@ import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.AccessTokenService;
+import org.apache.dolphinscheduler.api.utils.AuthUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -64,7 +63,6 @@ public class AccessTokenController extends BaseController {
     /**
      * create token
      *
-     * @param loginUser  login user
      * @param userId     token for user id
      * @param expireTime expire time for the token
      * @param token      token
@@ -74,20 +72,18 @@ public class AccessTokenController extends BaseController {
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(CREATE_ACCESS_TOKEN_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result createToken(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                              @RequestParam(value = "userId") int userId,
+    @AccessLogAnnotation()
+    public Result createToken(@RequestParam(value = "userId") int userId,
                               @RequestParam(value = "expireTime") String expireTime,
                               @RequestParam(value = "token") String token) {
 
-        Map<String, Object> result = accessTokenService.createToken(loginUser, userId, expireTime, token);
+        Map<String, Object> result = accessTokenService.createToken(AuthUtils.getLoginUser(), userId, expireTime, token);
         return returnDataList(result);
     }
 
     /**
      * generate token string
      *
-     * @param loginUser  login user
      * @param userId     token for user
      * @param expireTime expire time
      * @return token string
@@ -96,18 +92,16 @@ public class AccessTokenController extends BaseController {
     @PostMapping(value = "/generate")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiException(GENERATE_TOKEN_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result generateToken(@RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                @RequestParam(value = "userId") int userId,
+    @AccessLogAnnotation()
+    public Result generateToken(@RequestParam(value = "userId") int userId,
                                 @RequestParam(value = "expireTime") String expireTime) {
-        Map<String, Object> result = accessTokenService.generateToken(loginUser, userId, expireTime);
+        Map<String, Object> result = accessTokenService.generateToken(AuthUtils.getLoginUser(), userId, expireTime);
         return returnDataList(result);
     }
 
     /**
      * query access token list paging
      *
-     * @param loginUser login user
      * @param pageNo    page number
      * @param searchVal search value
      * @param pageSize  page size
@@ -122,9 +116,8 @@ public class AccessTokenController extends BaseController {
     @GetMapping(value = "/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_ACCESSTOKEN_LIST_PAGING_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryAccessTokenList(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                       @RequestParam("pageNo") Integer pageNo,
+    @AccessLogAnnotation()
+    public Result queryAccessTokenList(@RequestParam("pageNo") Integer pageNo,
                                        @RequestParam(value = "searchVal", required = false) String searchVal,
                                        @RequestParam("pageSize") Integer pageSize) {
 
@@ -133,14 +126,13 @@ public class AccessTokenController extends BaseController {
             return returnDataListPaging(result);
         }
         searchVal = ParameterUtils.handleEscapes(searchVal);
-        result = accessTokenService.queryAccessTokenList(loginUser, searchVal, pageNo, pageSize);
+        result = accessTokenService.queryAccessTokenList(AuthUtils.getLoginUser(), searchVal, pageNo, pageSize);
         return returnDataListPaging(result);
     }
 
     /**
      * delete access token by id
      *
-     * @param loginUser login user
      * @param id        token id
      * @return delete result code
      */
@@ -148,10 +140,9 @@ public class AccessTokenController extends BaseController {
     @PostMapping(value = "/delete")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(DELETE_ACCESS_TOKEN_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result delAccessTokenById(@RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                     @RequestParam(value = "id") int id) {
-        Map<String, Object> result = accessTokenService.delAccessTokenById(loginUser, id);
+    @AccessLogAnnotation()
+    public Result delAccessTokenById(@RequestParam(value = "id") int id) {
+        Map<String, Object> result = accessTokenService.delAccessTokenById(AuthUtils.getLoginUser(), id);
         return returnDataList(result);
     }
 
@@ -159,7 +150,6 @@ public class AccessTokenController extends BaseController {
     /**
      * update token
      *
-     * @param loginUser  login user
      * @param id         token id
      * @param userId     token for user
      * @param expireTime token expire time
@@ -170,14 +160,13 @@ public class AccessTokenController extends BaseController {
     @PostMapping(value = "/update")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(UPDATE_ACCESS_TOKEN_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result updateToken(@RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                              @RequestParam(value = "id") int id,
+    @AccessLogAnnotation()
+    public Result updateToken(@RequestParam(value = "id") int id,
                               @RequestParam(value = "userId") int userId,
                               @RequestParam(value = "expireTime") String expireTime,
                               @RequestParam(value = "token") String token) {
 
-        Map<String, Object> result = accessTokenService.updateToken(loginUser, id, userId, expireTime, token);
+        Map<String, Object> result = accessTokenService.updateToken(AuthUtils.getLoginUser(), id, userId, expireTime, token);
         return returnDataList(result);
     }
 

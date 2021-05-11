@@ -23,15 +23,12 @@ import org.apache.dolphinscheduler.api.aspect.AccessLogAnnotation;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.service.TaskRecordService;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.Constants;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -53,24 +50,22 @@ public class TaskRecordController extends BaseController {
     /**
      * query task record list page
      *
-     * @param loginUser   login user
-     * @param taskName    task name
-     * @param state       state
+     * @param taskName task name
+     * @param state state
      * @param sourceTable source table
-     * @param destTable   destination table
-     * @param taskDate    task date
-     * @param startTime   start time
-     * @param endTime     end time
-     * @param pageNo      page number
-     * @param pageSize    page size
+     * @param destTable destination table
+     * @param taskDate task date
+     * @param startTime start time
+     * @param endTime end time
+     * @param pageNo page number
+     * @param pageSize page size
      * @return task record list
      */
     @GetMapping("/list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_TASK_RECORD_LIST_PAGING_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryTaskRecordListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                            @RequestParam(value = "taskName", required = false) String taskName,
+    @AccessLogAnnotation()
+    public Result queryTaskRecordListPaging(@RequestParam(value = "taskName", required = false) String taskName,
                                             @RequestParam(value = "state", required = false) String state,
                                             @RequestParam(value = "sourceTable", required = false) String sourceTable,
                                             @RequestParam(value = "destTable", required = false) String destTable,
@@ -88,24 +83,22 @@ public class TaskRecordController extends BaseController {
     /**
      * query history task record list paging
      *
-     * @param loginUser   login user
-     * @param taskName    task name
-     * @param state       state
+     * @param taskName task name
+     * @param state state
      * @param sourceTable source table
-     * @param destTable   destination table
-     * @param taskDate    task date
-     * @param startTime   start time
-     * @param endTime     end time
-     * @param pageNo      page number
-     * @param pageSize    page size
+     * @param destTable destination table
+     * @param taskDate task date
+     * @param startTime start time
+     * @param endTime end time
+     * @param pageNo page number
+     * @param pageSize page size
      * @return history task record list
      */
     @GetMapping("/history-list-paging")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_TASK_RECORD_LIST_PAGING_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = "loginUser")
-    public Result queryHistoryTaskRecordListPaging(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                                   @RequestParam(value = "taskName", required = false) String taskName,
+    @AccessLogAnnotation()
+    public Result queryHistoryTaskRecordListPaging(@RequestParam(value = "taskName", required = false) String taskName,
                                                    @RequestParam(value = "state", required = false) String state,
                                                    @RequestParam(value = "sourceTable", required = false) String sourceTable,
                                                    @RequestParam(value = "destTable", required = false) String destTable,

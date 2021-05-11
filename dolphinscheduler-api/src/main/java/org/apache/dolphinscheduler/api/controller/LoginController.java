@@ -26,10 +26,10 @@ import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ApiException;
 import org.apache.dolphinscheduler.api.security.Authenticator;
 import org.apache.dolphinscheduler.api.service.SessionService;
+import org.apache.dolphinscheduler.api.utils.AuthUtils;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
-import org.apache.dolphinscheduler.dao.entity.User;
 
 import org.apache.commons.httpclient.HttpStatus;
 
@@ -41,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,7 +49,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * login controller
@@ -70,10 +68,10 @@ public class LoginController extends BaseController {
     /**
      * login
      *
-     * @param userName     user name
+     * @param userName user name
      * @param userPassword user password
-     * @param request      request
-     * @param response     response
+     * @param request request
+     * @param response response
      * @return login result
      */
     @ApiOperation(value = "login", notes = "LOGIN_NOTES")
@@ -120,18 +118,16 @@ public class LoginController extends BaseController {
     /**
      * sign out
      *
-     * @param loginUser login user
-     * @param request   request
+     * @param request request
      * @return sign out result
      */
     @ApiOperation(value = "signOut", notes = "SIGNOUT_NOTES")
     @PostMapping(value = "/signOut")
     @ApiException(SIGN_OUT_ERROR)
-    @AccessLogAnnotation(ignoreRequestArgs = {"loginUser", "request"})
-    public Result signOut(@ApiIgnore @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                          HttpServletRequest request) {
+    @AccessLogAnnotation(ignoreRequestArgs = {"request"})
+    public Result signOut(HttpServletRequest request) {
         String ip = getClientIpAddress(request);
-        sessionService.signOut(ip, loginUser);
+        sessionService.signOut(ip, AuthUtils.getLoginUser());
         //clear session
         request.removeAttribute(Constants.SESSION_USER);
         return success();
