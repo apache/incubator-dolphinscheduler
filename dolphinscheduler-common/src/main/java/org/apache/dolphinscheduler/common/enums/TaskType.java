@@ -51,7 +51,9 @@ public enum TaskType {
     DATAX(10, "datax"),
     CONDITIONS(11, "conditions"),
     SQOOP(12, "sqoop"),
-    WATERDROP(13, "waterdrop");
+    WATERDROP(13, "waterdrop"),
+    SWITCH(14, "switch"),
+    ;
 
     TaskType(int code, String descp){
         this.code = code;

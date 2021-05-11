@@ -20,6 +20,7 @@ package org.apache.dolphinscheduler.common.utils;
 import org.apache.dolphinscheduler.common.enums.TaskType;
 import org.apache.dolphinscheduler.common.task.AbstractParameters;
 import org.apache.dolphinscheduler.common.task.conditions.ConditionsParameters;
+import org.apache.dolphinscheduler.common.task.conditions.SwitchParameters;
 import org.apache.dolphinscheduler.common.task.datax.DataxParameters;
 import org.apache.dolphinscheduler.common.task.dependent.DependentParameters;
 import org.apache.dolphinscheduler.common.task.flink.FlinkParameters;
@@ -88,6 +89,8 @@ public class TaskParametersUtils {
                 return JSONUtils.parseObject(parameter, ConditionsParameters.class);
             case SQOOP:
                 return JSONUtils.parseObject(parameter, SqoopParameters.class);
+            case SWITCH:
+                return JSONUtils.parseObject(parameter, SwitchParameters.class);
             default:
                 return null;
         }

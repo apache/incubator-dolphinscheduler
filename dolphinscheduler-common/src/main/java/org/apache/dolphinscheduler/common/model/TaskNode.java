@@ -22,15 +22,16 @@ import org.apache.dolphinscheduler.common.enums.TaskTimeoutStrategy;
 import org.apache.dolphinscheduler.common.enums.TaskType;
 import org.apache.dolphinscheduler.common.task.TaskTimeoutParameter;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
-import org.apache.dolphinscheduler.common.utils.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 
 public class TaskNode {
@@ -311,6 +312,10 @@ public class TaskNode {
   public boolean isConditionsTask(){
     return TaskType.CONDITIONS.toString().equalsIgnoreCase(this.getType());
   }
+
+    public boolean isSwitchTask() {
+        return TaskType.SWITCH.toString().equalsIgnoreCase(this.getType());
+    }
 
   @Override
   public String toString() {
