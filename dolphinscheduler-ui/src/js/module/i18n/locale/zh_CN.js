@@ -356,6 +356,7 @@ export default {
   'Complement Data': '补数',
   'Scheduling execution': '调度执行',
   'Recovery waiting thread': '恢复等待线程',
+  'Start random task process': '任意节点恢复',
   'Submitted successfully': '提交成功',
   Executing: '正在执行',
   'Ready to pause': '准备暂停',

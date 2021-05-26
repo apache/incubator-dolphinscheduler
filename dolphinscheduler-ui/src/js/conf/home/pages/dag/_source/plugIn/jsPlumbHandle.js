@@ -271,9 +271,10 @@ JSP.prototype.initNode = function (el) {
  */
 JSP.prototype.tasksContextmenu = function (event) {
   if (this.config.isContextmenu) {
-    const routerName = router.history.current.name
+    const isDefinition = router.history.current.name === 'projects-definition-details'
     // state
-    const isOne = routerName === 'projects-definition-details' && this.dag.releaseState !== 'NOT_RELEASE'
+    // const isOne = routerName === 'projects-definition-details' && this.dag.releaseState !== 'NOT_RELEASE'
+    const isOne = true
     // hide
     const isTwo = store.state.dag.isDetails
 
@@ -287,11 +288,11 @@ JSP.prototype.tasksContextmenu = function (event) {
     const operationHtml = () => {
       return html.splice(',')
     }
-
     const e = event
     const $id = e.currentTarget.id
     const $contextmenu = $('#contextmenu')
     const $name = $(`#${$id}`).find('.name-p').text()
+    const $taskId = $(`#${$id}`).attr('data-state-id')
     const $left = e.pageX + document.body.scrollLeft - 5
     const $top = e.pageY + document.body.scrollTop - 5
     $contextmenu.css({
@@ -307,9 +308,13 @@ JSP.prototype.tasksContextmenu = function (event) {
       $('#startRunning').on('click', () => {
         const name = store.state.dag.name
         const id = router.history.current.params.id
-        store.dispatch('dag/getStartCheck', { processDefinitionId: id }).then(res => {
-          this.dag.startRunning({ id: id, name: name }, $name, 'contextmenu')
-        })
+        if (isDefinition) {
+          store.dispatch('dag/getStartCheck', { processDefinitionId: id }).then(res => {
+            this.dag.startRunning({ id: id, name: name }, $name, 'contextmenu')
+          })
+        } else {
+          this.dag.startRunning({ id: id, name: name }, $taskId, 'contextmenu')
+        }
       })
     }
     if (!isTwo) {
