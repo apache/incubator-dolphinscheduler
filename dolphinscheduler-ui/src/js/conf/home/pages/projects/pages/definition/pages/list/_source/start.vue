@@ -100,7 +100,7 @@
         </el-select>
       </div>
     </div>
-    <div class="clearfix list">
+    <div class="clearfix list" v-if="!isInstance">
       <div class="text">
         {{$t('Complement Data')}}
       </div>
@@ -194,7 +194,8 @@
         workerGroup: 'default',
         // Global custom parameters
         definitionGlobalParams: [],
-        udpList: []
+        udpList: [],
+        isInstance: false
       }
     },
     mixins: [disabledState],
@@ -224,6 +225,7 @@
         }
         let param = {
           processDefinitionId: this.startData.id,
+          processInstanceId: this.startData.id,
           scheduleTime: this.scheduleTime.length && this.scheduleTime.join(',') || '',
           failureStrategy: this.failureStrategy,
           warningType: this.warningType,
@@ -240,7 +242,8 @@
         if (this.sourceType === 'contextmenu') {
           param.taskDependType = this.taskDependType
         }
-        this.store.dispatch('dag/processStart', param).then(res => {
+        const startApi = this.isInstance ? 'dag/instanceStart' : 'dag/processStart'
+        this.store.dispatch(startApi, param).then(res => {
           this.$message.success(res.msg)
           this.$emit('onUpdateStart')
           // recovery
@@ -263,10 +266,21 @@
         })
       },
       _getGlobalParams () {
-        this.store.dispatch('dag/getProcessDetails', this.startData.id).then(res => {
-          this.definitionGlobalParams = _.cloneDeep(this.store.state.dag.globalParams)
-          this.udpList = _.cloneDeep(this.store.state.dag.globalParams)
-        })
+        if (this.isInstance) {
+          this.store.dispatch('dag/getInstancedetail', this.startData.id).then(res => {
+            let globalParams = JSON.parse(res.globalParams) || []
+            globalParams = globalParams.map(g => {
+              return Object.assign(g, { ifFixed: true })
+            })
+            this.definitionGlobalParams = _.cloneDeep(globalParams)
+            this.udpList = _.cloneDeep(globalParams)
+          })
+        } else {
+          this.store.dispatch('dag/getProcessDetails', this.startData.id).then(res => {
+            this.definitionGlobalParams = _.cloneDeep(this.store.state.dag.globalParams)
+            this.udpList = _.cloneDeep(this.store.state.dag.globalParams)
+          })
+        }
       },
       ok () {
         this._start()
@@ -281,6 +295,7 @@
       }
     },
     created () {
+      this.isInstance = this.$route.name === 'projects-instance-details'
       this.warningType = this.warningTypeList[0].id
       this.workflowName = this.startData.name
       this._getGlobalParams()
