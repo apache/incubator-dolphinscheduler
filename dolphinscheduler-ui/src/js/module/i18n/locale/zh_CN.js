@@ -359,6 +359,7 @@ export default {
   'Complement Data': '补数',
   'Scheduling execution': '调度执行',
   'Recovery waiting thread': '恢复等待线程',
+  'Start random task process': '任意节点恢复',
   'Submitted successfully': '提交成功',
   Executing: '正在执行',
   'Ready to pause': '准备暂停',
@@ -688,5 +689,6 @@ export default {
   'The workflow canvas is abnormal and cannot be saved, please recreate': '该工作流画布异常，无法保存，请重新创建',
   Info: '提示',
   'Datasource userName': '所属用户',
-  'Resource userName': '所属用户'
+  'Resource userName': '所属用户',
+  condition: '条件'
 }

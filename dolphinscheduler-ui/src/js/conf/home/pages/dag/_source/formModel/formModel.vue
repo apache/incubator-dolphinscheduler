@@ -95,7 +95,7 @@
         </m-list-box>
 
         <!-- Delay execution time -->
-        <m-list-box v-if="nodeData.taskType !== 'SUB_PROCESS' && nodeData.taskType !== 'CONDITIONS' && nodeData.taskType !== 'DEPENDENT'">
+        <m-list-box v-if="nodeData.taskType !== 'SUB_PROCESS' && nodeData.taskType !== 'CONDITIONS' && nodeData.taskType !== 'DEPENDENT' && nodeData.taskType !== 'SWITCH'">
           <div slot="text">{{$t('Delay execution time')}}</div>
           <div slot="content">
             <m-select-input v-model="delayTime" :list="[0,1,5,10]"></m-select-input>
@@ -135,7 +135,7 @@
 
         <!-- Task timeout alarm -->
         <m-timeout-alarm
-          v-if="nodeData.taskType !== 'DEPENDENT'"
+          v-if="nodeData.taskType !== 'DEPENDENT' && nodeData.taskType !== 'SWITCH'"
           ref="timeout"
           :backfill-item="backfillItem"
           @on-timeout="_onTimeout">
@@ -258,6 +258,15 @@
           :backfill-item="backfillItem"
           :pre-node="nodeData.preNode">
         </m-conditions>
+        <m-switch
+          v-if="nodeData.taskType === 'SWITCH'"
+          ref="SWITCH"
+          @on-dependent="_onDependent"
+          @on-cache-dependent="_onCacheDependent"
+          :backfill-item="backfillItem"
+          :rear-list="nodeData.rearList"
+          :pre-node="nodeData.preNode">
+        </m-switch>
         <!-- Pre-tasks in workflow -->
         <m-pre-tasks
           v-if="['SHELL', 'SUB_PROCESS'].indexOf(nodeData.taskType) > -1"
@@ -293,6 +302,7 @@
   import mHttp from './tasks/http'
   import mDatax from './tasks/datax'
   import mConditions from './tasks/conditions'
+  import mSwitch from './tasks/switch'
   import mSqoop from './tasks/sqoop'
   import mSubProcess from './tasks/sub_process'
   import mSelectInput from './_source/selectInput'
@@ -543,7 +553,7 @@
           if (!this.$refs.dependentTimeout._verification()) {
             return
           }
-        } else {
+        } else if (this.nodeData.taskType !== 'SWITCH') {
           if (!this.$refs.timeout._verification()) {
             return
           }
@@ -801,6 +811,7 @@
       mDatax,
       mSqoop,
       mConditions,
+      mSwitch,
       mSelectInput,
       mTimeoutAlarm,
       mDependentTimeout,

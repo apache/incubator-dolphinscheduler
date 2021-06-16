@@ -205,7 +205,7 @@
         let fixedParam = []
         const tasks = this.store.state.dag.tasks
         for (const task of tasks) {
-          const localParam = task.params ? task.params.localParams : []
+          const localParam = task.params && task.params.localParams ? task.params.localParams : []
           localParam.forEach(l => {
             if (!fixedParam.some(f => { return f.prop === l.prop })) {
               fixedParam.push(Object.assign({

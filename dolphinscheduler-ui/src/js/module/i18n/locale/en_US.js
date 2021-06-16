@@ -359,6 +359,7 @@ export default {
   'Complement Data': 'Complement Data',
   'Scheduling execution': 'Scheduling execution',
   'Recovery waiting thread': 'Recovery waiting thread',
+  'Start random task process': 'Start random task process',
   'Submitted successfully': 'Submitted successfully',
   Executing: 'Executing',
   'Ready to pause': 'Ready to pause',
@@ -688,5 +689,6 @@ export default {
   'The workflow canvas is abnormal and cannot be saved, please recreate': 'The workflow canvas is abnormal and cannot be saved, please recreate',
   Info: 'Info',
   'Datasource userName': 'owner',
-  'Resource userName': 'owner'
+  'Resource userName': 'owner',
+  condition: 'condition'
 }

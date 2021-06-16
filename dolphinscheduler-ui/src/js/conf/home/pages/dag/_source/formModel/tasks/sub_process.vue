@@ -35,6 +35,17 @@
         </el-select>
       </div>
     </m-list-box>
+    <m-list-box>
+      <div slot="text">{{$t('Custom Parameters')}}</div>
+      <div slot="content">
+        <m-local-params
+                ref="refLocalParams"
+                @on-local-params="_onLocalParams"
+                :udp-list="localParams"
+                :hide="true">
+        </m-local-params>
+      </div>
+    </m-list-box>
   </div>
 </template>
 <script>
@@ -42,6 +53,7 @@
   import i18n from '@/module/i18n'
   import disabledState from '@/module/mixin/disabledState'
   import mListBox from './_source/listBox'
+  import mLocalParams from './_source/localParams'
 
   export default {
     name: 'sub_process',
@@ -50,14 +62,27 @@
         // Process definition(List)
         processDefinitionList: [],
         // Process definition
-        wdiCurr: null
+        wdiCurr: null,
+        // Custom parameter
+        localParams: []
       }
     },
     mixins: [disabledState],
     props: {
       backfillItem: Object
     },
+    computed: {
+      cacheParams () {
+        return {
+          processDefinitionId: this.wdiCurr,
+          localParams: this.localParams
+        }
+      }
+    },
     methods: {
+      _onLocalParams (a) {
+        this.localParams = a
+      },
       /**
        * Node unified authentication parameters
        */
@@ -66,8 +91,13 @@
           this.$message.warning(`${i18n.$t('Please select a sub-Process')}`)
           return false
         }
+        // localParams Subcomponent verification
+        if (!this.$refs.refLocalParams._verifProp()) {
+          return false
+        }
         this.$emit('on-params', {
-          processDefinitionId: this.wdiCurr
+          processDefinitionId: this.wdiCurr,
+          localParams: this.localParams
         })
         return true
       },
@@ -85,10 +115,8 @@
       }
     },
     watch: {
-      wdiCurr (val) {
-        this.$emit('on-cache-params', {
-          processDefinitionId: this.wdiCurr
-        })
+      cacheParams (val) {
+        this.$emit('on-cache-params', val)
       }
     },
     created () {
@@ -114,6 +142,11 @@
       // Non-null objects represent backfill
       if (!_.isEmpty(o)) {
         this.wdiCurr = o.params.processDefinitionId
+        // backfill localParams
+        let localParams = o.params.localParams || []
+        if (localParams.length) {
+          this.localParams = localParams
+        }
       } else {
         if (this.processDefinitionList.length) {
           this.wdiCurr = this.processDefinitionList[0].id
@@ -123,6 +156,6 @@
     },
     mounted () {
     },
-    components: { mListBox }
+    components: { mLocalParams, mListBox }
   }
 </script>
