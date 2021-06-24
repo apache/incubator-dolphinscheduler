@@ -48,6 +48,7 @@ import org.apache.dolphinscheduler.common.utils.OSUtils;
 import org.apache.dolphinscheduler.common.utils.ParameterUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
 import org.apache.dolphinscheduler.common.utils.VarPoolUtils;
+import org.apache.dolphinscheduler.dao.entity.ProcessDefinition;
 import org.apache.dolphinscheduler.dao.entity.ProcessInstance;
 import org.apache.dolphinscheduler.dao.entity.ProjectUser;
 import org.apache.dolphinscheduler.dao.entity.Schedule;
@@ -323,6 +324,8 @@ public class MasterExecThread implements Runnable {
             }
             // flow end
             // execute next process instance complement data
+            ProcessDefinition processDefinition = processService.findProcessDefineById(processDefinitionId);
+            processInstance.setProcessDefinition(processDefinition);
             processInstance.setScheduleTime(scheduleDate);
             if (cmdParam.containsKey(Constants.CMD_PARAM_RECOVERY_START_NODE_STRING)) {
                 cmdParam.remove(Constants.CMD_PARAM_RECOVERY_START_NODE_STRING);
