@@ -17,8 +17,9 @@
 
 package org.apache.dolphinscheduler.data.quality.flow.writer;
 
-import org.apache.dolphinscheduler.data.quality.configuration.WriterParameter;
-import org.apache.dolphinscheduler.data.quality.context.DataQualityContext;
+import org.apache.dolphinscheduler.data.quality.config.WriterConfig;
+import org.apache.dolphinscheduler.data.quality.flow.batch.BatchWriter;
+import org.apache.dolphinscheduler.data.quality.flow.batch.writer.WriterFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +35,15 @@ public class WriterFactoryTest {
     @Test
     public void testWriterGenerate() {
 
-        DataQualityContext context = new DataQualityContext();
-        List<WriterParameter> writerParameters = new ArrayList<>();
-        WriterParameter writerParameter = new WriterParameter();
-        writerParameter.setType("JDBC");
-        writerParameter.setConfig(null);
-        writerParameters.add(writerParameter);
-        context.setWriterParamList(writerParameters);
+        List<WriterConfig> writerConfigs = new ArrayList<>();
+        WriterConfig writerConfig = new WriterConfig();
+        writerConfig.setType("JDBC");
+        writerConfig.setConfig(null);
+        writerConfigs.add(writerConfig);
 
         int flag = 0;
         try {
-            List<IWriter> writers = WriterFactory.getInstance().getWriters(context);
+            List<BatchWriter> writers = WriterFactory.getInstance().getWriters(null,writerConfigs);
             if (writers != null && writers.size() >= 1) {
                 flag = 1;
             }

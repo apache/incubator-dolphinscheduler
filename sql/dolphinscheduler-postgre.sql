@@ -897,7 +897,7 @@ CREATE TABLE t_ds_dq_rule_input_entry (
     field varchar(255) NULL DEFAULT NULL::character varying,
     "type" int4 NULL,
     title varchar(255) NULL DEFAULT NULL::character varying,
-    value varchar(255) NULL DEFAULT NULL::character varying,
+    value varchar(255) NULL DEFAULT NULL::character varying
     "options" text NULL DEFAULT NULL::character varying,
     placeholder varchar(255) NULL DEFAULT NULL::character varying,
     option_source_type int4 NULL,

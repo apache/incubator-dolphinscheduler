@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter;
+package org.apache.dolphinscheduler.data.quality.config;
+
+import org.apache.dolphinscheduler.data.quality.utils.Preconditions;
+import org.apache.dolphinscheduler.data.quality.utils.StringUtils;
 
 import java.util.List;
 
@@ -24,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * DataQualityConfiguration
  */
-public class DataQualityConfiguration {
+public class DataQualityConfiguration implements IConfig {
 
     @JsonProperty("name")
     private String name;
@@ -42,16 +45,6 @@ public class DataQualityConfiguration {
     private List<WriterConfig> writerConfigs;
 
     public DataQualityConfiguration(){}
-
-    public DataQualityConfiguration(String name,
-                                    List<ReaderConfig> readerConfigs,
-                                    List<WriterConfig> writerConfigs,
-                                    List<TransformerConfig> transformerConfigs) {
-        this.name = name;
-        this.readerConfigs = readerConfigs;
-        this.writerConfigs = writerConfigs;
-        this.transformerConfigs = transformerConfigs;
-    }
 
     public DataQualityConfiguration(String name,
                                     EnvConfig envConfig,
@@ -103,6 +96,28 @@ public class DataQualityConfiguration {
 
     public void setWriterConfigs(List<WriterConfig> writerConfigs) {
         this.writerConfigs = writerConfigs;
+    }
+
+    @Override
+    public void validate() {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(name), "name should not be empty");
+
+        Preconditions.checkArgument(envConfig != null, "env config should not be empty");
+
+        Preconditions.checkArgument(readerConfigs != null, "reader config should not be empty");
+        for (ReaderConfig readerConfig : readerConfigs) {
+            readerConfig.validate();
+        }
+
+        Preconditions.checkArgument(transformerConfigs != null, "transform config should not be empty");
+        for (TransformerConfig transformParameter : transformerConfigs) {
+            transformParameter.validate();
+        }
+
+        Preconditions.checkArgument(writerConfigs != null, "writer config should not be empty");
+        for (WriterConfig writerConfig :writerConfigs) {
+            writerConfig.validate();
+        }
     }
 
     @Override

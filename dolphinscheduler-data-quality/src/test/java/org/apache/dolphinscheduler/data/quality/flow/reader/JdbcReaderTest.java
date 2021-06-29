@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.data.quality.flow.writer;
+package org.apache.dolphinscheduler.data.quality.flow.reader;
 
 import static org.apache.dolphinscheduler.data.quality.Constants.DATABASE;
 import static org.apache.dolphinscheduler.data.quality.Constants.DRIVER;
@@ -27,7 +27,6 @@ import static org.apache.dolphinscheduler.data.quality.Constants.USER;
 import org.apache.dolphinscheduler.data.quality.config.Config;
 import org.apache.dolphinscheduler.data.quality.flow.FlowTestBase;
 import org.apache.dolphinscheduler.data.quality.flow.batch.reader.JdbcReader;
-import org.apache.dolphinscheduler.data.quality.flow.batch.writer.JdbcWriter;
 
 import java.sql.Connection;
 import java.util.HashMap;
@@ -37,51 +36,42 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * JdbcWriterTest
+ * JdbcConnectorTest
  */
-public class JdbcWriterTest extends FlowTestBase {
+public class JdbcReaderTest extends FlowTestBase {
 
     @Before
     public void before() {
         super.before();
-        createWriterTable();
+        createConnectorTable();
     }
 
     @Test
-    public void testJdbcWriterExecute() {
-
-        JdbcReader jdbcConnector = new JdbcReader(buildJdbcReaderConfig());
-        JdbcWriter jdbcWriter = new JdbcWriter(buildJdbcConfig());
-        jdbcWriter.write(jdbcConnector.read(sparkRuntimeEnvironment),sparkRuntimeEnvironment);
+    public void testJdbcConnectorExecute() {
+        JdbcReader jdbcConnector = new JdbcReader(buildReaderConfig());
+        jdbcConnector.read(sparkRuntimeEnvironment);
     }
 
-    private Config buildJdbcConfig() {
+    private Config buildReaderConfig() {
         Map<String,Object> config = new HashMap<>();
         config.put(DATABASE,"test");
-        config.put(TABLE,"test.test2");
+        config.put(TABLE,"test.test1");
         config.put(URL,url);
         config.put(USER,"test");
         config.put(PASSWORD,"123456");
         config.put(DRIVER,driver);
-        config.put("save_mode","append");
         return new Config(config);
     }
 
-    private Config buildJdbcReaderConfig() {
-        Config config = buildJdbcConfig();
-        config.put("sql","SELECT '1' as company,'1' as date,'2' as c1,'2' as c2,'2' as c3, 2 as c4");
-        return config;
-    }
-
-    private void createWriterTable() {
+    private void createConnectorTable() {
         try {
             Connection connection = getConnection();
             connection.prepareStatement("create schema if not exists test").executeUpdate();
 
-            connection.prepareStatement("drop table if exists test.test2").executeUpdate();
+            connection.prepareStatement("drop table if exists test.test1").executeUpdate();
             connection
                     .prepareStatement(
-                            "CREATE TABLE test.test2 (\n"
+                            "CREATE TABLE test.test1 (\n"
                                     + "  `id` int(11) NOT NULL AUTO_INCREMENT,\n"
                                     + "  `company` varchar(255) DEFAULT NULL,\n"
                                     + "  `date` varchar(255) DEFAULT NULL,\n"
@@ -92,7 +82,13 @@ public class JdbcWriterTest extends FlowTestBase {
                                     + "  PRIMARY KEY (`id`)\n"
                                     + ")")
                     .executeUpdate();
-            connection.prepareStatement("set schema test").executeUpdate();
+            connection.prepareStatement("INSERT INTO test.test1 (company,`date`,c1,c2,c3,c4) VALUES\n"
+                    + "\t ('1','2019-03-01','11','12','13',1),\n"
+                    + "\t ('2','2019-06-01','21','22','23',1),\n"
+                    + "\t ('3','2019-09-01','31','32','33',1),\n"
+                    + "\t ('4','2019-12-01','41','42','43',1),\n"
+                    + "\t ('5','2013','42','43','54',1),\n"
+                    + "\t ('6','2020','42','43','54',1);").executeUpdate();
             connection.commit();
         } catch (Exception e) {
             e.printStackTrace();

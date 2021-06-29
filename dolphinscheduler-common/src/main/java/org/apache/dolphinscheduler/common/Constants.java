@@ -960,7 +960,9 @@ public final class Constants {
     public static final String URL = "url";
     public static final String DRIVER = "driver";
     public static final String SQL = "sql";
-
+    public static final String INPUT_TABLE = "input_table";
+    public static final String OUTPUT_TABLE = "output_table";
+    public static final String TMP_TABLE = "tmp_table";
 
     /**
      * session timeout

@@ -15,32 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.data.quality;
+package org.apache.dolphinscheduler.data.quality.flow.batch;
 
-import org.apache.dolphinscheduler.data.quality.config.Config;
 import org.apache.dolphinscheduler.data.quality.execution.SparkRuntimeEnvironment;
+import org.apache.dolphinscheduler.data.quality.flow.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 
 /**
- * SparkApplicationTestBase
+ * BatchReader
  */
-public class SparkApplicationTestBase {
+public interface BatchReader extends Component {
 
-    protected SparkRuntimeEnvironment sparkRuntimeEnvironment;
-
-    @Before
-    public void before() {
-        Map<String,Object> config = new HashMap<>();
-        config.put("spark.app.name","data quality test");
-        config.put("spark.sql.crossJoin.enabled","true");
-        config.put("spark.driver.bindAddress","127.0.0.1");
-        config.put("spark.ui.port",13000);
-        config.put("spark.master","local[4]");
-
-        sparkRuntimeEnvironment = new SparkRuntimeEnvironment(new Config(config));
-    }
+    /**
+     * read data from source return dataset
+     * @param env env
+     * @return Dataset<Row>
+     */
+    Dataset<Row> read(SparkRuntimeEnvironment env);
 }

@@ -17,11 +17,15 @@
 
 package org.apache.dolphinscheduler.data.quality.context;
 
-import org.apache.dolphinscheduler.data.quality.configuration.ConnectorParameter;
-import org.apache.dolphinscheduler.data.quality.configuration.ExecutorParameter;
-import org.apache.dolphinscheduler.data.quality.configuration.WriterParameter;
-
-import org.apache.spark.sql.SparkSession;
+import org.apache.dolphinscheduler.data.quality.config.DataQualityConfiguration;
+import org.apache.dolphinscheduler.data.quality.exception.DataQualityException;
+import org.apache.dolphinscheduler.data.quality.execution.SparkRuntimeEnvironment;
+import org.apache.dolphinscheduler.data.quality.flow.batch.BatchReader;
+import org.apache.dolphinscheduler.data.quality.flow.batch.BatchTransformer;
+import org.apache.dolphinscheduler.data.quality.flow.batch.BatchWriter;
+import org.apache.dolphinscheduler.data.quality.flow.batch.reader.ReaderFactory;
+import org.apache.dolphinscheduler.data.quality.flow.batch.transformer.TransformerFactory;
+import org.apache.dolphinscheduler.data.quality.flow.batch.writer.WriterFactory;
 
 import java.util.List;
 
@@ -30,56 +34,34 @@ import java.util.List;
  */
 public class DataQualityContext {
 
-    private SparkSession sparkSession;
+    private SparkRuntimeEnvironment sparkRuntimeEnvironment;
 
-    private List<ConnectorParameter> connectorParameterList;
-
-    private List<ExecutorParameter> executorParameterList;
-
-    private List<WriterParameter> writerParamList;
+    private DataQualityConfiguration dataQualityConfiguration;
 
     public DataQualityContext() {
     }
 
-    public DataQualityContext(SparkSession sparkSession,
-                              List<ConnectorParameter> connectorParameterList,
-                              List<ExecutorParameter> executorParameterList,
-                              List<WriterParameter> writerParamList) {
-        this.sparkSession = sparkSession;
-        this.connectorParameterList = connectorParameterList;
-        this.executorParameterList = executorParameterList;
-        this.writerParamList = writerParamList;
+    public DataQualityContext(SparkRuntimeEnvironment sparkRuntimeEnvironment,
+                              DataQualityConfiguration dataQualityConfiguration) {
+        this.sparkRuntimeEnvironment = sparkRuntimeEnvironment;
+        this.dataQualityConfiguration = dataQualityConfiguration;
     }
 
-    public SparkSession getSparkSession() {
-        return sparkSession;
-    }
+    public void execute() throws DataQualityException {
+        List<BatchReader> readers = ReaderFactory
+                .getInstance()
+                .getReaders(this.sparkRuntimeEnvironment,dataQualityConfiguration.getReaderConfigs());
+        List<BatchTransformer> transformers = TransformerFactory
+                .getInstance()
+                .getTransformer(this.sparkRuntimeEnvironment,dataQualityConfiguration.getTransformerConfigs());
+        List<BatchWriter> writers = WriterFactory
+                .getInstance()
+                .getWriters(this.sparkRuntimeEnvironment,dataQualityConfiguration.getWriterConfigs());
 
-    public void setSparkSession(SparkSession sparkSession) {
-        this.sparkSession = sparkSession;
-    }
-
-    public List<ConnectorParameter> getConnectorParameterList() {
-        return connectorParameterList;
-    }
-
-    public void setConnectorParameterList(List<ConnectorParameter> connectorParameterList) {
-        this.connectorParameterList = connectorParameterList;
-    }
-
-    public List<ExecutorParameter> getExecutorParameterList() {
-        return executorParameterList;
-    }
-
-    public void setExecutorParameterList(List<ExecutorParameter> executorParameterList) {
-        this.executorParameterList = executorParameterList;
-    }
-
-    public List<WriterParameter> getWriterParamList() {
-        return writerParamList;
-    }
-
-    public void setWriterParamList(List<WriterParameter> writerParamList) {
-        this.writerParamList = writerParamList;
+        if (sparkRuntimeEnvironment.isBatch()) {
+            sparkRuntimeEnvironment.getBatchExecution().execute(readers,transformers,writers);
+        } else {
+            throw new DataQualityException("stream mode is not supported now");
+        }
     }
 }

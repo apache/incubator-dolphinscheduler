@@ -15,32 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.data.quality;
+package org.apache.dolphinscheduler.data.quality.config;
 
-import org.apache.dolphinscheduler.data.quality.config.Config;
-import org.apache.dolphinscheduler.data.quality.execution.SparkRuntimeEnvironment;
-
-import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-
 /**
- * SparkApplicationTestBase
+ * EnvConfig
  */
-public class SparkApplicationTestBase {
+public class EnvConfig extends BaseConfig {
 
-    protected SparkRuntimeEnvironment sparkRuntimeEnvironment;
-
-    @Before
-    public void before() {
-        Map<String,Object> config = new HashMap<>();
-        config.put("spark.app.name","data quality test");
-        config.put("spark.sql.crossJoin.enabled","true");
-        config.put("spark.driver.bindAddress","127.0.0.1");
-        config.put("spark.ui.port",13000);
-        config.put("spark.master","local[4]");
-
-        sparkRuntimeEnvironment = new SparkRuntimeEnvironment(new Config(config));
+    public EnvConfig() {
     }
+
+    public EnvConfig(String type, Map<String,Object> config) {
+        super(type,config);
+    }
+
 }

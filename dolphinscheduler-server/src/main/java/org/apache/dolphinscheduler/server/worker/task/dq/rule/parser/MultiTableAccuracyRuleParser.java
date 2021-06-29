@@ -28,10 +28,11 @@ import org.apache.dolphinscheduler.dao.entity.DqRuleExecuteSql;
 import org.apache.dolphinscheduler.server.entity.DataQualityTaskExecutionContext;
 import org.apache.dolphinscheduler.server.utils.RuleParserUtils;
 import org.apache.dolphinscheduler.server.worker.task.dq.rule.RuleManager;
-import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.ConnectorParameter;
 import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.DataQualityConfiguration;
-import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.ExecutorParameter;
-import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.WriterParameter;
+import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.EnvConfig;
+import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.ReaderConfig;
+import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.TransformerConfig;
+import org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter.WriterConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,9 +53,10 @@ public class MultiTableAccuracyRuleParser implements IRuleParser {
         inputParameterValue.put(STATISTICS_TABLE,statisticsSql.getTableAlias());
 
         int index = 1;
-        List<ConnectorParameter> connectorParameterList =
-                RuleParserUtils.getConnectorParameterList(inputParameterValue,context);
-        List<ExecutorParameter> executorParameterList = new ArrayList<>();
+
+        List<ReaderConfig> readerConfigList =
+                RuleParserUtils.getReaderConfigList(inputParameterValue,context);
+        List<TransformerConfig> transformerConfigList = new ArrayList<>();
 
         List<MappingColumn> mappingColumnList = RuleParserUtils.getMappingColumnList(inputParameterValue.get(MAPPING_COLUMNS));
 
@@ -65,21 +67,24 @@ public class MultiTableAccuracyRuleParser implements IRuleParser {
 
         index = RuleParserUtils.replaceExecuteSqlPlaceholder(
                 context.getExecuteSqlList(),
-                                index,
-                                inputParameterValue,
-                                executorParameterList);
-
-        List<WriterParameter> writerParameterList = RuleParserUtils.getWriterParameterList(
                 index,
                 inputParameterValue,
-                executorParameterList,
+                transformerConfigList);
+
+        List<WriterConfig> writerConfigList = RuleParserUtils.getWriterConfigList(
+                index,
+                inputParameterValue,
+                transformerConfigList,
                 context,
                 RuleManager.DEFAULT_COMPARISON_WRITER_SQL);
+        EnvConfig envConfig = new EnvConfig();
+        envConfig.setType("batch");
 
         return new DataQualityConfiguration(
                 context.getRuleName(),
-                connectorParameterList,
-                writerParameterList,
-                executorParameterList);
+                envConfig,
+                readerConfigList,
+                writerConfigList,
+                transformerConfigList);
     }
 }

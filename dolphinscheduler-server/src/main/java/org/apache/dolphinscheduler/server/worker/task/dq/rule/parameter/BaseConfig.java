@@ -15,32 +15,45 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.data.quality;
+package org.apache.dolphinscheduler.server.worker.task.dq.rule.parameter;
 
-import org.apache.dolphinscheduler.data.quality.config.Config;
-import org.apache.dolphinscheduler.data.quality.execution.SparkRuntimeEnvironment;
-
-import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * SparkApplicationTestBase
+ * BaseConfig
  */
-public class SparkApplicationTestBase {
+public class BaseConfig {
 
-    protected SparkRuntimeEnvironment sparkRuntimeEnvironment;
+    @JsonProperty("type")
+    private String type;
 
-    @Before
-    public void before() {
-        Map<String,Object> config = new HashMap<>();
-        config.put("spark.app.name","data quality test");
-        config.put("spark.sql.crossJoin.enabled","true");
-        config.put("spark.driver.bindAddress","127.0.0.1");
-        config.put("spark.ui.port",13000);
-        config.put("spark.master","local[4]");
+    @JsonProperty("config")
+    private Map<String,Object> config;
 
-        sparkRuntimeEnvironment = new SparkRuntimeEnvironment(new Config(config));
+    public BaseConfig() {
     }
+
+    public BaseConfig(String type, Map<String,Object> config) {
+        this.type = type;
+        this.config = config;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Map<String, Object> getConfig() {
+        return config;
+    }
+
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
+    }
+
 }

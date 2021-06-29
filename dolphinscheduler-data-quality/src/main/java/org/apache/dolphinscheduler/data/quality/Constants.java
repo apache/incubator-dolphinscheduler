@@ -47,4 +47,11 @@ public final class Constants {
     public static final String SQL = "sql";
 
     public static final String DOTS = ".";
+
+    public static final String INPUT_TABLE = "input_table";
+
+    public static final String OUTPUT_TABLE = "output_table";
+
+    public static final String TMP_TABLE = "tmp_table";
+
 }

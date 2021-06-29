@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.data.quality.configuration;
 
+import org.apache.dolphinscheduler.data.quality.config.DataQualityConfiguration;
 import org.apache.dolphinscheduler.data.quality.utils.JsonUtils;
 
 import org.junit.Assert;
@@ -35,49 +36,20 @@ public class ConfigurationParserTest {
     private int verifyConfigurationValidate() {
         int flag = 1;
         try {
-            String parameterStr = "{\n"
-                    + "\t\"name\": \"\\u81EA\\u5B9A\\u4E49SQL\",\n"
-                    + "\t\"connectors\": [{\n"
-                    + "\t\t\"type\": \"JDBC\",\n"
-                    + "\t\t\"config\": {\n"
-                    + "\t\t\t\"database\": \"test\",\n"
-                    + "\t\t\t\"password\": \"123456\",\n"
-                    + "\t\t\t\"driver\": \"com.mysql.jdbc.Driver\",\n"
-                    + "\t\t\t\"user\": \"test\",\n"
-                    + "\t\t\t\"table\": \"test1\",\n"
-                    + "\t\t\t\"url\": \"jdbc:mysql://localhost:3306/test\"\n"
-                    + "\t\t}\n"
-                    + "\t}],\n"
-                    + "\t\"writers\": [{\n"
-                    + "\t\t\"type\": \"JDBC\",\n"
-                    + "\t\t\"config\": {\n"
-                    + "\t\t\t\"database\": \"dolphinscheduler\",\n"
-                    + "\t\t\t\"password\": \"Test@123!\",\n"
-                    + "\t\t\t\"driver\": \"com.mysql.jdbc.Driver\",\n"
-                    + "\t\t\t\"user\": \"test\",\n"
-                    + "\t\t\t\"table\": \"t_ds_dqs_result\",\n"
-                    + "\t\t\t\"url\": \"jdbc:mysql://localhost:3306/dolphinscheduler?characterEncoding=UTF-8&allowMultiQueries=true\",\n"
-                    + "\t\t\t\"sql\": \"SELECT 1 as rule_type,"
-                    + "'\\u81EA\\u5B9A\\u4E49SQL' as rule_name,"
-                    + "18 as process_definition_id,"
-                    + "64 as process_instance_id,"
-                    + "70 as task_instance_id,"
-                    + "mySum AS statistics_value, "
-                    + "total_count.total AS comparison_value,"
-                    + "0 as check_type,"
-                    + "6 as threshold, "
-                    + "0 as operator, "
-                    + "0 as failure_strategy, "
-                    + "'2021-01-31 15:00:07' as create_time,"
-                    + "'2021-01-31 15:00:07' as update_time from ( select sum(c4) as mySum from test1 ) tmp1 join total_count\"\n"
-                    + "\t\t}\n"
-                    + "\t}],\n"
-                    + "\t\"executors\": [{\n"
-                    + "\t\t\"index\": \"1\",\n"
-                    + "\t\t\"execute.sql\": \"SELECT COUNT(*) AS total FROM test1 WHERE (c3 != '55')\",\n"
-                    + "\t\t\"table.alias\": \"total_count\"\n"
-                    + "\t}]\n"
-                    + "}";
+            String parameterStr = "{\"name\":\"data quality test\",\"env\":{\"type\":\"batch\",\"config\":null},"
+                    + "\"readers\":[{\"type\":\"JDBC\",\"config\":{\"database\":\"test\",\"password\":\"Test@123!\","
+                    + "\"driver\":\"com.mysql.jdbc.Driver\",\"user\":\"test\",\"output_table\":\"test1\",\"table\":\"test1\","
+                    + "\"url\":\"jdbc:mysql://172.16.100.199:3306/test\"} }],\"transformers\":[{\"type\":\"sql\",\"config\":"
+                    + "{\"index\":1,\"output_table\":\"miss_count\",\"sql\":\"SELECT COUNT(*) AS miss FROM test1 WHERE (c1 is null or c1 = '') \"} },"
+                    + "{\"type\":\"sql\",\"config\":{\"index\":2,\"output_table\":\"total_count\",\"sql\":\"SELECT COUNT(*) AS total FROM test1 \"} }],"
+                    + "\"writers\":[{\"type\":\"JDBC\",\"config\":{\"database\":\"dolphinscheduler\",\"password\":\"test\","
+                    + "\"driver\":\"org.postgresql.Driver\",\"user\":\"test\",\"table\":\"t_ds_dq_execute_result\","
+                    + "\"url\":\"jdbc:postgresql://172.16.100.199:5432/dolphinscheduler?stringtype=unspecified\","
+                    + "\"sql\":\"SELECT 0 as rule_type,'data quality test' as rule_name,7 as process_definition_id,80 as process_instance_id,"
+                    + "80 as task_instance_id,miss_count.miss AS statistics_value, total_count.total AS comparison_value,2 as check_type,10 as"
+                    + " threshold, 3 as operator, 0 as failure_strategy, '2021-06-29 10:18:59' as create_time,'2021-06-29 10:18:59' as update_time "
+                    + "from miss_count FULL JOIN total_count\"} }]}";
+
             DataQualityConfiguration dataQualityConfiguration = JsonUtils.fromJson(parameterStr,DataQualityConfiguration.class);
             dataQualityConfiguration.validate();
         } catch (Exception e) {

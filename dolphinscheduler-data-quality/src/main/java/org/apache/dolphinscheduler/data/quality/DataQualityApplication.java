@@ -17,20 +17,13 @@
 
 package org.apache.dolphinscheduler.data.quality;
 
-import org.apache.dolphinscheduler.data.quality.configuration.DataQualityConfiguration;
+import org.apache.dolphinscheduler.data.quality.config.Config;
+import org.apache.dolphinscheduler.data.quality.config.DataQualityConfiguration;
+import org.apache.dolphinscheduler.data.quality.config.EnvConfig;
 import org.apache.dolphinscheduler.data.quality.context.DataQualityContext;
-import org.apache.dolphinscheduler.data.quality.exception.DataQualityException;
-import org.apache.dolphinscheduler.data.quality.flow.DataQualityTask;
-import org.apache.dolphinscheduler.data.quality.flow.connector.ConnectorFactory;
-import org.apache.dolphinscheduler.data.quality.flow.executor.SparkSqlExecuteTask;
-import org.apache.dolphinscheduler.data.quality.flow.writer.WriterFactory;
+import org.apache.dolphinscheduler.data.quality.execution.SparkRuntimeEnvironment;
 import org.apache.dolphinscheduler.data.quality.utils.JsonUtils;
-
-import org.apache.spark.SparkConf;
-import org.apache.spark.sql.SparkSession;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.dolphinscheduler.data.quality.utils.StringUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,32 +52,15 @@ public class DataQualityApplication {
             dataQualityConfiguration.validate();
         }
 
-        SparkConf conf = new SparkConf().setAppName(dataQualityConfiguration.getName());
-        conf.set("spark.sql.crossJoin.enabled", "true");
-        SparkSession sparkSession = SparkSession.builder().config(conf).enableHiveSupport().getOrCreate();
-
-        DataQualityContext context = new DataQualityContext(
-                sparkSession,
-                dataQualityConfiguration.getConnectorParameters(),
-                dataQualityConfiguration.getExecutorParameters(),
-                dataQualityConfiguration.getWriterParams());
-
-        execute(buildDataQualityFlow(context));
-        sparkSession.stop();
-    }
-
-    private static List<DataQualityTask> buildDataQualityFlow(DataQualityContext context) throws DataQualityException {
-        List<DataQualityTask> taskList =
-                new ArrayList<>(ConnectorFactory.getInstance().getConnectors(context));
-        taskList.add(new SparkSqlExecuteTask(context.getSparkSession(),context.getExecutorParameterList()));
-        taskList.addAll(WriterFactory.getInstance().getWriters(context));
-
-        return taskList;
-    }
-
-    private static void execute(List<DataQualityTask> taskList) {
-        for (DataQualityTask task: taskList) {
-            task.execute();
+        EnvConfig envConfig = dataQualityConfiguration.getEnvConfig();
+        Config config = new Config(envConfig.getConfig());
+        config.put("type",envConfig.getType());
+        if (StringUtils.isEmpty(config.getString("spark.app.name"))) {
+            config.put("spark.app.name",dataQualityConfiguration.getName());
         }
+
+        SparkRuntimeEnvironment sparkRuntimeEnvironment = new SparkRuntimeEnvironment(config);
+        DataQualityContext dataQualityContext = new DataQualityContext(sparkRuntimeEnvironment,dataQualityConfiguration);
+        dataQualityContext.execute();
     }
 }
