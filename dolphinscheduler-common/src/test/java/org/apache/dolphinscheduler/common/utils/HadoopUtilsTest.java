@@ -16,6 +16,7 @@
  */
 package org.apache.dolphinscheduler.common.utils;
 
+import java.lang.reflect.Method;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
@@ -24,7 +25,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -216,5 +216,20 @@ public class HadoopUtilsTest {
             logger.error(e.getMessage(), e);
         }
         logger.info(Arrays.toString(content));
+    }
+
+    @Test
+    public void testGetApplicationUrl() {
+        Class<HadoopUtils> hadoopUtilsClass = HadoopUtils.class;
+        try {
+            Method method = hadoopUtilsClass.getDeclaredMethod("getApplicationUrl", new Class[]{String.class});
+            method.setAccessible(true);
+            Object[] args = {"11111"};
+            HadoopUtils hadoopUtils = HadoopUtils.getInstance();
+            hadoopUtils.close();
+            method.invoke(hadoopUtils, args);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 }

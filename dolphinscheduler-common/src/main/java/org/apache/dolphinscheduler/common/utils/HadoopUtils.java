@@ -409,6 +409,7 @@ public class HadoopUtils implements Closeable {
         }
 
         String result = Constants.FAILED;
+        String resultState = Constants.RUNNING;
         String applicationUrl = getApplicationUrl(applicationId);
         if (logger.isDebugEnabled()) {
             logger.debug("generate yarn application url, applicationUrl={}", applicationUrl);
@@ -421,6 +422,7 @@ public class HadoopUtils implements Closeable {
                 return ExecutionStatus.FAILURE;
             }
             result = jsonObject.path("app").path("finalStatus").asText();
+            resultState = jsonObject.path("app").path("state").asText();
 
         } else {
             //may be in job history
@@ -446,6 +448,10 @@ public class HadoopUtils implements Closeable {
                 return ExecutionStatus.SUBMITTED_SUCCESS;
             case Constants.SUCCEEDED:
                 return ExecutionStatus.SUCCESS;
+            case Constants.UNDEFINED:
+                if (resultState.equals(Constants.FINISHED)) {
+                    return ExecutionStatus.FAILURE;
+                }
             case Constants.NEW:
             case Constants.NEW_SAVING:
             case Constants.SUBMITTED:
