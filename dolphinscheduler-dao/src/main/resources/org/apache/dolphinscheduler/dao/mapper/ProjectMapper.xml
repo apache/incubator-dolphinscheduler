@@ -88,7 +88,10 @@
             )
         </if>
         <if test="searchName!=null and searchName != ''">
-            and p.name like concat('%', #{searchName}, '%')
+            AND (p.name LIKE concat('%', #{searchName}, '%')
+            OR p.description LIKE concat('%', #{searchName}, '%')
+            OR user_name LIKE concat('%', #{searchName}, '%')
+            )
         </if>
         order by p.create_time desc
     </select>
@@ -132,7 +135,8 @@
              union select id as project_id  from t_ds_project where user_id=#{userId})
     </select>
 
-    <select id="queryProjectWithUserByProcessInstanceId" resultType="org.apache.dolphinscheduler.dao.entity.ProjectUser">
+    <select id="queryProjectWithUserByProcessInstanceId"
+            resultType="org.apache.dolphinscheduler.dao.entity.ProjectUser">
         select
             dp.id project_id,
             dp.name project_name,

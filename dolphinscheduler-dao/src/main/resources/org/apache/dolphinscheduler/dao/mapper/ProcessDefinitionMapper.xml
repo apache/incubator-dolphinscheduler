@@ -80,7 +80,10 @@
         left join t_ds_user tu on td.user_id = tu.id
         where td.project_code = #{projectCode}
         <if test=" searchVal != null and searchVal != ''">
-            and td.name like concat('%', #{searchVal}, '%')
+            AND (td.name like concat('%', #{searchVal}, '%')
+            OR td.description like concat('%', #{searchVal}, '%')
+            OR td.modify_by like concat('%', #{searchVal}, '%')
+            )
         </if>
         <if test=" userId != 0">
             and td.user_id = #{userId}
