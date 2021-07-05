@@ -407,6 +407,9 @@ public abstract class AbstractCommandExecutor {
                     if (logger.isDebugEnabled()) {
                         logger.debug("check yarn application status, appId:{}, final state:{}", appId, applicationStatus.name());
                     }
+                    //Try again 10 times every 15 seconds
+                    applicationStatus = retryExecutionStatus(appId,applicationStatus);
+                    //Judge the state again
                     if (applicationStatus.equals(ExecutionStatus.FAILURE)
                         || applicationStatus.equals(ExecutionStatus.KILL)) {
                         return false;
@@ -423,9 +426,27 @@ public abstract class AbstractCommandExecutor {
             result = false;
         }
         return result;
-
     }
-
+    
+    /**
+     *
+     * @param appId
+     * @return appId ExecutionStatus
+     * @throws Exception
+     */
+    private ExecutionStatus retryExecutionStatus(String appId,ExecutionStatus applicationStatus) throws Exception {
+        for (int i = 0; i < 10; i++) {
+            applicationStatus = HadoopUtils.getInstance().getApplicationStatus(appId);
+            if (applicationStatus.equals(ExecutionStatus.FAILURE)
+                    || applicationStatus.equals(ExecutionStatus.KILL)) {
+                ThreadUtils.sleep(10000);
+            } else {
+                break;
+            }
+        }
+        return applicationStatus;
+    }
+    
     public int getProcessId() {
         return getProcessId(process);
     }
