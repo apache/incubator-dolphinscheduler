@@ -54,8 +54,6 @@ public class ParamUtilsTest {
 
     /**
      * Init params
-     *
-     * @throws Exception
      */
     @Before
     public void setUp() throws Exception {
@@ -94,18 +92,20 @@ public class ParamUtilsTest {
         //The expected value
         String expected = "{\"varPool\":{\"prop\":\"local_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"},"
                 + "\"global_param\":{\"prop\":\"global_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"},"
-                + "\"local_param\":{\"prop\":\"local_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"}}";
+                + "\"local_param\":{\"prop\":\"local_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"},"
+                + "\"system.datetime\":{\"prop\":\"system.datetime\",\"direct\":null,\"type\":null,\"value\":\"20191230120000\"}}";
         //The expected value when globalParams is null but localParams is not null
         String expected1 = "{\"varPool\":{\"prop\":\"local_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"},"
                 + "\"global_param\":{\"prop\":\"global_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"},"
-                + "\"local_param\":{\"prop\":\"local_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"}}";
+                + "\"local_param\":{\"prop\":\"local_param\",\"direct\":\"IN\",\"type\":\"VARCHAR\",\"value\":\"20191229\"},"
+                + "\"system.datetime\":{\"prop\":\"system.datetime\",\"direct\":null,\"type\":null,\"value\":\"20191230120000\"}}";
         //Define expected date , the month is 0-base
         Calendar calendar = Calendar.getInstance();
-        calendar.set(2019, 11, 30);
+        calendar.set(2019, 11, 30, 12, 0, 0);
         Date date = calendar.getTime();
 
         //Invoke convert
-        Map<String, Property> paramsMap = ParamUtils.convert(globalParams, globalParamsMap, localParams, varPoolParams,CommandType.START_PROCESS, date);
+        Map<String, Property> paramsMap = ParamUtils.convert(globalParams, globalParamsMap, localParams, varPoolParams, CommandType.START_PROCESS, date);
         String result = JSONUtils.toJsonString(paramsMap);
         assertEquals(expected, result);
 
@@ -117,12 +117,12 @@ public class ParamUtilsTest {
         }
 
         //Invoke convert with null globalParams
-        Map<String, Property> paramsMap1 = ParamUtils.convert(null, globalParamsMap, localParams,varPoolParams, CommandType.START_PROCESS, date);
+        Map<String, Property> paramsMap1 = ParamUtils.convert(null, globalParamsMap, localParams, varPoolParams, CommandType.START_PROCESS, date);
         String result1 = JSONUtils.toJsonString(paramsMap1);
         assertEquals(expected1, result1);
 
         //Null check, invoke convert with null globalParams and null localParams
-        Map<String, Property> paramsMap2 = ParamUtils.convert(null, globalParamsMap, null, varPoolParams,CommandType.START_PROCESS, date);
+        Map<String, Property> paramsMap2 = ParamUtils.convert(null, globalParamsMap, null, varPoolParams, CommandType.START_PROCESS, date);
         assertNull(paramsMap2);
     }
 
