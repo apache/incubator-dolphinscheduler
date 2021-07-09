@@ -166,9 +166,7 @@ public class DataxTask extends AbstractTask {
             String jsonFilePath = buildDataxJsonFile(paramsMap);
             String shellCommandFilePath = buildShellCommandFile(jsonFilePath, paramsMap);
             CommandExecuteResult commandExecuteResult = shellCommandExecutor.run(shellCommandFilePath);
-
             setExitStatusCode(commandExecuteResult.getExitStatusCode());
-            setAppIds(commandExecuteResult.getAppIds());
             setProcessId(commandExecuteResult.getProcessId());
         } catch (Exception e) {
             setExitStatusCode(Constants.EXIT_CODE_FAILURE);

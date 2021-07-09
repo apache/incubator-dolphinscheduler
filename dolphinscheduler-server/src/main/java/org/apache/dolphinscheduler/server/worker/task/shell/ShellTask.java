@@ -103,7 +103,6 @@ public class ShellTask extends AbstractTask {
             // construct process
             CommandExecuteResult commandExecuteResult = shellCommandExecutor.run(buildCommand());
             setExitStatusCode(commandExecuteResult.getExitStatusCode());
-            setAppIds(commandExecuteResult.getAppIds());
             setProcessId(commandExecuteResult.getProcessId());
             shellParameters.dealOutParam(shellCommandExecutor.getVarPool());
         } catch (Exception e) {

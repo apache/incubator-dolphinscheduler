@@ -60,10 +60,6 @@ import org.slf4j.Logger;
  * abstract command executor
  */
 public abstract class AbstractCommandExecutor {
-    /**
-     * rules for extracting application ID
-     */
-    protected static final Pattern APPLICATION_REGEX = Pattern.compile(Constants.APPLICATION_REGEX);
 
     protected StringBuilder varPool = new StringBuilder();
     /**
@@ -204,17 +200,10 @@ public abstract class AbstractCommandExecutor {
 
         // if SHELL task exit
         if (status) {
-            // set appIds
-            List<String> appIds = getAppIds(taskExecutionContext.getLogPath());
-            result.setAppIds(String.join(Constants.COMMA, appIds));
 
             // SHELL task state
             result.setExitStatusCode(process.exitValue());
 
-            // if yarn task , yarn state is final state
-            if (process.exitValue() == 0) {
-                result.setExitStatusCode(isSuccessOfYarnState(appIds) ? EXIT_CODE_SUCCESS : EXIT_CODE_FAILURE);
-            }
         } else {
             logger.error("process has failure , exitStatusCode:{}, processExitValue:{}, ready to kill ...",
                  result.getExitStatusCode(), process.exitValue());
@@ -391,116 +380,9 @@ public abstract class AbstractCommandExecutor {
         parseProcessOutputExecutorService.shutdown();
     }
 
-    /**
-     * check yarn state
-     *
-     * @param appIds application id list
-     * @return is success of yarn task state
-     */
-    public boolean isSuccessOfYarnState(List<String> appIds) {
-        boolean result = true;
-        try {
-            for (String appId : appIds) {
-                logger.info("check yarn application status, appId:{}", appId);
-                while (Stopper.isRunning()) {
-                    ExecutionStatus applicationStatus = HadoopUtils.getInstance().getApplicationStatus(appId);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("check yarn application status, appId:{}, final state:{}", appId, applicationStatus.name());
-                    }
-                    if (applicationStatus.equals(ExecutionStatus.FAILURE)
-                        || applicationStatus.equals(ExecutionStatus.KILL)) {
-                        return false;
-                    }
-
-                    if (applicationStatus.equals(ExecutionStatus.SUCCESS)) {
-                        break;
-                    }
-                    ThreadUtils.sleep(Constants.SLEEP_TIME_MILLIS);
-                }
-            }
-        } catch (Exception e) {
-            logger.error("yarn applications: {} , query status failed, exception:{}", StringUtils.join(appIds, ","), e);
-            result = false;
-        }
-        return result;
-
-    }
 
     public int getProcessId() {
         return getProcessId(process);
-    }
-
-    /**
-     * get app links
-     *
-     * @param logPath log path
-     * @return app id list
-     */
-    private List<String> getAppIds(String logPath) {
-        List<String> logs = convertFile2List(logPath);
-
-        List<String> appIds = new ArrayList<>();
-        /**
-         * analysis log?get submited yarn application id
-         */
-        for (String log : logs) {
-            String appId = findAppId(log);
-            if (StringUtils.isNotEmpty(appId) && !appIds.contains(appId)) {
-                logger.info("find app id: {}", appId);
-                appIds.add(appId);
-            }
-        }
-        return appIds;
-    }
-
-    /**
-     * convert file to list
-     *
-     * @param filename file name
-     * @return line list
-     */
-    private List<String> convertFile2List(String filename) {
-        List lineList = new ArrayList<String>(100);
-        File file = new File(filename);
-
-        if (!file.exists()) {
-            return lineList;
-        }
-
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), StandardCharsets.UTF_8));
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                lineList.add(line);
-            }
-        } catch (Exception e) {
-            logger.error(String.format("read file: %s failed : ", filename), e);
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-
-        }
-        return lineList;
-    }
-
-    /**
-     * find app id
-     *
-     * @param line line
-     * @return appid
-     */
-    private String findAppId(String line) {
-        Matcher matcher = APPLICATION_REGEX.matcher(line);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return null;
     }
 
     /**

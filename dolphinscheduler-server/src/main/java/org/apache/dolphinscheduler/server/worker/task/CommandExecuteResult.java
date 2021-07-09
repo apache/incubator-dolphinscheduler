@@ -27,10 +27,6 @@ public class CommandExecuteResult {
      */
     private Integer exitStatusCode;
 
-    /**
-     *  appIds
-     */
-    private String appIds;
 
     /**
      * process id
@@ -51,13 +47,6 @@ public class CommandExecuteResult {
         this.exitStatusCode = exitStatusCode;
     }
 
-    public String getAppIds() {
-        return appIds;
-    }
-
-    public void setAppIds(String appIds) {
-        this.appIds = appIds;
-    }
 
     public Integer getProcessId() {
         return processId;

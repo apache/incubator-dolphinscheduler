@@ -90,7 +90,6 @@ public class PythonTask extends AbstractTask {
             CommandExecuteResult commandExecuteResult = pythonCommandExecutor.run(buildCommand());
 
             setExitStatusCode(commandExecuteResult.getExitStatusCode());
-            setAppIds(commandExecuteResult.getAppIds());
             setProcessId(commandExecuteResult.getProcessId());
             pythonParameters.dealOutParam(pythonCommandExecutor.getVarPool());
         }

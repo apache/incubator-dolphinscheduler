@@ -29,7 +29,6 @@ import org.apache.dolphinscheduler.service.bean.SpringApplicationContext;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,7 +95,7 @@ public class ShellTaskTest {
         PowerMockito.mockStatic(Files.class);
         PowerMockito.when(Files.exists(Paths.get(anyString()))).thenReturn(true);
         commandExecuteResult = new CommandExecuteResult();
-        commandExecuteResult.setAppIds("appId");
+
         commandExecuteResult.setExitStatusCode(0);
         commandExecuteResult.setProcessId(1);
     }
@@ -106,8 +105,6 @@ public class ShellTaskTest {
         shellTask = new ShellTask(taskExecutionContext, logger);
         shellTask.init();
         shellTask.getParameters().setVarPool(taskExecutionContext.getVarPool());
-        shellCommandExecutor.isSuccessOfYarnState(new ArrayList<>());
-        shellCommandExecutor.isSuccessOfYarnState(null);
         PowerMockito.when(shellCommandExecutor.run(anyString())).thenReturn(commandExecuteResult);
         shellTask.handle();
     }

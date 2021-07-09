@@ -96,7 +96,7 @@ public class ShellTaskReturnTest {
         PowerMockito.mockStatic(Files.class);
         PowerMockito.when(Files.exists(Paths.get(anyString()))).thenReturn(true);
         commandExecuteResult = new CommandExecuteResult();
-        commandExecuteResult.setAppIds("appId");
+
         commandExecuteResult.setExitStatusCode(0);
         commandExecuteResult.setProcessId(1);
     }
