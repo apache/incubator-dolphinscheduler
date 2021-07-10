@@ -33,6 +33,8 @@ import org.apache.dolphinscheduler.dao.mapper.AlertPluginInstanceMapper;
 import org.apache.dolphinscheduler.dao.mapper.PluginDefineMapper;
 import org.apache.dolphinscheduler.spi.params.PluginParamsTransfer;
 
+import org.apache.commons.collections.MapUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -253,7 +255,15 @@ public class AlertPluginInstanceServiceImpl extends BaseServiceImpl implements A
      * @return Complete parameters list(include ui)
      */
     private String parseToPluginUiParams(String pluginParamsMapString, String pluginUiParams) {
+        // todo: serialize to PluginParams list
         List<Map<String, Object>> pluginParamsList = PluginParamsTransfer.generatePluginParams(pluginParamsMapString, pluginUiParams);
+        pluginParamsList.forEach(pluginParamMap -> {
+            Map<String, String> props = (Map<String, String>) pluginParamMap.get("props");
+            if (MapUtils.isNotEmpty(props) && "password".equals(props.get("type"))) {
+                // hide the password
+                pluginParamMap.remove("value");
+            }
+        });
         return JSONUtils.toJsonString(pluginParamsList);
     }
 

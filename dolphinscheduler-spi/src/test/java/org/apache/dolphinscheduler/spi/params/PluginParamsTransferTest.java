@@ -144,7 +144,7 @@ public class PluginParamsTransferTest {
                 + "ptions\":[{\"label\":\"YES\",\"value\":true,\"disabled\":false},{\"label\":\"NO\",\"value\":false,\"disabled\":false}]},{\"field\":\"field7\",\"name\":\"fi"
                 + "eld7\",\"props\":{\"placeholder\":\"if enable use authentication, you need input user\",\"size\":\"small\"},\"type\":\"input\",\"title\":\"field7\",\"v"
                 + "alue\":null,\"validate\":null},{\"field\":\"field8\",\"name\":\"field8\",\"props\":{\"placeholder\":\"if enable use authentication, you need input p"
-                + "assword\",\"size\":\"small\"},\"type\":\"input\",\"title\":\"field8\",\"value\":null,\"validate\":null},{\"field\":\"field9\",\"name\":\"field9\",\"pr"
+                + "assword\",\"size\":\"small\",\"type\":\"password\"},\"type\":\"input\",\"title\":\"field8\",\"value\":null,\"validate\":null},{\"field\":\"field9\",\"name\":\"field9\",\"pr"
                 + "ops\":{\"placeholder\":null,\"size\":\"small\"},\"type\":\"radio\",\"title\":\"field9\",\"value\":false,\"validate\":[{\"required\":true,\"mes"
                 + "sage\":null,\"type\":\"string\",\"trigger\":\"blur\",\"min\":null,\"max\":null}],\"options\":[{\"label\":\"YES\",\"value\":true,\"disa"
                 + "bled\":false},{\"label\":\"NO\",\"value\":false,\"disabled\":false}]},{\"field\":\"field10\",\"name\":\"field10\",\"props\":{\"placeh"

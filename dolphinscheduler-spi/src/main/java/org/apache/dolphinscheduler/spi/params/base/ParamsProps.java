@@ -17,6 +17,8 @@
 
 package org.apache.dolphinscheduler.spi.params.base;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -27,6 +29,8 @@ public class ParamsProps {
     private String placeholder;
 
     private String size = "small";
+
+    private String inputType;
 
     public void setSize(String size) {
         this.size = size;
@@ -42,8 +46,19 @@ public class ParamsProps {
         return placeholder;
     }
 
+    @JsonProperty("type")
+    @JsonInclude(value = Include.NON_NULL)
+    public String getInputType() {
+        return inputType;
+    }
+
     public ParamsProps setPlaceholder(String placeholder) {
         this.placeholder = placeholder;
+        return this;
+    }
+
+    public ParamsProps setInputType(String inputType) {
+        this.inputType = inputType;
         return this;
     }
 
