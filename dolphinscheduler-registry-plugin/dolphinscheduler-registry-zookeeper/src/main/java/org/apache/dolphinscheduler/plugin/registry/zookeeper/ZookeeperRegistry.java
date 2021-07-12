@@ -137,42 +137,42 @@ public class ZookeeperRegistry implements Registry {
 
     @Override
     public boolean subscribe(String path, SubscribeListener subscribeListener) {
-        if (null != treeCacheMap.get(path)) {
-            return false;
-        }
-        TreeCache treeCache = new TreeCache(client, path);
-        TreeCacheListener treeCacheListener = (client, event) -> {
-            TreeCacheEvent.Type type = event.getType();
-            DataChangeEvent eventType = null;
-            String dataPath = null;
-            switch (type) {
-                case NODE_ADDED:
+        if (!treeCacheMap.containsKey(path)) {
+            TreeCache treeCache = new TreeCache(client, path);
+            TreeCacheListener treeCacheListener = (client, event) -> {
+                TreeCacheEvent.Type type = event.getType();
+                DataChangeEvent eventType = null;
+                String dataPath = null;
+                switch (type) {
+                    case NODE_ADDED:
 
-                    dataPath = event.getData().getPath();
-                    eventType = DataChangeEvent.ADD;
-                    break;
-                case NODE_UPDATED:
-                    eventType = DataChangeEvent.UPDATE;
-                    dataPath = event.getData().getPath();
+                        dataPath = event.getData().getPath();
+                        eventType = DataChangeEvent.ADD;
+                        break;
+                    case NODE_UPDATED:
+                        eventType = DataChangeEvent.UPDATE;
+                        dataPath = event.getData().getPath();
 
-                    break;
-                case NODE_REMOVED:
-                    eventType = DataChangeEvent.REMOVE;
-                    dataPath = event.getData().getPath();
-                    break;
-                default:
+                        break;
+                    case NODE_REMOVED:
+                        eventType = DataChangeEvent.REMOVE;
+                        dataPath = event.getData().getPath();
+                        break;
+                    default:
+                }
+                if (null != eventType && null != dataPath) {
+                    ListenerManager.dataChange(path, dataPath, eventType);
+                }
+            };
+            treeCache.getListenable().addListener(treeCacheListener);
+            treeCacheMap.put(path, treeCache);
+            try {
+                treeCache.start();
+            } catch (Exception e) {
+                throw new RegistryException("start zookeeper tree cache error", e);
             }
-            if (null != eventType && null != dataPath) {
-                ListenerManager.dataChange(path, dataPath, eventType);
-            }
-        };
-        treeCache.getListenable().addListener(treeCacheListener);
-        treeCacheMap.put(path, treeCache);
-        try {
-            treeCache.start();
-        } catch (Exception e) {
-            throw new RegistryException("start zookeeper tree cache error", e);
         }
+        // todo: check if the listener is already exist
         ListenerManager.addListener(path, subscribeListener);
         return true;
     }

@@ -35,7 +35,7 @@ public interface Registry {
     void close();
 
     /**
-     * subscribe registry data change, a path can only be monitored by one listener
+     * subscribe registry data change
      */
     boolean subscribe(String path, SubscribeListener subscribeListener);
 

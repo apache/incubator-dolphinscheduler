@@ -118,6 +118,12 @@ public class ZookeeperRegistryTest {
         public void notify(String path, DataChangeEvent dataChangeEvent) {
             logger.info("I'm test listener");
         }
+
+        @Override
+        public int getOrder() {
+            return 0;
+        }
+
     }
 
     @After

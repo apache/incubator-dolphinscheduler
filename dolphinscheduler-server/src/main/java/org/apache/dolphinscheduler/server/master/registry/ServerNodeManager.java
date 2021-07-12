@@ -17,9 +17,6 @@
 
 package org.apache.dolphinscheduler.server.master.registry;
 
-import static org.apache.dolphinscheduler.common.Constants.REGISTRY_DOLPHINSCHEDULER_MASTERS;
-import static org.apache.dolphinscheduler.common.Constants.REGISTRY_DOLPHINSCHEDULER_WORKERS;
-
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.NodeType;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
@@ -134,11 +131,11 @@ public class ServerNodeManager implements InitializingBean {
         /**
          * init MasterNodeListener listener
          */
-        registryClient.subscribe(REGISTRY_DOLPHINSCHEDULER_MASTERS, new MasterDataListener());
+        registryClient.subscribe(Constants.REGISTRY_DOLPHINSCHEDULER_NODE, new MasterDataListener(Integer.MAX_VALUE));
         /**
          * init WorkerNodeListener listener
          */
-        registryClient.subscribe(REGISTRY_DOLPHINSCHEDULER_WORKERS, new MasterDataListener());
+        registryClient.subscribe(Constants.REGISTRY_DOLPHINSCHEDULER_NODE, new WorkerGroupNodeListener(Integer.MAX_VALUE));
     }
 
     /**
@@ -194,7 +191,13 @@ public class ServerNodeManager implements InitializingBean {
     /**
      * worker group node listener
      */
-    class WorkerGroupNodeListener implements SubscribeListener {
+    public class WorkerGroupNodeListener implements SubscribeListener {
+
+        private Integer order;
+
+        public WorkerGroupNodeListener(Integer order) {
+            this.order = order;
+        }
 
         @Override
         public void notify(String path, DataChangeEvent dataChangeEvent) {
@@ -222,9 +225,14 @@ public class ServerNodeManager implements InitializingBean {
             }
         }
 
+        @Override
+        public int getOrder() {
+            return order;
+        }
+
         private String parseGroup(String path) {
             String[] parts = path.split("/");
-            if (parts.length < 6) {
+            if (parts.length < 5) {
                 throw new IllegalArgumentException(String.format("worker group path : %s is not valid, ignore", path));
             }
             return parts[parts.length - 2];
@@ -236,6 +244,13 @@ public class ServerNodeManager implements InitializingBean {
      * master node listener
      */
     class MasterDataListener implements SubscribeListener {
+
+        private Integer order;
+
+        public MasterDataListener(Integer order) {
+            this.order = order;
+        }
+
         @Override
         public void notify(String path, DataChangeEvent dataChangeEvent) {
             if (registryClient.isMasterPath(path)) {
@@ -256,6 +271,12 @@ public class ServerNodeManager implements InitializingBean {
                 }
             }
         }
+
+        @Override
+        public int getOrder() {
+            return order;
+        }
+
     }
 
     /**

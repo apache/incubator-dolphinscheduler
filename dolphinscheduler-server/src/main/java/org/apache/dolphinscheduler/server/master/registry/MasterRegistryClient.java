@@ -119,7 +119,7 @@ public class MasterRegistryClient {
                 removeNodePath(null, NodeType.MASTER, true);
                 removeNodePath(null, NodeType.WORKER, true);
             }
-            registryClient.subscribe(REGISTRY_DOLPHINSCHEDULER_NODE, new MasterRegistryDataListener());
+            registryClient.subscribe(REGISTRY_DOLPHINSCHEDULER_NODE, new MasterRegistryDataListener(this));
         } catch (Exception e) {
             logger.error("master start up exception", e);
         } finally {

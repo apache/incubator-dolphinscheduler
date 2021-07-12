@@ -975,6 +975,7 @@
                         <include>**/server/master/dispatch/host/assign/RoundRobinSelectorTest.java</include>
                         <include>**/server/master/dispatch/host/assign/HostWorkerTest.java</include>
                         <include>**/server/master/registry/MasterRegistryClientTest.java</include>
+                        <include>**/server/master/registry/MasterRegistryDataListenerTest.java</include>
                         <include>**/server/master/registry/ServerNodeManagerTest.java</include>
                         <include>**/server/master/dispatch/host/assign/RoundRobinHostManagerTest.java</include>
                         <include>**/server/master/MasterCommandTest.java</include>
@@ -1073,6 +1074,7 @@
                         <include>**/plugin/alert/slack/SlackAlertPluginTest.java</include>
                         <include>**/plugin/alert/slack/SlackSenderTest.java</include>
                         <include>**/spi/params/PluginParamsTransferTest.java</include>
+                        <include>**/spi/register/ListenerManagerTest.java</include>
                         <include>**/spi/plugin/DolphinSchedulerPluginLoaderTest.java</include>
                         <include>**/alert/plugin/EmailAlertPluginTest.java</include>
                         <include>**/alert/plugin/AlertPluginManagerTest.java</include>

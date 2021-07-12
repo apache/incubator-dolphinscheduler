@@ -17,7 +17,10 @@
 
 package org.apache.dolphinscheduler.spi.register;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * The registry node monitors subscriptions
@@ -28,7 +31,7 @@ public class ListenerManager {
      * All message subscriptions must be subscribed uniformly at startup.
      * A node path only supports one listener
      */
-    private static HashMap<String, SubscribeListener> listeners = new HashMap<>();
+    private static HashMap<String, List<SubscribeListener>> listeners = new HashMap<>();
 
     /**
      * Check whether the key has been monitored
@@ -40,8 +43,10 @@ public class ListenerManager {
     /**
      * add listener(A node can only be monitored by one listener)
      */
-    public static void addListener(String path, SubscribeListener listener) {
-        listeners.put(path, listener);
+    public static void addListener(String key, SubscribeListener listener) {
+        List<SubscribeListener> subscribeListeners = listeners.computeIfAbsent(key, k -> new ArrayList<>());
+        subscribeListeners.add(listener);
+        subscribeListeners.sort(Comparator.reverseOrder());
     }
 
     /**
@@ -56,11 +61,14 @@ public class ListenerManager {
      *After the data changes, it is distributed to the corresponding listener for processing
      */
     public static void dataChange(String key,String path, DataChangeEvent dataChangeEvent) {
-        SubscribeListener notifyListener = listeners.get(key);
-        if (null == notifyListener) {
+        List<SubscribeListener> notifyListeners = listeners.get(key);
+        if (null == notifyListeners) {
             return;
         }
-        notifyListener.notify(path,dataChangeEvent);
+        for (SubscribeListener notifyListener : notifyListeners) {
+            notifyListener.notify(path, dataChangeEvent);
+        }
+
     }
 
 }

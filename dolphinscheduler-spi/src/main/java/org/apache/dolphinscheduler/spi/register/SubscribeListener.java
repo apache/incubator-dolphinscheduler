@@ -20,11 +20,24 @@ package org.apache.dolphinscheduler.spi.register;
 /**
  * Registration center subscription. All listeners must implement this interface
  */
-public interface SubscribeListener {
+public interface SubscribeListener extends Comparable<SubscribeListener> {
 
     /**
      * Processing logic when the subscription node changes
      */
     void notify(String path, DataChangeEvent dataChangeEvent);
 
+    /**
+     * When multiple listeners listen to one event, the high order will be execute first.
+     * The default order is 0
+     *
+     * @return order
+     */
+    default int getOrder() {
+        return 0;
+    }
+
+    default int compareTo(SubscribeListener subscribeListener) {
+        return this.getOrder() - subscribeListener.getOrder();
+    }
 }

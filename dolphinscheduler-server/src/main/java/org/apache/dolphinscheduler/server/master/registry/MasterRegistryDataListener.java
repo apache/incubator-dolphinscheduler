@@ -22,7 +22,6 @@ import static org.apache.dolphinscheduler.common.Constants.REGISTRY_DOLPHINSCHED
 
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.NodeType;
-import org.apache.dolphinscheduler.service.bean.SpringApplicationContext;
 import org.apache.dolphinscheduler.spi.register.DataChangeEvent;
 import org.apache.dolphinscheduler.spi.register.SubscribeListener;
 
@@ -33,12 +32,18 @@ public class MasterRegistryDataListener implements SubscribeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(MasterRegistryDataListener.class);
 
-    private MasterRegistryClient masterRegistryClient;
+    private final MasterRegistryClient masterRegistryClient;
 
-    public MasterRegistryDataListener() {
-        masterRegistryClient = SpringApplicationContext.getBean(MasterRegistryClient.class);
+    private final int order;
+
+    public MasterRegistryDataListener(MasterRegistryClient masterRegistryClient) {
+        this(masterRegistryClient, 0);
     }
 
+    public MasterRegistryDataListener(MasterRegistryClient masterRegistryClient, int order) {
+        this.masterRegistryClient = masterRegistryClient;
+        this.order = order;
+    }
 
     @Override
     public void notify(String path, DataChangeEvent event) {
@@ -49,6 +54,11 @@ public class MasterRegistryDataListener implements SubscribeListener {
             //monitor worker
             handleWorkerEvent(event, path);
         }
+    }
+
+    @Override
+    public int getOrder() {
+        return order;
     }
 
     /**
