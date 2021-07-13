@@ -32,6 +32,8 @@ public class RegexUtils {
 
     private static final String LINUX_USERNAME_PATTERN = "[a-z_][a-z\\d_]{0,30}";
 
+    private static final String WINDOWS_USERNAME_PATTERN = "[A-Z_][A-Z\\s\\d_]{0,30}";
+
     private RegexUtils() {
     }
 
@@ -39,7 +41,6 @@ public class RegexUtils {
      * check if the input is number
      *
      * @param str input
-     * @return
      */
     public static boolean isNumeric(String str) {
         Pattern pattern = Pattern.compile(CHECK_NUMBER);
@@ -54,6 +55,16 @@ public class RegexUtils {
      */
     public static boolean isValidLinuxUserName(String str) {
         Pattern pattern = Pattern.compile(LINUX_USERNAME_PATTERN);
+        return pattern.matcher(str).matches();
+    }
+
+    /**
+     * check if the input is a valid Windows username
+     * @param str input
+     * @return boolean
+     */
+    public static boolean isValidWindowUserName(String str) {
+        Pattern pattern = Pattern.compile(WINDOWS_USERNAME_PATTERN);
         return pattern.matcher(str).matches();
     }
 

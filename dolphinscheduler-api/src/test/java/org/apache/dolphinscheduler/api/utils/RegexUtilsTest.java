@@ -58,6 +58,28 @@ public class RegexUtilsTest {
     }
 
     @Test
+    public void testIsValidWindowsUserName() {
+        String name1 = "10000";
+        Assert.assertFalse(RegexUtils.isValidWindowUserName(name1));
+
+        String name2 = "00HAyden";
+        Assert.assertFalse(RegexUtils.isValidWindowUserName(name2));
+
+        String name3 = "HAYS1234567891289123456789";
+        Assert.assertTrue(RegexUtils.isValidWindowUserName(name3));
+
+        String name4 = "HAHAHA12345678912345hjh6789123456789";
+        Assert.assertFalse(RegexUtils.isValidWindowUserName(name4));
+
+        String name5 = "A  H";
+        Assert.assertTrue(RegexUtils.isValidWindowUserName(name5));
+
+        String name6 = "    ";
+        Assert.assertFalse(RegexUtils.isValidWindowUserName(name6));
+
+    }
+
+    @Test
     public void testEscapeNRT() {
         String result1 = RegexUtils.escapeNRT("abc\n");
         Assert.assertEquals("abc_", result1);

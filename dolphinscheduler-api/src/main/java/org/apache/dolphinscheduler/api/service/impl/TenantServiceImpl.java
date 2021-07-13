@@ -70,10 +70,10 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
     /**
      * create tenant
      *
-     * @param loginUser  login user
+     * @param loginUser login user
      * @param tenantCode tenant code
-     * @param queueId    queue id
-     * @param desc       description
+     * @param queueId queue id
+     * @param desc description
      * @return create result code
      * @throws Exception exception
      */
@@ -90,7 +90,7 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
             return result;
         }
 
-        if (!RegexUtils.isValidLinuxUserName(tenantCode)) {
+        if (!RegexUtils.isValidWindowUserName(tenantCode) && !RegexUtils.isValidLinuxUserName(tenantCode)) {
             putMsg(result, Status.CHECK_OS_TENANT_CODE_ERROR);
             return result;
         }
@@ -153,11 +153,11 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
     /**
      * updateProcessInstance tenant
      *
-     * @param loginUser  login user
-     * @param id         tennat id
-     * @param tenantCode tennat code
-     * @param queueId    queue id
-     * @param desc       description
+     * @param loginUser login user
+     * @param id tenant id
+     * @param tenantCode tenant code
+     * @param queueId queue id
+     * @param desc description
      * @return update result code
      * @throws Exception exception
      */
@@ -337,7 +337,7 @@ public class TenantServiceImpl extends BaseServiceImpl implements TenantService 
      * check tenant exists
      *
      * @param tenantCode tenant code
-     * @return ture if the tenant code exists, otherwise return false
+     * @return true if the tenant code exists, otherwise return false
      */
     private boolean checkTenantExists(String tenantCode) {
         Boolean existTenant = tenantMapper.existTenant(tenantCode);

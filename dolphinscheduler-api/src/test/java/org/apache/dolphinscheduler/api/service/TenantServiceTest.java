@@ -81,13 +81,13 @@ public class TenantServiceTest {
         User loginUser = getLoginUser();
         Mockito.when(tenantMapper.existTenant(tenantCode)).thenReturn(true);
         try {
-            //check tenantCode
+            // check tenantCode
             Map<String, Object> result =
-                tenantService.createTenant(getLoginUser(), "%!1111", 1, "TenantServiceTest");
+                tenantService.createTenant(getLoginUser(), "aaa   11", 1, "TenantServiceTest");
             logger.info(result.toString());
             Assert.assertEquals(Status.CHECK_OS_TENANT_CODE_ERROR, result.get(Constants.STATUS));
 
-            //check exist
+            // check exist
             result = tenantService.createTenant(loginUser, tenantCode, 1, "TenantServiceTest");
             logger.info(result.toString());
             Assert.assertEquals(Status.OS_TENANT_CODE_EXIST, result.get(Constants.STATUS));
@@ -111,7 +111,7 @@ public class TenantServiceTest {
         page.setRecords(getList());
         page.setTotal(1L);
         Mockito.when(tenantMapper.queryTenantPaging(Mockito.any(Page.class), Mockito.eq("TenantServiceTest")))
-            .thenReturn(page);
+                .thenReturn(page);
         Map<String, Object> result = tenantService.queryTenantList(getLoginUser(), "TenantServiceTest", 1, 10);
         logger.info(result.toString());
         PageInfo<Tenant> pageInfo = (PageInfo<Tenant>) result.get(Constants.DATA_LIST);
@@ -126,7 +126,7 @@ public class TenantServiceTest {
         try {
             // id not exist
             Map<String, Object> result =
-                tenantService.updateTenant(getLoginUser(), 912222, tenantCode, 1, "desc");
+                    tenantService.updateTenant(getLoginUser(), 912222, tenantCode, 1, "desc");
             logger.info(result.toString());
             // success
             Assert.assertEquals(Status.TENANT_NOT_EXIST, result.get(Constants.STATUS));
@@ -145,7 +145,7 @@ public class TenantServiceTest {
 
         Mockito.when(tenantMapper.queryById(1)).thenReturn(getTenant());
         Mockito.when(processInstanceMapper.queryByTenantIdAndStatus(1, Constants.NOT_TERMINATED_STATES))
-            .thenReturn(getInstanceList());
+                .thenReturn(getInstanceList());
         Mockito.when(processDefinitionMapper.queryDefinitionListByTenant(2)).thenReturn(getDefinitionsList());
         Mockito.when(userMapper.queryUserListByTenant(3)).thenReturn(getUserList());
 
