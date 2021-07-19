@@ -598,10 +598,10 @@ drop PROCEDURE if EXISTS uc_dolphin_T_t_ds_datasource_A_add_UN_datasourceName;
 delimiter d//
 CREATE PROCEDURE uc_dolphin_T_t_ds_datasource_A_add_UN_datasourceName()
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
+    IF NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS
                    WHERE TABLE_NAME='t_ds_datasource'
                      AND TABLE_SCHEMA=(SELECT DATABASE())
-                     AND COLUMN_NAME ='t_ds_datasource_name_UN')
+                     AND INDEX_NAME ='t_ds_datasource_name_UN')
     THEN
         ALTER TABLE t_ds_datasource ADD UNIQUE KEY `t_ds_datasource_name_UN` (`name`, `type`);
     END IF;
