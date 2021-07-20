@@ -434,12 +434,14 @@ public class ProcessUtils {
                 }
             }
             if (StringUtils.isNotEmpty(log)) {
-                List<String> appIds = LoggerUtils.getAppIds(log, logger);
-                String workerDir = taskExecutionContext.getExecutePath();
-                if (StringUtils.isEmpty(workerDir)) {
-                    logger.error("task instance work dir is empty");
-                    throw new RuntimeException("task instance work dir is empty");
+                if (StringUtils.isEmpty(taskExecutionContext.getExecutePath())) {
+                    taskExecutionContext.setExecutePath(FileUtils.getProcessExecDir(taskExecutionContext.getProjectId(),
+                            taskExecutionContext.getProcessDefineId(),
+                            taskExecutionContext.getProcessInstanceId(),
+                            taskExecutionContext.getTaskInstanceId()));
                 }
+                FileUtils.createWorkDir(taskExecutionContext.getExecutePath());
+                List<String> appIds = LoggerUtils.getAppIds(log, logger);
                 if (CollectionUtils.isNotEmpty(appIds)) {
                     cancelApplication(appIds, logger, taskExecutionContext.getTenantCode(), taskExecutionContext.getExecutePath());
                 }
