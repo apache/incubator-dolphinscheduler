@@ -180,8 +180,8 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
      * @throws Exception
      */
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("exceptionCaught : {}", cause);
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        logger.error("exceptionCaught : {}", cause.getMessage(), cause);
         nettyRemotingClient.closeChannel(ChannelUtils.toAddress(ctx.channel()));
         ctx.channel().close();
     }
@@ -192,9 +192,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
             Command heartBeat = new Command();
             heartBeat.setType(CommandType.HEART_BEAT);
             heartBeat.setBody(heartBeatData);
-            ctx.writeAndFlush(heartBeat)
+            ctx.channel().writeAndFlush(heartBeat)
                 .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-
+            if (logger.isDebugEnabled()) {
+                logger.debug("Client send heart beat to: {}", ChannelUtils.getRemoteAddress(ctx.channel()));
+            }
         } else {
             super.userEventTriggered(ctx, evt);
         }
