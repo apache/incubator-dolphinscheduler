@@ -1091,4 +1091,17 @@ public final class Constants {
     public static final boolean DOCKER_MODE = StringUtils.isNotEmpty(System.getenv("DOCKER"));
     public static final boolean KUBERNETES_MODE = StringUtils.isNotEmpty(System.getenv("KUBERNETES_SERVICE_HOST")) && StringUtils.isNotEmpty(System.getenv("KUBERNETES_SERVICE_PORT"));
 
+    /**
+     * task parameter keys
+     */
+    public static final String TASK_PARAMS = "params";
+    public static final String TASK_PARAMS_DATASOURCE = "datasource";
+    public static final String TASK_PARAMS_DATASOURCE_NAME = "datasourceName";
+    public static final String TASK_DEPENDENCE = "dependence";
+    public static final String TASK_DEPENDENCE_DEPEND_TASK_LIST = "dependTaskList";
+    public static final String TASK_DEPENDENCE_DEPEND_ITEM_LIST = "dependItemList";
+    public static final String TASK_DEPENDENCE_PROJECT_ID = "projectId";
+    public static final String TASK_DEPENDENCE_PROJECT_NAME = "projectName";
+    public static final String TASK_DEPENDENCE_DEFINITION_ID = "definitionId";
+    public static final String TASK_DEPENDENCE_DEFINITION_NAME = "definitionName";
 }
