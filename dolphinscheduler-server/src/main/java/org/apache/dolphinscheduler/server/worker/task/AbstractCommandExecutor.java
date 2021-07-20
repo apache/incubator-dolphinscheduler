@@ -213,12 +213,6 @@ public abstract class AbstractCommandExecutor {
         // waiting for the run to finish
         boolean status = process.waitFor(remainTime, TimeUnit.SECONDS);
 
-
-        logger.info("process has exited, execute path:{}, processId:{} ,exitStatusCode:{}",
-                taskExecutionContext.getExecutePath(),
-                processId
-                , result.getExitStatusCode());
-
         // if SHELL task exit
         if (status) {
             // set appIds
@@ -238,6 +232,8 @@ public abstract class AbstractCommandExecutor {
             result.setExitStatusCode(EXIT_CODE_FAILURE);
         }
 
+        logger.info("process has exited, execute path:{}, processId:{} ,exitStatusCode:{} ,processWaitForStatus:{} ,processExitValue:{}",
+            taskExecutionContext.getExecutePath(), processId, result.getExitStatusCode(), status, process.exitValue());
 
         return result;
     }
