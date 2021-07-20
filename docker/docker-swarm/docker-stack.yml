@@ -19,14 +19,14 @@ version: "3.1"
 services:
 
   dolphinscheduler-postgresql:
-    image: bitnami/postgresql:11.11.0
+    image: postgres:11.12
     environment:
       TZ: Asia/Shanghai
-      POSTGRESQL_USERNAME: root
-      POSTGRESQL_PASSWORD: root
-      POSTGRESQL_DATABASE: dolphinscheduler
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: dolphinscheduler
     volumes:
-    - dolphinscheduler-postgresql:/bitnami/postgresql
+    - dolphinscheduler-postgresql:/var/lib/postgresql/data
     networks:
     - dolphinscheduler
     deploy:
@@ -34,13 +34,13 @@ services:
       replicas: 1
 
   dolphinscheduler-zookeeper:
-    image: bitnami/zookeeper:3.6.2
+    image: zookeeper:3.6.3
     environment:
       TZ: Asia/Shanghai
-      ALLOW_ANONYMOUS_LOGIN: "yes"
+      ZOO_DATA_LOG_DIR: /data
       ZOO_4LW_COMMANDS_WHITELIST: srvr,ruok,wchs,cons
     volumes:
-    - dolphinscheduler-zookeeper:/bitnami/zookeeper
+    - dolphinscheduler-zookeeper:/data
     networks:
     - dolphinscheduler
     deploy:

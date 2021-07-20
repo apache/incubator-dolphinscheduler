@@ -47,7 +47,21 @@ echo -e "mv $(pwd)/dolphinscheduler-dist/target/apache-dolphinscheduler-${VERSIO
 mv $(pwd)/dolphinscheduler-dist/target/apache-dolphinscheduler-${VERSION}-bin.tar.gz $(pwd)/docker/build/
 
 # docker build
-BUILD_COMMAND="docker build --build-arg VERSION=${VERSION} -t $DOCKER_REPO:${VERSION} $(pwd)/docker/build/"
+if [ "$1" = "x" ]
+then
+    # build multi-arch images with buildx
+    if !(docker buildx use dolphinscheduler &> /dev/null)
+    then
+        docker buildx create --use --name dolphinscheduler
+    fi
+    docker buildx inspect --bootstrap
+    echo ""
+    BUILD_PLATFORM=linux/amd64,linux/arm64
+    BUILD_COMMAND="docker buildx build --platform $BUILD_PLATFORM --push --build-arg VERSION=$VERSION -t $DOCKER_REPO:$VERSION $(pwd)/docker/build/"
+else
+    BUILD_COMMAND="docker build --build-arg VERSION=$VERSION -t $DOCKER_REPO:$VERSION $(pwd)/docker/build/"
+fi
+
 echo -e "$BUILD_COMMAND\n"
 if (docker info 2> /dev/null | grep -i "ERROR"); then
     sudo $BUILD_COMMAND
