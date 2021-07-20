@@ -290,6 +290,7 @@ export default {
   'Submit Time': '提交时间',
   Duration: '运行时长',
   'Retry Count': '重试次数',
+  'AppId': '应用程序执行ID',
   'Task Name': '任务名称',
   'Task Date': '任务日期',
   'Source Table': '源表',

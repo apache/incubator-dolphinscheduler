@@ -290,6 +290,7 @@ export default {
   'Submit Time': 'Submit Time',
   Duration: 'Duration',
   'Retry Count': 'Retry Count',
+  'AppId': 'Application Id',
   'Task Name': 'Task Name',
   'Task Date': 'Task Date',
   'Source Table': 'Source Table',

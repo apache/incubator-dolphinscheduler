@@ -36,8 +36,8 @@ public class LoggerUtilsTest {
 
     @Test
     public void getAppIds() {
-       List<String> appIdList =  LoggerUtils.getAppIds("Running job: application_1_1",logger);
-       Assert.assertEquals("application_1_1", appIdList.get(0));
+        List<String> appIdList = LoggerUtils.getAppIds("The url to track the job: http://AzaAaa123s456:8088/proxy/application_1624948206873_0693", logger);
+        Assert.assertEquals("http://AzaAaa123s456:8088/proxy/application_1624948206873_0693", appIdList.get(0));
 
     }
 }

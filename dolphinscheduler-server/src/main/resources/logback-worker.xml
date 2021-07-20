@@ -78,6 +78,7 @@
     <!-- skywalking log reporter end-->
 
     <root level="INFO">
+<!--        <appender-ref ref="STDOUT"/>-->
         <appender-ref ref="TASKLOGFILE"/>
         <appender-ref ref="WORKERLOGFILE"/>
         <appender-ref ref="SKYWALKING-LOG"/>

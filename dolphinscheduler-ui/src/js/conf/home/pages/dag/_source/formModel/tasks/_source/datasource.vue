@@ -30,6 +30,7 @@
       </x-select>
       <x-select :placeholder="$t('Please select the datasource')"
                 v-model="datasource"
+                filterable
                 style="width: 288px;"
                 :disabled="isDetails">
         <x-option

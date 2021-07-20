@@ -22,11 +22,11 @@
           <th scope="col" style="min-width: 50px">
             <span>{{$t('#')}}</span>
           </th>
-          <th scope="col" style="min-width: 200px;max-width: 300px;">
-            <span>{{$t('Name')}}</span>
+          <th scope="col" style="min-width: auto;max-width: 110px;">
+            <span>{{ $t('Name') }}</span>
           </th>
-          <th scope="col" style="min-width: 200px;max-width: 300px;">
-            <span>{{$t('Process Instance')}}</span>
+          <th scope="col" style="min-width: auto;max-width: 110px;">
+            <span>{{ $t('Process Instance') }}</span>
           </th>
           <th scope="col" style="min-width: 60px">
             <span>{{$t('Executor')}}</span>
@@ -37,38 +37,45 @@
           <th scope="col" style="min-width: 30px">
             <span>{{$t('State')}}</span>
           </th>
-          <th scope="col" style="min-width: 130px">
-            <span>{{$t('Submit Time')}}</span>
+          <th scope="col" style="min-width: auto;max-width: 80px">
+            <span>{{ $t('Submit Time') }}</span>
           </th>
-          <th scope="col" style="min-width: 130px">
-            <span>{{$t('Start Time')}}</span>
+          <th scope="col" style="min-width: auto ;max-width: 80px">
+            <span>{{ $t('Start Time') }}</span>
           </th>
-          <th scope="col" style="min-width: 130px">
-            <span>{{$t('End Time')}}</span>
+          <th scope="col" style="min-width: auto;max-width: 80px">
+            <span>{{ $t('End Time') }}</span>
           </th>
-          <th scope="col" style="min-width: 250px">
-            <span>{{$t('host')}}</span>
+          <th scope="col" style="min-width: auto; max-width: 100px">
+            <span>{{ $t('host') }}</span>
           </th>
-          <th scope="col" style="min-width: 70px">
-            <span>{{$t('Duration')}}</span>
+          <th scope="col" style="min-width: auto">
+            <span>{{ $t('Duration') }}</span>
           </th>
-          <th scope="col" style="min-width: 60px">
-            <div style="width: 50px">
-              <span>{{$t('Retry Count')}}</span>
+          <th scope="col" style="min-width: auto">
+            <div style="width: auto">
+              <span>{{ $t('Retry Count') }}</span>
             </div>
           </th>
-          <th scope="col" style="min-width: 60px">
-            <span>{{$t('Operation')}}</span>
+          <th scope="col" style="min-width: auto">
+            <div style="width: auto">
+              <span>{{ $t('AppId') }}</span>
+            </div>
+          </th>
+          <th scope="col" style="min-width: auto; text-align: center">
+            <span>{{ $t('Operation') }}</span>
           </th>
         </tr>
         <tr v-for="(item, $index) in list" :key="item.id">
           <td>
             <span>{{parseInt(pageNo === 1 ? ($index + 1) : (($index + 1) + (pageSize * (pageNo - 1))))}}</span>
           </td>
-          <td style="min-width: 200px;max-width: 300px;padding-right: 10px;">
-            <span class="ellipsis" :title="item.name">{{item.name}}</span>
+          <td style="min-width: auto;max-width: 110px;padding-right: 5px;">
+            <span class="ellipsis" :title="item.name">{{ item.name }}</span>
           </td>
-          <td style="min-width: 200px;max-width: 300px;padding-right: 10px;"><a href="javascript:" class="links" @click="_go(item)"><span class="ellipsis" :title="item.processInstanceName">{{item.processInstanceName}}</span></a></td>
+          <td style="min-width: auto;max-width: 110px;padding-right: 5px;"><a href="javascript:" class="links" @click="_go(item)"><span class="ellipsis"
+                                                                                                                                        :title="item.processInstanceName">{{ item.processInstanceName }}</span></a>
+          </td>
           <td>
             <span v-if="item.executorName">{{item.executorName}}</span>
             <span v-else>-</span>
@@ -80,26 +87,32 @@
             <span v-else>-</span>
           </td>
           <td>
-            <span v-if="item.startTime">{{item.startTime | formatDate}}</span>
+            <span v-if="item.startTime">{{ item.startTime | formatDate }}</span>
             <span v-else>-</span>
           </td>
           <td>
-            <span v-if="item.endTime">{{item.endTime | formatDate}}</span>
+            <span v-if="item.endTime">{{ item.endTime | formatDate }}</span>
             <span v-else>-</span>
           </td>
-          <td style="min-width: 250px"><span style="padding-right: 10px">{{item.host || '-'}}</span></td>
-          <td><span>{{item.duration || '-'}}</span></td>
-          <td><span>{{item.retryTimes}}</span></td>
-          <td>
+          <td style="min-width: 100px"><span style="padding-right: 3px">{{ item.host || '-' }}</span></td>
+          <td><span>{{ item.duration || '-' }}</span></td>
+          <td><span>{{ item.retryTimes }}</span></td>
+          <td style="min-width: auto;max-width: 180px ; padding-right: 5px;">
+            <a v-if="_getAppid(item)" href="javascript:" @click="_handleJump(item)" class="ellipsis links" style="cursor: pointer;">
+              <span :title="item.appLink">{{ _getAppid(item) }}</span>
+            </a>
+            <span v-else>-</span>
+          </td>
+          <td style="text-align: center">
             <x-button
-                    type="info"
-                    shape="circle"
-                    size="xsmall"
-                    data-toggle="tooltip"
-                    :title="$t('View log')"
-                    icon="ans-icon-log"
-                    :disabled="item.taskType==='SUB_PROCESS'? true: false"
-                    @click="_refreshLog(item)">
+              type="info"
+              shape="circle"
+              size="xsmall"
+              data-toggle="tooltip"
+              :title="$t('View log')"
+              icon="ans-icon-log"
+              :disabled="item.taskType==='SUB_PROCESS'? true: false"
+              @click="_refreshLog(item)">
             </x-button>
           </td>
         </tr>
@@ -127,11 +140,32 @@
       pageSize: Number
     },
     methods: {
-      _rtState (code) {
+      _getAppid(item) {
+        //example:  http://Ddfhjsh23hds:8088/proxy/application_1624948206873_0693/
+        if (item.appLink != null) {
+          // const appLinkStr = 'http://Ddfhjsh23hds:8088/proxy/application_1624948206873_0693/'.split('/')
+          const appLinkList = item.appLink.split('/')
+
+          const appLinkIndex = appLinkList [4]
+
+          const appLinkOfLength = appLinkList[appLinkList.length - 2]
+
+          return appLinkOfLength == appLinkIndex ? appLinkOfLength : appLinkIndex
+        }
+        return ''
+      },
+      _handleJump(item) {
+        const url = item.appLink
+        if (url == null) {
+          return
+        }
+        window.open(url)
+      },
+      _rtState(code) {
         let o = tasksState[code]
         return `<em class="${o.icoUnicode} ${o.isSpin ? 'as as-spin' : ''}" style="color:${o.color}" data-toggle="tooltip" data-container="body" title="${o.desc}"></em>`
       },
-      _refreshLog (item) {
+      _refreshLog(item) {
         let self = this
         let instance = this.$modal.dialog({
           closable: false,
@@ -139,12 +173,12 @@
           escClose: true,
           className: 'v-modal-custom',
           transitionName: 'opacityp',
-          render (h) {
+          render(h) {
             return h(mLog, {
               on: {
-                ok () {
+                ok() {
                 },
-                close () {
+                close() {
                   instance.remove()
                 }
               },
@@ -169,11 +203,11 @@
         })
       }
     },
-    created () {
+    created() {
     },
-    mounted () {
+    mounted() {
       this.list = this.taskInstanceList
     },
-    components: { }
+    components: {}
   }
 </script>
