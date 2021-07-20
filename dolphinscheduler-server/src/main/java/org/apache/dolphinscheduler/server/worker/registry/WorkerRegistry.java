@@ -110,10 +110,8 @@ public class WorkerRegistry {
                         logger.error("worker : {} connection lost from zookeeper", address);
                     } else if (newState == ConnectionState.RECONNECTED) {
                         logger.info("worker : {} reconnected to zookeeper", address);
-                        zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(workerZKPath, "");
                     } else if (newState == ConnectionState.SUSPENDED) {
                         logger.warn("worker : {} connection SUSPENDED ", address);
-                        zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(workerZKPath, "");
                     }
                 });
             logger.info("worker node : {} registry to ZK {} successfully", address, workerZKPath);

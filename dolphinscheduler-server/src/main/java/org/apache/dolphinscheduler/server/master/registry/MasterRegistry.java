@@ -90,10 +90,8 @@ public class MasterRegistry {
                     logger.error("master : {} connection lost from zookeeper", address);
                 } else if (newState == ConnectionState.RECONNECTED) {
                     logger.info("master : {} reconnected to zookeeper", address);
-                    zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(localNodePath, "");
                 } else if (newState == ConnectionState.SUSPENDED) {
                     logger.warn("master : {} connection SUSPENDED ", address);
-                    zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(localNodePath, "");
                 }
             });
         int masterHeartbeatInterval = masterConfig.getMasterHeartbeatInterval();
