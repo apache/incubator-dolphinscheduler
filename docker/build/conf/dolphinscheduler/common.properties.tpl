@@ -66,5 +66,11 @@ yarn.application.status.address=${YARN_APPLICATION_STATUS_ADDRESS}
 # system env path
 #dolphinscheduler.env.path=env/dolphinscheduler_env.sh
 
+# network interface preferred like eth0, default: empty
+#dolphin.scheduler.network.interface.preferred=
+
+# network IP gets priority, default: inner outer
+#dolphin.scheduler.network.priority.strategy=default
+
 # development state
 development.state=false
