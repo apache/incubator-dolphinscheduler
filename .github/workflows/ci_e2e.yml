@@ -45,7 +45,7 @@ jobs:
           sh ./docker/build/hooks/build
       - name: Docker Run
         run: |
-          export VERSION=$(cat $(pwd)/pom.xml | grep '<revision>' -m 1 | awk '{print $1}' | sed 's/<revision>//' | sed 's/<\/revision>//')
+          export VERSION=$(cat $(pwd)/pom.xml | grep '<version>' -m 1 | awk '{print $1}' | sed 's/<version>//' | sed 's/<\/version>//')
           sed -i "s/apache\/dolphinscheduler:latest/apache\/dolphinscheduler:${VERSION}/g" $(pwd)/docker/docker-swarm/docker-compose.yml
           docker-compose -f $(pwd)/docker/docker-swarm/docker-compose.yml up -d
       - name: Check Server Status

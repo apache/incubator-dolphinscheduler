@@ -47,8 +47,8 @@ jobs:
             ${{ runner.os }}-maven-
       - name: Bootstrap database
         run: |
-          sed -i "/image: bitnami\/postgresql/a\    ports:\n    - 5432:5432" $(pwd)/docker/docker-swarm/docker-compose.yml
-          sed -i "/image: bitnami\/zookeeper/a\    ports:\n    - 2181:2181" $(pwd)/docker/docker-swarm/docker-compose.yml
+          sed -i "/image: postgres/a\    ports:\n    - 5432:5432" $(pwd)/docker/docker-swarm/docker-compose.yml
+          sed -i "/image: zookeeper/a\    ports:\n    - 2181:2181" $(pwd)/docker/docker-swarm/docker-compose.yml
           docker-compose -f $(pwd)/docker/docker-swarm/docker-compose.yml up -d dolphinscheduler-zookeeper dolphinscheduler-postgresql
           until docker logs docker-swarm_dolphinscheduler-postgresql_1 2>&1 | grep 'listening on IPv4 address'; do echo "waiting for postgresql ready ..."; sleep 1; done
           docker run --rm --network docker-swarm_dolphinscheduler -v $(pwd)/sql/dolphinscheduler_postgre.sql:/docker-entrypoint-initdb.d/dolphinscheduler_postgre.sql bitnami/postgresql:latest bash -c "PGPASSWORD=root psql -h docker-swarm_dolphinscheduler-postgresql_1 -U root -d dolphinscheduler -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/dolphinscheduler_postgre.sql"
