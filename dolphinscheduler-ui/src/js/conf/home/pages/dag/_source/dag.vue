@@ -893,4 +893,22 @@
   .operBtn {
     padding: 8px 6px;
   }
+
+  .el-drawer__body {
+    ::selection {
+      background: #409EFF;
+      color: white;
+    }
+
+    ::-moz-selection {
+      background: #409EFF;
+      color: white;
+    }
+
+    ::-webkit-selection {
+      background: #409EFF;
+      color: white;
+    }
+  }
+
 </style>
