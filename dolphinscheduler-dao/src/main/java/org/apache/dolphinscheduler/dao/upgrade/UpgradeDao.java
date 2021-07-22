@@ -33,6 +33,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -205,6 +208,64 @@ public abstract class UpgradeDao extends AbstractBaseDao {
 
         }
 
+    }
+
+    /**
+     * getAllMirrorLists
+     * gets all mirrors in the sql/create/mirrors direstory
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static List<String> getAllMirrorList() {
+        List<String> mirrorDirList = new ArrayList<>();
+        File[] mirrorDirArr = FileUtils.getAllDir("sql/create");
+        if (mirrorDirArr == null || mirrorDirArr.length == 0) {
+            logger.info("There are no upgrade mirrors!");
+            return null;
+        } else {
+            for (File file : mirrorDirArr) {
+                if (file.getName().startsWith("m")) {
+                    mirrorDirList.add(file.getName());
+                }
+            }
+            Collections.sort(mirrorDirList, new Comparator() {
+                @Override
+                public int compare(Object o1, Object o2) {
+                    try {
+                        String dir1 = String.valueOf(o1);
+                        String dir2 = String.valueOf(o2);
+                        String v1 = dir1.split("_")[0];
+                        String version1 = v1.split("-")[1];
+                        String v2 = dir2.split("_")[0];
+                        String version2 = v2.split("-")[1];
+                        if (version1.equals(version2)) {
+                            return 0;
+                        }
+                        
+                        if (SchemaUtils.isAGreatVersion(version1, version2)) {
+                            return 1;
+                        }
+                        
+                        return -1;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage(), e);
+                    }
+                }
+            });
+            return mirrorDirList;
+        }
+    }
+
+    public static boolean isClosestMirror(String closestMirror, String version) {
+        if (StringUtils.isEmpty(closestMirror) || StringUtils.isEmpty(version)) {
+            logger.info("Closest mirror and Version are empty!");
+            return false;
+        }
+
+        String[] versionArr = version.split("\\.");
+        String closest = versionArr[0] + "." + (Integer.parseInt(versionArr[1]) + 1) + "." + 0;
+
+        return closestMirror.equals(closest);
     }
 
     /**
@@ -399,8 +460,13 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         if (StringUtils.isEmpty(rootDir)) {
             throw new RuntimeException("Environment variable user.dir not found");
         }
-        String sqlFilePath = MessageFormat.format("{0}/sql/upgrade/{1}/{2}/dolphinscheduler_dml.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
-        logger.info("sqlSQLFilePath" + sqlFilePath);
+        String sqlFilePath = "";
+        if (schemaDir.startsWith("m")) {
+            sqlFilePath = MessageFormat.format("{0}/sql/create/{1}/{2}/dolphinscheduler_dml.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
+        } else if (schemaDir.startsWith("1")) {
+            sqlFilePath = MessageFormat.format("{0}/sql/upgrade/{1}/{2}/dolphinscheduler_dml.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
+        }
+        logger.info("sqlSQLFilePath : " + sqlFilePath);
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
@@ -475,7 +541,12 @@ public abstract class UpgradeDao extends AbstractBaseDao {
         if (StringUtils.isEmpty(rootDir)) {
             throw new RuntimeException("Environment variable user.dir not found");
         }
-        String sqlFilePath = MessageFormat.format("{0}/sql/upgrade/{1}/{2}/dolphinscheduler_ddl.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
+        String sqlFilePath = "";
+        if (schemaDir.startsWith("m")) {
+            sqlFilePath = MessageFormat.format("{0}/sql/create/{1}/{2}/dolphinscheduler_ddl.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
+        } else if (schemaDir.startsWith("1")) {
+            sqlFilePath = MessageFormat.format("{0}/sql/upgrade/{1}/{2}/dolphinscheduler_ddl.sql", rootDir, schemaDir, getDbType().name().toLowerCase());
+        }
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
