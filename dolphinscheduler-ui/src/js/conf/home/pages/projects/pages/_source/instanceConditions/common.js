@@ -23,7 +23,7 @@ import i18n from '@/module/i18n'
 const stateType = [
   {
     code: '',
-    label: `${i18n.$t('none')}`
+    label: `${i18n.$t('AllStatus')}`
   }, {
     code: 'SUBMITTED_SUCCESS',
     label: `${i18n.$t('Submitted successfully')}`
