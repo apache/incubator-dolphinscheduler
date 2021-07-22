@@ -529,16 +529,44 @@
         }
       },
       _verifConditions (value) {
+        let locations = this.store.state.dag.locations
+
+        let locationsArr = Object.keys(locations).map(key => {
+          return locations[key]
+        })
+
         let tasks = value
         let bool = true
+        let bool2 = false
         tasks.map(v => {
           if (v.type === 'CONDITIONS' && (v.conditionResult.successNode[0] === '' || v.conditionResult.successNode[0] === null || v.conditionResult.failedNode[0] === '' || v.conditionResult.failedNode[0] === null)) {
             bool = false
             return false
           }
+
+          locationsArr.map(item => {
+            if (v.type === 'CONDITIONS') {
+              let successNode = v.conditionResult.successNode[0]
+              if (successNode === item.name) {
+                bool2 = true
+              }
+
+              let failNode = v.conditionResult.failedNode[0]
+              if (failNode === item.name) {
+                bool2 = true
+              }
+            }
+          })
         })
+
         if (!bool) {
           this.$message.warning(`${i18n.$t('Successful branch flow and failed branch flow are required')}`)
+          this.spinnerLoading = false
+          return false
+        }
+
+        if (!bool2) {
+          this.$message.warning(`${i18n.$t('Error branch')}`)
           this.spinnerLoading = false
           return false
         }

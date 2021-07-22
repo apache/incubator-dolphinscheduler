@@ -691,5 +691,6 @@ export default {
   'The workflow canvas is abnormal and cannot be saved, please recreate': '该工作流画布异常，无法保存，请重新创建',
   Info: '提示',
   'Datasource userName': '所属用户',
-  'Resource userName': '所属用户'
+  'Resource userName': '所属用户',
+  'Error branch': '分支流转选择错误'
 }
