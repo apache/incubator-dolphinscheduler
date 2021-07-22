@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -67,7 +68,7 @@ public abstract class AbstractCommandExecutor {
     /**
      *  log handler
      */
-    protected Consumer<List<String>> logHandler;
+    protected Consumer<LinkedBlockingQueue<String>> logHandler;
 
     /**
      *  logger
@@ -75,9 +76,11 @@ public abstract class AbstractCommandExecutor {
     protected Logger logger;
 
     /**
-     *  log list
+     * log collection
      */
-    protected final List<String> logBuffer;
+    protected final LinkedBlockingQueue<String> logBuffer;
+
+    protected boolean logOutputIsScuccess = false;
 
     /**
      * taskExecutionContext
@@ -92,13 +95,13 @@ public abstract class AbstractCommandExecutor {
      */
     private TaskExecutionContextCacheManager taskExecutionContextCacheManager;
 
-    public AbstractCommandExecutor(Consumer<List<String>> logHandler,
+    public AbstractCommandExecutor(Consumer<LinkedBlockingQueue<String>> logHandler,
                                    TaskExecutionContext taskExecutionContext ,
                                    Logger logger){
         this.logHandler = logHandler;
         this.taskExecutionContext = taskExecutionContext;
         this.logger = logger;
-        this.logBuffer = Collections.synchronizedList(new ArrayList<>());
+        this.logBuffer = new LinkedBlockingQueue<>();
         this.taskExecutionContextCacheManager = SpringApplicationContext.getBean(TaskExecutionContextCacheManagerImpl.class);
     }
 
@@ -335,15 +338,14 @@ public abstract class AbstractCommandExecutor {
      */
     private void clear() {
 
-        List<String> markerList = new ArrayList<>();
-        markerList.add(ch.qos.logback.classic.ClassicConstants.FINALIZE_SESSION_MARKER.toString());
+        LinkedBlockingQueue<String> markerLog = new LinkedBlockingQueue<>();
+        markerLog.add(ch.qos.logback.classic.ClassicConstants.FINALIZE_SESSION_MARKER.toString());
 
         if (!logBuffer.isEmpty()) {
             // log handle
             logHandler.accept(logBuffer);
-            logBuffer.clear();
         }
-        logHandler.accept(markerList);
+        logHandler.accept(markerLog);
     }
 
     /**
@@ -354,9 +356,7 @@ public abstract class AbstractCommandExecutor {
         String threadLoggerInfoName = String.format(LoggerUtils.TASK_LOGGER_THREAD_NAME + "-%s", taskExecutionContext.getTaskAppId());
         ExecutorService getOutputLogService = ThreadUtils.newDaemonSingleThreadExecutor(threadLoggerInfoName + "-" + "getOutputLogService");
         getOutputLogService.submit(() -> {
-            BufferedReader inReader = null;
-            try {
-                inReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            try (BufferedReader inReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = inReader.readLine()) != null) {
                     logBuffer.add(line);
@@ -364,8 +364,7 @@ public abstract class AbstractCommandExecutor {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             } finally {
-                logOutputIsSuccess = true;
-                close(inReader);
+                logOutputIsScuccess = true;
             }
         });
         getOutputLogService.shutdown();
@@ -454,31 +453,20 @@ public abstract class AbstractCommandExecutor {
      * @return line list
      */
     private List<String> convertFile2List(String filename) {
-        List lineList = new ArrayList<String>(100);
+        List<String> lineList = new ArrayList<>(100);
         File file=new File(filename);
 
         if (!file.exists()){
             return lineList;
         }
 
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), StandardCharsets.UTF_8));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), StandardCharsets.UTF_8))) {
             String line = null;
             while ((line = br.readLine()) != null) {
                 lineList.add(line);
             }
         } catch (Exception e) {
             logger.error(String.format("read file: %s failed : ",filename),e);
-        } finally {
-            if(br != null){
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(),e);
-                }
-            }
-
         }
         return lineList;
     }
@@ -555,25 +543,8 @@ public abstract class AbstractCommandExecutor {
             lastFlushTime = now;
             /** log handle */
             logHandler.accept(logBuffer);
-
-            logBuffer.clear();
         }
         return lastFlushTime;
-    }
-
-    /**
-     * close buffer reader
-     *
-     * @param inReader in reader
-     */
-    private void close(BufferedReader inReader) {
-        if (inReader != null) {
-            try {
-                inReader.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
     }
 
     protected List<String> commandOptions() {
