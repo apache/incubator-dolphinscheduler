@@ -262,11 +262,14 @@ public class ResourcesServiceTest {
     @Test
     public void testQueryResourceListPaging() {
         User loginUser = new User();
+        loginUser.setId(1);
         loginUser.setUserType(UserType.ADMIN_USER);
+        loginUser.setUserName("test");
         IPage<Resource> resourcePage = new Page<>(1, 10);
         resourcePage.setTotal(1);
         resourcePage.setRecords(getResourceList());
 
+        Mockito.when(userMapper.selectById(1)).thenReturn(loginUser);
         Mockito.when(resourcesMapper.queryResourcePaging(Mockito.any(Page.class),
                 Mockito.eq(0), Mockito.eq(-1), Mockito.eq(0), Mockito.eq("test"), Mockito.any())).thenReturn(resourcePage);
         Map<String, Object> result = resourcesService.queryResourceListPaging(loginUser, -1, ResourceType.FILE, "test", 1, 10);
